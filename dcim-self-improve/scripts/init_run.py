@@ -1,48 +1,70 @@
-"""Initialize a portable run from the bundled Python seed; never launch EDA."""
-
+"""Initialize a process-neutral learning run with atomic publication."""
 import argparse
-import json
 from pathlib import Path
 import re
 import shutil
-import sys
-
-
+import tempfile
+from dcim_config import load_config
+from runtime import atomic, cli, identity
 SKILL_ROOT = Path(__file__).resolve().parents[1]
-SEED_ROOT = SKILL_ROOT / "assets" / "seed"
-sys.path.insert(0, str(SEED_ROOT))
 
-from seed_config import load_config
+
+def run_destination(settings, name):
+    if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,63}', name):
+        raise ValueError('Use a simple run name beginning with a letter')
+    output = settings.ensure_output(settings.path('work_root') / name)
+    if output.exists():
+        raise FileExistsError('Run already exists: ' + str(output))
+    return output
 
 
 def initialize(config, name):
-    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,63}", name):
-        raise ValueError("Use a simple run name beginning with a letter")
     settings = load_config(config)
-    output = settings.ensure_output(settings.path("work_root") / name)
-    if output.exists():
-        raise FileExistsError(f"Run already exists: {output}")
-    local = settings.rebased(output)
-    local["work_root"] = "."
-    output.mkdir(parents=True, exist_ok=False)
-    shutil.copytree(SEED_ROOT, output / "design",
-                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.so"))
-    shutil.copytree(SKILL_ROOT / "templates", output / "templates")
-    (output / "config.json").write_text(json.dumps(local, indent=2) + "\n", encoding="utf-8")
+    output = run_destination(settings, name)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='.init-', dir=str(output.parent)) as temp:
+        staged = Path(temp) / 'run'
+        staged.mkdir()
+        for name in ('objects', 'candidates', 'requests', 'instructions'):
+            (staged / name).mkdir()
+        shutil.copytree(SKILL_ROOT / 'scripts', staged / 'scripts',
+                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+        shutil.copytree(SKILL_ROOT / 'assets/tools', staged / 'assets/tools',
+                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+        shutil.copytree(SKILL_ROOT / 'assets/tools', staged / 'design',
+                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+        instructions = {}
+        for path in [SKILL_ROOT / 'SKILL.md', SKILL_ROOT.parent / 'AGENTS.md',
+                     SKILL_ROOT.parent / 'HANDOFF.md', *sorted((SKILL_ROOT / 'references').glob('*.md'))]:
+            shutil.copyfile(path, staged / 'instructions' / path.name)
+            instructions[path.name] = identity(path.read_text(encoding='utf-8'))
+        for name in ('AGENTS.md', 'HANDOFF.md'):
+            path = SKILL_ROOT.parent.parent / name
+            if path.is_file():
+                saved_name = 'workspace-' + name
+                shutil.copyfile(path, staged / 'instructions' / saved_name)
+                instructions[saved_name] = identity(path.read_text(encoding='utf-8'))
+        local = settings.rebased(output)
+        local['work_root'] = '.'
+        atomic(staged / 'config.json', local)
+        atomic(staged / 'state.json', {
+            'schema_version': 2, 'phase': 'learning', 'round': 0, 'revision': 0,
+            'project': settings.project, 'config_identity': identity(local),
+            'task': None, 'artifacts': {}, 'learning': [], 'memory': [],
+            'routes': {}, 'requests': {}, 'submissions': {}, 'events': [],
+            'instructions': instructions, 'context_receipts': {}, 'reviews': {},
+        })
+        staged.rename(output)
     return output
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", help="Private JSON config (or DCIM_CONFIG)")
-    parser.add_argument("--name", required=True)
-    args = parser.parse_args()
-    try:
-        output = initialize(args.config, args.name)
-    except (OSError, ValueError) as error:
-        parser.exit(2, f"error: {error}\n")
-    print(json.dumps({"run_root": str(output), "eda_launched": False}, indent=2))
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--config')
+    p.add_argument('--name', required=True)
+    a = p.parse_args()
+    return {'run_root': str(initialize(a.config, a.name)), 'phase': 'learning', 'eda_launched': False}
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    cli(main)

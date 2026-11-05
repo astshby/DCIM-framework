@@ -2,12 +2,12 @@
 
 Read this inventory before evidence work; use `scripts/evidence.py --help` and
 the relevant subcommand's `--help`, not the whole implementation on each task.
-Run with Python 3.10+. All commands emit JSON to stdout; store it in the
+The core checks are tested with Python 3.8; optional readers need their verified dependencies. All commands emit JSON to stdout; store it in the
 role's own output directory. No command launches EDA or imports a generator.
 
 | Command | Purpose | Limits |
 | --- | --- | --- |
-| `freeze --out MANIFEST FILE...` | Fingerprint an explicit dependency list; refuses overwrite | Snapshot, not proof of correctness or execution provenance |
+| `freeze --out MANIFEST FILE...` | Fingerprint an explicit dependency list; refuses overwrite | Fingerprints only; does not copy the actual design |
 | `check MANIFEST` | Verify every recorded file is unchanged | Dependency identity only; omitted dependencies are not covered |
 | `pv SPEC --manifest MANIFEST` | Calibre DRC/LVS report, exact deck edits and execution-input hash checks | Supported report formats only; warnings and job provenance need review |
 | `gds SPEC --manifest MANIFEST` | Hierarchical bbox, direct reference count, selected-layer union areas, optional mask XOR and height-band check | Geometry, not connectivity or DRC |
@@ -31,9 +31,8 @@ Freeze explicit spec files and their inputs: relevant design source/GDS,
 original/run decks, execution records, reports, models/includes/corner/load,
 testbench, raw waveforms, independent oracle and reference/constraint files as
 applicable. Include the actual dependency closure for any conclusion proposed
-for inheritance, not the entire run tree. Use `context.py`'s existing
-`schema_version: 1` / `files` manifest if already available; the same resolved
-path/sha256/bytes format is supported. Do not create a competing manifest.
+for inheritance, not the entire run tree. Existing `schema_version: 1` / `files` manifests with resolved
+path/sha256/bytes fields are supported. Do not create a competing manifest.
 
 ```bash
 python3 "$SKILL_ROOT/scripts/evidence.py" freeze --out /run/Bx/frozen.json /run/Bx/pv.json /run/Bx/DRC.rep /run/Bx/inputs.json /run/Bx/rules.drc /pdk/original.drc /run/Bx/layout.gds /run/Bx/source.cdl

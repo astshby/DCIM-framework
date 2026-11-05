@@ -1,4 +1,4 @@
-"""Editable design-side geometry and Virtuoso emitter; GDS is read-only input."""
+"""Process-neutral geometry utilities; explicit layer maps and verified bridge required."""
 from collections import Counter
 from decimal import Decimal
 from functools import lru_cache

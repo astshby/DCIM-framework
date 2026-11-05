@@ -1,10 +1,26 @@
 {
-  "work_root": "./runs",
-  "pdk_root": "./external/pdk12",
-  "native_ref_root": "./external/native12",
-  "compiler_ref_root": "./external/compiler12/sram12_ref16x8m2",
-  "reference_22nm_root": "./external/reference22/packages_22nm",
-  "hierarchy_22nm": "./external/reference22/hierarchy.json",
-  "experience_root": "./external/experience",
-  "warm_start_root": "./external/warm-start12"
+  "work_root": "./dcim-runs",
+  "pdk_root": "./external/pdk",
+  "compiler_ref_root": "./external/sram-compiler",
+  "circuit_ref_root": null,
+  "experience_root": null,
+  "same_process_dcim_root": null,
+  "digital_flow_root": null,
+  "isscc_reference_root": null,
+  "project": {
+    "macro": {
+      "input_channels": 8,
+      "output_channels": 8,
+      "storage_compute_ratio": 8,
+      "ratio_definition": null,
+      "input_bits": null,
+      "weight_bits": null,
+      "output_bits": null,
+      "accumulator_bits": null
+    }
+  },
+  "input_files": {
+    "pdk_root": [],
+    "compiler_ref_root": []
+  }
 }

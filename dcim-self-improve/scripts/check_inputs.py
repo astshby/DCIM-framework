@@ -2,13 +2,10 @@
 
 import argparse
 import json
-from pathlib import Path
 import sys
 
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "assets" / "seed"))
-
-from seed_config import INPUT_SCOPES, load_config
+from dcim_config import INPUT_SCOPES, load_config
 
 
 def main():

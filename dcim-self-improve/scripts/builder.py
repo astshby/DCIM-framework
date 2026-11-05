@@ -1,0 +1,87 @@
+"""Create a new executable drawing script and retain every generated candidate."""
+import argparse
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'assets/tools'))
+from geometry import capture_closure, read_gds
+from runtime import atomic, artifact, cli, event, evidence, identity, read, require, transaction
+
+TOOLS = Path(__file__).resolve().parents[1]/'assets/tools'
+DRAW = '''"""Generated Builder program. Modify only in a new candidate revision."""
+from pathlib import Path
+import json
+from layout_tools import generate
+root = Path(__file__).resolve().parent
+print(json.dumps(generate(json.loads((root/'input.json').read_text()),root)))
+'''
+
+
+def build(run, name):
+    require(name and all(c.isalnum() or c in '_-' for c in name), 'Simple candidate ID required')
+    with transaction(run) as (root,state):
+        require(state['phase']=='awaiting_builder', 'Builder requires a committed Reflect task')
+        task=state['task']
+        used=sum(a['kind']=='candidate' and a['round']==state['round'] for a in state['artifacts'].values())
+        require(used < task['max_candidates'], 'Candidate budget exhausted')
+        route=state['routes'][task['route']]
+        require('plan' in route, 'This route needs a measured placement plan before drawing')
+        directory=root/'candidates'/name
+        require(not directory.exists(), 'Candidate already exists; inspect it or use a new revision ID')
+        sources={}
+        for placement in route['plan']['placements']:
+            source=placement['source']
+            require(source in task['learning_ids'], 'Task must bind all construction learning inputs')
+            evidence(root,state,[source])
+            item=next(x for x in state['learning'] if x['id']==source)
+            original=state['artifacts'][source]
+            saved=root/original['object']
+            if original['source'].lower().endswith('.json'):
+                sources[source]=read(saved)['cells']
+            else:
+                sources[source]=capture_closure(read_gds(saved),[item['observations']['top']])
+        directory.mkdir()
+        atomic(directory/'input.json', {'placements':route['plan']['placements'],'sources':sources})
+        (directory/'draw.py').write_text(DRAW,encoding='utf-8')
+        for file in ('geometry.py','layout_tools.py'):
+            shutil.copyfile(TOOLS/file,directory/file)
+        # Persist identity before launch. On interruption the same candidate is never executed implicitly again.
+        atomic(directory/'execution.json',{'state':'prepared','round':state['round'],'task':task,
+                                         'argv':[sys.executable,'-B',str(directory/'draw.py')]})
+        try:
+            result=subprocess.run([sys.executable,'-B',str(directory/'draw.py')],cwd=str(directory),
+                                  capture_output=True,timeout=30)
+            (directory/'stdout.log').write_bytes(result.stdout)
+            (directory/'stderr.log').write_bytes(result.stderr)
+            outcome={'state':'finished','returncode':result.returncode}
+        except subprocess.TimeoutExpired as error:
+            (directory/'stdout.log').write_bytes(error.stdout or b'')
+            (directory/'stderr.log').write_bytes(error.stderr or b'')
+            outcome={'state':'timeout','returncode':None}
+        atomic(directory/'outcome.json',outcome)
+        files={}
+        for path in sorted(directory.iterdir()):
+            if path.is_file():
+                key=name+'-'+path.name
+                artifact(root,state,key,path,'candidate_file')
+                files[path.name]=key
+        atomic(directory/'manifest.json',{'files':files,'outcome':outcome,'task':task,'route':task['route'],
+                                         'qualification':'not_run'})
+        artifact(root,state,name,directory/'manifest.json','candidate')
+        event(state,'builder_execute',{'candidate':name,'outcome':outcome})
+        return {'candidate':name,'directory':str(directory),'outcome':outcome,
+                'evidence':[name,*files.values()],'next':'Independent review of actual outputs; report via workflow result'}
+
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--run',required=True)
+    p.add_argument('--candidate',required=True)
+    a=p.parse_args()
+    return build(a.run,a.candidate)
+
+
+if __name__=='__main__':
+    cli(main)

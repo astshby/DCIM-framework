@@ -15,14 +15,18 @@ automatically synchronizing those reference directories.
 
 ## Framework development
 
-Preserve the existing structure and reuse its helpers. Implement the accepted
-Reflect, initialization and memory changes against the contracts in `HANDOFF.md`.
+Upgrade the framework using evidence from both improve 1 and improve 2. Reuse
+general helpers; remove process-specific defaults from the active execution path.
+Implement the accepted contracts in `HANDOFF.md`.
 Its current decisions supersede conflicting inherited campaign instructions,
 including fixed role interfaces and discarding rejected design branches.
 Do not silently apply the inherited 12FFC recipes or four-SRAM grouping to a
 different process or project.
 
-The required loop is initialization, initial Reflect, Builder, Analyst,
+Reflect0 learns from compiler and digital-flow layouts and assigns specific
+learning-backed construction. Human methods are optional inputs alongside AI
+proposals and actual bounded heuristic search. The required loop is
+initialization, initial Reflect, Builder, Analyst,
 committed concise action/experience memory, then Reflect and the next Builder.
 Reflect and a concise reflection record are required every reviewed round,
 including failure, unchanged strategy and final closure. Human feedback is an
@@ -33,7 +37,8 @@ Use stage-scoped route memory with structured action, experience and reflection
 records. Retain general methods and process-bound fine detail with evidence.
 Submit concise records directly; avoid a separate compression pass. Stable
 program entry points should assemble context, validate, execute and persist
-results. Load instructions once per task/version, read relevant deltas, and
+results. Use initialized runs' pinned scripts and instruction snapshots. Load instructions
+once per task/version, use context tokens to read relevant deltas, and
 commit at meaningful boundaries instead of repeatedly reading source or editing
 documents during ordinary calls.
 

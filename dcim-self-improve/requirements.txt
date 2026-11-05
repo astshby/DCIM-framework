@@ -1,5 +1,4 @@
-numpy>=1.23,<3
-shapely>=1.8,<3
+# Optional GDS import/export; core loop and SVG use the standard library.
 gdspy>=1.6,<2
-# Optional for emitting layout.il: install the user's verified virtuoso-bridge
-# package separately. Geometry-only generation does not import that bridge.
+# Optional polygon operations used by generic geometry helpers.
+shapely>=1.8,<3

@@ -1,93 +1,71 @@
 # DCIM Framework
 
-This repository is the active workspace for DCIM framework development. It was
-imported from the newer `dcim-self-improve-2` reference while preserving the
-`dcim-self-improve/` skill layout. Sibling improve-n directories are reference
-snapshots; develop and commit framework changes here.
+This repository implements a process-neutral DCIM learning and construction loop.
+It combines improve 1's generic configuration/history/geometry with improve 2's
+evidence checking and route-memory principles. The old 12FFC seed is retained in
+Git history and is absent from the active package.
 
-## Start here
+Read AGENTS.md and HANDOFF.md once at entry. The reusable skill is
+`dcim-self-improve/SKILL.md`; its `references/runtime.md` describes executable
+commands and payloads. No PDK, compiler IP, models or EDA binaries are distributed.
 
-Read `AGENTS.md` for framework instructions and `HANDOFF.md` for accepted design
-decisions, implementation status, mathematical action/memory definitions and the
-next task. Then load `dcim-self-improve/SKILL.md` and the references needed now.
-The enclosing workspace's AGENTS and handoff describe local ownership and goals.
+## Initialize
 
-The package includes instructions, templates, evidence helpers and inherited
-12FFC construction recipes. It includes no PDK, compiler IP, models or EDA
-binaries. Those recipes and their four-SRAM grouping are scoped historical
-starting points, not a qualified implementation for another process.
-
-## Configure a private run
-
-Keep configuration and run outputs outside this repository. Copy
-`dcim-self-improve/dcim.example.json` to a new private `dcim.local.json`, then edit
-the addresses for the intended stage. Relative JSON paths resolve against the
-configuration file. The existing local profile must be checked before reuse.
-
-The current configuration keys include `work_root`, `pdk_root`,
-`native_ref_root`, `compiler_ref_root`, `reference_22nm_root`, `hierarchy_22nm`,
-`experience_root` and `warm_start_root`. See
-`dcim-self-improve/references/sources.md` for required source files and scope.
-Define channel counts, storage/compute accounting, precision, process, geometry
-interfaces, electrical conditions and acceptance in the task before design.
-The current research target is eight input channels, eight output channels and
-a storage/compute ratio of eight; the ratio is not a weight bitwidth.
-
-From this repository, using an appropriate Python interpreter:
+Agents generate private configuration outside this repository. Existing
+project/input_files configurations are supported:
 
 ```sh
-python3 dcim-self-improve/scripts/check_inputs.py --config ../dcim.local.json --scope seed
-python3 dcim-self-improve/scripts/init_run.py --config ../dcim.local.json --name trial01
+python3 dcim-self-improve/scripts/configure.py --output ../dcim.v2.local.json --from-config ../dcim.local.json --init study01
 ```
 
-Input checks inspect configured files; initialization copies the seed and
-configuration into a new run and refuses an existing name. Neither launches
-EDA or establishes circuit qualification. Physical generation and inherited
-evidence-tool documentation require Python 3.10+ and applicable dependencies in
-`dcim-self-improve/requirements.txt`. Check the actual interpreter and tool
-interfaces before execution. Packaging uses only the Python 3.8+ standard library.
+Use the resulting run's copied `scripts/` for subsequent calls. Initialization
+pins programs, geometry helpers and instructions, creates a resumable state and
+refuses overwriting existing runs. Relative paths resolve against configuration.
+Core code runs with Python 3.8+; newer interpreters can be selected explicitly.
+Optional GDS import/export requires gdspy; geometry JSON/SVG needs no external
+package. The private configuration remains agent-managed.
 
-## Current workflow and pending changes
+## Implemented loop
 
-The inherited framework supplies bounded Builder/Analyst tasks, stage-scoped
-route memory, cheap candidate screens and reusable evidence tools. Learn modules
-before whole-DCIM redesign; establish correctness and geometry interfaces before
-compaction, screen routine changes, and fully verify selected module and macro
-revisions within their declared scope. Preserve failed designs and exact methods.
+Reflect0 imports compiler and digital-flow layouts with `learn.py`, extracts
+geometry/hierarchy observations and specifies the next construction. `planner.py`
+performs bounded diverse beam search over measured blocks: order, row splitting,
+merging and allowed rotation. Human methods, AI proposals and actual algorithm
+outputs share route records. Human feedback is optional.
 
-The accepted target loop is initial Reflect, Builder, Analyst, committed concise
-action/experience memory, then Reflect for the next round. Every reviewed round
-requires reflection. Program-enforced initialization, actual AI Reflect dispatch,
-structured memory writes and complete execution entry points remain pending;
-`HANDOFF.md` defines their implementation and acceptance. Do not report these
-planned features as implemented.
+`workflow.py` enforces Reflect -> Builder -> Analyst -> committed short memory ->
+Reflect, including failed and final rounds. It persists real AI requests/replies;
+it does not supply a canned AI answer. `context --since TOKEN` returns only changed
+sections. `memory.py` provides bounded same-format reads/writes and supersession.
+`builder.py` creates and executes a new drawing Python script, retaining actual
+inputs, helper code, hierarchical geometry JSON, SVG, stdout/stderr and evidence.
+The original evidence checker and compatible history helper remain available.
 
-## Iterate, commit and package
+The research target is eight input/output channels and storage/compute ratio eight.
+Its accounting, precision, process and electrical conditions must be explicit.
+No fixed SRAM grouping, bitcell, topology, node or decoder proportion is inherited.
 
-Update `AGENTS.md` when framework rules change and `HANDOFF.md` at handoff and
-iteration boundaries. Run checks appropriate to the change, review and commit:
+## Scope and validation
+
+Current search optimizes geometry and center-HPWL proxies. It does not synthesize
+transistor topology, route inter-block nets, establish electrical performance or
+submit EDA jobs. Human/AI explicit plans can be evaluated in the same geometry
+representation. New operator families require separate validated extensions.
+Protocol gates cover the fixed entry points, not arbitrary shell actions.
 
 ```sh
-git diff
-git add .
-git commit -m "Describe the completed framework change"
-python3 scripts/package_workspace.py
+python3 -B -m unittest discover -s dcim-self-improve/tests -v
+python3 -B -m unittest discover -s tests -v
 ```
 
-The packaging command validates a temporary ZIP and atomically replaces the
-sibling `dcim-framework.zip`. Reuse the same command after each completed
-framework iteration. Git retains previous revisions; the ZIP contains the
-current framework with one `dcim-framework/` top-level folder and can be extracted
-without Git. No remote repository is configured by setup.
+Tests use synthetic geometry/evidence. Optional GDS/PSF cases report skips when
+inputs or dependencies are unavailable. They do not qualify a physical design.
 
-The archive includes this README, framework AGENTS/handoff, skill, packaging
-helper and tests. It excludes `.git`, caches, private local configuration,
-credentials, runs, experiment evidence and checksum sidecars. The enclosing
-workspace's local AGENTS/handoff are outside the archive. Existing `learn/`,
-viewing links and experimental records stay in their local workspace.
+## Delivery
 
-Packaging checks can be run without PDK or EDA:
-
-```sh
-python3 -B -m unittest discover -s tests -p 'test_package_workspace.py' -v
-```
+At each completed framework iteration, update HANDOFF.md, run relevant checks,
+commit locally and run `python3 scripts/package_workspace.py`. This atomically
+replaces the sibling `dcim-framework.zip`. Git retains revisions; one ZIP holds
+the current framework. Private configuration, experiments, caches and proprietary
+inputs remain outside Git/package. Preserve existing reference directories and
+experimental history in the enclosing workspace.

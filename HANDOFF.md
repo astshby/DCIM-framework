@@ -1,6 +1,32 @@
 # DCIM 框架交接：Reflect、路线记忆与程序约束
 
-更新日期：2026-11-04，America/Los_Angeles。用途：框架仓库的实现交接；完整决策与数学记忆在本文件，hby 根目录 HANDOFF.md 提供本地入口。
+更新日期：2026-11-05，America/Los_Angeles。用途：框架仓库的实现交接；完整决策与数学记忆在本文件，hby 根目录 HANDOFF.md 提供本地入口。
+
+## 当前实现更新：2026-11-05（优先于下面的历史实施计划）
+
+用户明确要求升级而非全盘保留，重点是程序化、统一短记忆、三来源动作及 Reflect0 学习。
+人工提出/执行的方法、AI 提案、服务器启发式算法共同参与；人工可选。Python 可采用新版，
+本轮核心程序同时在现有 3.8 上运行，未将解释器升级作为开发阻塞。
+
+- 已吸收 improve 1 的 project/configure、history、通用 geometry；保留 improve 2 的 evidence 检查和阶段/路线检索原则。
+- 已删除当前树的 assets/seed 及其固定 12FFC/四 SRAM/算术假设测试；旧版在 Git。重写角色、布局顺序、来源等规则，通用入口无工艺默认答案。
+- 新 run 原子建立并复制 scripts、通用工具和指令。正常调用使用 run/scripts，context 的 token 返回变更部分，避免每轮读源码。
+- learn.py 从 compiler/digital-flow 的 GDS 或捕获 JSON 提取层次、尺寸、标签、排列及层数；Reflect0 两类观察齐备才生成请求。观察不等于电气验收。
+- planner.py 实际执行有预算的多样性 beam search，组合交换、迁移、分行/合行、允许的旋转及重启；保留全部候选、来源、预算及停止原因。目标仅为几何面积和中心 HPWL 代理。
+- builder.py 生成并执行独立 draw.py，留存输入、依赖、层次 layout.json、layout.svg 和日志；人类/AI 可用 plan_spec 提出同一表示内的新排列，算法候选由真实搜索生成。
+- workflow.py 强制 Reflect0→Builder→Analyst→memory→Reflect；请求/实际回复落盘、错轮次拒绝、重复提交幂等、结束必有反思。
+- memory.py 统一动作/经验/反思格式，每字段最多 240 字符，每次最多 6 条；默认检索最新适用记录，supersedes 修正保留旧版，原件存在 objects。
+- configure.py 由 agent 创建私有配置，支持既有 project/input_files schema。实际工艺与精度缺项仍显式存在，不妨碍已授权的规划。
+
+边界：固定入口以外的 shell 行为不受程序沙箱约束；协议不能证明 AI 思考质量或独立上下文。
+当前无 EDA scheduler adapter，无晶体管拓扑搜索、自动连线或实际电气目标；未提交 EDA。
+可选 GDS/波形依赖未安装的验证按 skipped 报告。合成版图用于框架验收，不冒充 compiler/digital-flow 实测设计。
+验证：框架/证据共 28 项（25 passed，3 optional skipped），打包 5 项通过，skill 格式检查通过。
+真实主对话 AI 通过两轮合成请求/回复：第一轮算法路线4×16，读动作记忆后由AI指定只取消旋转的控制路线4×17；
+独立矩形oracle确认叶面积54且无重叠。Reflect2已结束演示。未执行独立AI上下文审核，不冒充真实PDK学习。
+运行契约见 dcim-self-improve/references/runtime.md；外部修订证据见 hby/framework-checks/upgrade-2026-11-05。
+
+下面保留历史决策和数学定义；其中“尚未实现”“保留全部种子”等历史状态，以本节及本轮验证记录为准。
 
 ## 1. 先读：当前版本与任务边界
 
