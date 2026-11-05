@@ -1,112 +1,93 @@
-# DCIM framework
+# DCIM Framework
 
-This workspace supports module learning followed by whole-DCIM redesign.
-Defaults: 8 input channels, 8 output channels, storage/compute ratio 8.
-The ratio is not a precision setting; its accounting must be defined before design.
+This repository is the active workspace for DCIM framework development. It was
+imported from the newer `dcim-self-improve-2` reference while preserving the
+`dcim-self-improve/` skill layout. Sibling improve-n directories are reference
+snapshots; develop and commit framework changes here.
 
 ## Start here
 
-Read `dcim-self-improve/AGENTS.md` for the framework's agent workflow, then
-`dcim-self-improve/SKILL.md` and the references needed for the requested stage.
-The framework supplies helpers, templates and tests for module learning,
-staged verification, design history and evidence-driven self-improvement.
+Read `AGENTS.md` for framework instructions and `HANDOFF.md` for accepted design
+decisions, implementation status, mathematical action/memory definitions and the
+next task. Then load `dcim-self-improve/SKILL.md` and the references needed now.
+The enclosing workspace's AGENTS and handoff describe local ownership and goals.
 
-An outer workspace `AGENTS.md` is a separate user/agent-owned file for local
-goals, permissions and operating constraints. Create it when needed; the release
-does not supply it. The inner `dcim-self-improve/AGENTS.md` explains how to use
-this framework and does not grant permission to operate external resources.
+The package includes instructions, templates, evidence helpers and inherited
+12FFC construction recipes. It includes no PDK, compiler IP, models or EDA
+binaries. Those recipes and their four-SRAM grouping are scoped historical
+starting points, not a qualified implementation for another process.
 
-Local configuration, experiments and environment-specific files are also
-created after deployment. A release contains this README and
-`dcim-self-improve/`, including its generic `dcim.example.json`.
+## Configure a private run
 
-The distribution includes no PDK, compiler IP, EDA binaries or accepted circuit.
+Keep configuration and run outputs outside this repository. Copy
+`dcim-self-improve/dcim.example.json` to a new private `dcim.local.json`, then edit
+the addresses for the intended stage. Relative JSON paths resolve against the
+configuration file. The existing local profile must be checked before reuse.
 
-## Configure
+The current configuration keys include `work_root`, `pdk_root`,
+`native_ref_root`, `compiler_ref_root`, `reference_22nm_root`, `hierarchy_22nm`,
+`experience_root` and `warm_start_root`. See
+`dcim-self-improve/references/sources.md` for required source files and scope.
+Define channel counts, storage/compute accounting, precision, process, geometry
+interfaces, electrical conditions and acceptance in the task before design.
+The current research target is eight input channels, eight output channels and
+a storage/compute ratio of eight; the ratio is not a weight bitwidth.
 
-Python 3.8+ is sufficient for configuration and initialization. Optional geometry
-tools use the dependencies in `dcim-self-improve/requirements.txt`; install those
-only when needed, in a user-owned environment.
-
-First inspect the user-authorized environment and identify actual source paths.
-Create `dcim.local.json` beside the framework; it is not included in a release.
-The name is a convention: helpers also accept another file through `--config`.
-
-| Setting | Meaning |
-| --- | --- |
-| `work_root` | Writable run directory, resolved relative to this JSON file |
-| `pdk_root`, `compiler_ref_root` | Authorized source directories discovered in this environment |
-| `digital_flow_root` | Actual flow/reference material, when identified |
-| `input_files` | Files required by the selected task, relative to their source roots |
-| `project.macro` | Channels, ratio definition, capacity, precision, signedness, cycles, dimensions and electrical targets |
-| `project.technology` | Exact process release and metal stack |
-| `project.modules` | SRAM, multiplier, adder, selector/control and accumulator contracts |
-| `project.verification` | Screening, closure conditions and optional runtime budgets |
-
-Unknown values remain `null`. Select the exact PDK stack/compiler variant, model
-coverage, geometry/interface constraints and test scope during contract setup.
-JSON paths are relative to their configuration file, not the shell directory.
-Use `./runs` to keep outputs in the new workspace.
-
-Replace the two example source paths below with actual authorized directories:
+From this repository, using an appropriate Python interpreter:
 
 ```sh
-python3 dcim-self-improve/scripts/configure.py \
-  --output dcim.local.json --work-root ./runs \
-  --pdk-root /path/to/pdk \
-  --compiler-ref-root /path/to/sram-compiler \
-  --input-channels 8 --output-channels 8 --storage-compute-ratio 8
+python3 dcim-self-improve/scripts/check_inputs.py --config ../dcim.local.json --scope seed
+python3 dcim-self-improve/scripts/init_run.py --config ../dcim.local.json --name trial01
 ```
 
-## Initialize and inspect
+Input checks inspect configured files; initialization copies the seed and
+configuration into a new run and refuses an existing name. Neither launches
+EDA or establishes circuit qualification. Physical generation and inherited
+evidence-tool documentation require Python 3.10+ and applicable dependencies in
+`dcim-self-improve/requirements.txt`. Check the actual interpreter and tool
+interfaces before execution. Packaging uses only the Python 3.8+ standard library.
 
-Run from the workspace directory:
+## Current workflow and pending changes
+
+The inherited framework supplies bounded Builder/Analyst tasks, stage-scoped
+route memory, cheap candidate screens and reusable evidence tools. Learn modules
+before whole-DCIM redesign; establish correctness and geometry interfaces before
+compaction, screen routine changes, and fully verify selected module and macro
+revisions within their declared scope. Preserve failed designs and exact methods.
+
+The accepted target loop is initial Reflect, Builder, Analyst, committed concise
+action/experience memory, then Reflect for the next round. Every reviewed round
+requires reflection. Program-enforced initialization, actual AI Reflect dispatch,
+structured memory writes and complete execution entry points remain pending;
+`HANDOFF.md` defines their implementation and acceptance. Do not report these
+planned features as implemented.
+
+## Iterate, commit and package
+
+Update `AGENTS.md` when framework rules change and `HANDOFF.md` at handoff and
+iteration boundaries. Run checks appropriate to the change, review and commit:
 
 ```sh
-python3 dcim-self-improve/scripts/check_inputs.py --config dcim.local.json --scope compiler
-python3 dcim-self-improve/scripts/init_run.py --config dcim.local.json --name experiment01
-python3 dcim-self-improve/scripts/status.py --run runs/experiment01
+git diff
+git add .
+git commit -m "Describe the completed framework change"
+python3 scripts/package_workspace.py
 ```
 
-The last command assumes `work_root` is `./runs`; otherwise use the `run_root`
-printed by initialization. Existing run/configuration names are never overwritten.
-To configure and initialize in one command, add `--init experiment01` to the
-configuration command and use that command's configuration file.
+The packaging command validates a temporary ZIP and atomically replaces the
+sibling `dcim-framework.zip`. Reuse the same command after each completed
+framework iteration. Git retains previous revisions; the ZIP contains the
+current framework with one `dcim-framework/` top-level folder and can be extracted
+without Git. No remote repository is configured by setup.
 
-Initialization creates pending contracts and a first task; it submits no EDA jobs.
-An initialized run's `config.json` becomes authoritative for that run; changing
-the parent `dcim.local.json` only changes the starting profile for future runs.
+The archive includes this README, framework AGENTS/handoff, skill, packaging
+helper and tests. It excludes `.git`, caches, private local configuration,
+credentials, runs, experiment evidence and checksum sidecars. The enclosing
+workspace's local AGENTS/handoff are outside the archive. Existing `learn/`,
+viewing links and experimental records stay in their local workspace.
 
-## Execute and retain results
-
-Give the agent the workspace and a stage request, for example: inspect/configure
-the environment, iterate SRAM, run post-layout simulation for a specified
-revision, show layout images, or begin whole-DCIM redesign. Follow any user-owned
-workspace `AGENTS.md`, then the framework `AGENTS.md`/`SKILL.md` and the run's
-handoff/config/plan. If configuration does not exist, start by inspecting and
-configuring the environment instead of assuming a previous run.
-
-Establish function and legal dimensions before compaction. Screen routine changes
-with geometry, DRC/LVS and necessary short tests. Fully verify the selected
-revision at module-round closure and verify the final macro separately.
-
-Keep every design iteration, including rejected circuits and produced layouts.
-Preserve exact visible prompts/skills, their changes and parent versions.
-Later verification of an unchanged circuit appends evidence to that version.
-Use the framework's `references/history.md` and `scripts/history.py` for recording,
-integrity checks and descriptive comparisons. Update each run's `handoff.md`
-and `plan.json` so another agent can resume without chat history.
-
-For the detailed workflow, read `dcim-self-improve/references/workflow.md`.
-
-## Publish a clean copy
+Packaging checks can be run without PDK or EDA:
 
 ```sh
-python3 dcim-self-improve/scripts/package_workspace.py \
-  --readme README.md --archive dcim-framework.zip --copy-to /path/to/new-workspace
+python3 -B -m unittest discover -s tests -p 'test_package_workspace.py' -v
 ```
-
-The target must be absent or empty. Use a new archive filename if one exists.
-This includes the complete framework and README, excludes local configuration,
-outer `AGENTS.md`, runs and caches, and emits no checksum files. Keep `learn/`
-and existing experiment/evidence directories in the local workspace.

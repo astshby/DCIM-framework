@@ -5,6 +5,14 @@ description: Prepare, execute or resume reference-assisted DCIM self-improvement
 
 # DCIM self-improvement
 
+## Active repository entry
+
+For this framework revision, read the enclosing repository's `AGENTS.md` and
+`HANDOFF.md` first. They define the accepted Reflect and structured-memory changes
+and distinguish implemented features from pending work. Their current decisions
+supersede conflicting inherited campaign policies below. Framework development
+belongs in this repository; sibling improve-n directories are reference inputs.
+
 The user controls planning and execution through the main conversation.
 No external agent service or model weight update is required.
 The package has no dependency on the author's home directory or experiment

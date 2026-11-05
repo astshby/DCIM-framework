@@ -1,15 +1,23 @@
 # DCIM 框架交接：Reflect、路线记忆与程序约束
 
-记录日期：2026-11-04，America/Los_Angeles。用途：交给下一轮 agent 实现；本文件是决策与验收交接，不代表 Reflect 已实现。
+更新日期：2026-11-04，America/Los_Angeles。用途：框架仓库的实现交接；完整决策与数学记忆在本文件，hby 根目录 HANDOFF.md 提供本地入口。
 
 ## 1. 先读：当前版本与任务边界
 
-- 用户已明确：`dcim-self-improve-2` 是商讨后的较新结果，下一轮在它的实际框架根目录 `/home/users/JiaLab02/hby/dcim-self-improve-2/dcim-self-improve` 上实现。不要依据名称、时间戳或旧对话改回以 `-fix` 为基线。
-- 保持现有框架的主体结构与有效流程，吸收本文件中的思路；不是重新造一套框架，也不自动同步基础目录、`-fix`、发布 ZIP 或 TSMC starter。
-- `/home/users/JiaLab02/hby/dcim-self-improve-fix` 是早先建立的独立讨论副本，可参考其配置、模块契约、分级验证和版本保存。实查它相对基础目录只新增 README，改变 AGENTS、SKILL、agents/openai.yaml 的变体说明，其余非缓存文件相同。
+- 当前唯一框架迭代主体为 `/home/users/JiaLab02/hby/dcim-framework`，已建立本地 Git。实际 skill 根为其中的 `dcim-self-improve/`，从用户确认的较新 `dcim-self-improve-2/dcim-self-improve` 导入。后续在本仓库实现，不能继续修改参考目录。
+- hby 主目录中的 `dcim-self-improve`、`dcim-self-improve-2` 及未来更多 improve-n 均作参考。保留现有框架结构与有效流程，不自动同步参考目录或 TSMC starter。
+- `dcim-self-improve-fix` 是此前按用户要求建立的讨论副本；当时实查相对基础目录只新增 README、改变 AGENTS/SKILL/角色显示说明。该路径是历史背景；本次收尾时 hby 下已没有该目录，不恢复它。
 - `-fix` 目录及上述入口文件的 mtime/ctime 集中于服务器 `2026-11-03 22:00:28 +0800`，对应洛杉矶 `2026-11-03 06:00:28 -0800`。结合 README 可推断副本在这一时段建立；文件系统 birth time 为不可用，不能声称获得了精确创建时间。
-- 本次只创建交接文件；下一轮必须完成真实 Reflect 调用、初始化检查、记忆写入约束及相应验证。文档、模板或固定的“下一步”返回值不能算 Reflect 实现。
+- 本次收尾已完成框架迁入、Git 建立、README 移动并重写、两层 AGENTS/HANDOFF 更新和覆盖式打包入口。下一轮仍须完成真实 Reflect 调用、初始化检查与记忆约束；文档、模板或固定“下一步”不能算实现。
+- 每次完成框架迭代后更新 AGENTS（有规则变化时）及 HANDOFF，完成相关检查与本地提交，再从仓库运行 `python3 scripts/package_workspace.py`，覆盖 hby 下唯一的 `dcim-framework.zip`。旧版本保存在 Git，ZIP 不另增编号、不生成 sha256 文件。
 - 框架检查不授权 EDA 作业。默认在 `/home/users/JiaLab02/hby` 内工作；原 DCIM、PDK、compiler 与其他外部资料只读，保留 `learn/` 和既有实验。
+
+### 本次收尾的验证与续接
+
+- 打包程序的 5 项合成测试通过：重复覆盖、私有/缓存/Git 排除、拒绝链接并保留旧包、发布失败保留旧包并清理临时文件、拒绝输出到源码目录。
+- skill-creator 的 quick_validate 通过；框架 README 与 AGENTS 均为英文。导入 skill 的非缓存文件名集合与 `-2` 相同，仅 SKILL 增加当前入口说明，其他文件逐字节一致。
+- 原详细决策、数学记忆保留；根 README 已移动；本地 Git 首次提交保存原始导入，后续提交保存收尾修改。未设置远程仓库；提交使用仓库本地的 DCIM Framework 技术身份，可按用户需要调整作者设置。
+- 后续执行打包与记录 Git 提交结果即完成本次收尾；包验证结果及当前提交记录在 hby 的 `framework-checks/closeout-2026-11-04.md`。下一项功能工作仍按第 7、8 节实现初始化和 Reflect，不重复进行目录迁移。
 
 ## 2. 已确认要求：不要再次丢失
 
@@ -111,7 +119,7 @@ Reflectₜ 是本轮收尾及下一轮方法来源。程序记录贯穿全程，
 | `references/task-admission.md`、`references/stage-progress.md` | 为 Reflect 提供实际比较和阶段信息，避免重复建立决策账本 |
 | `scripts/init_run.py`、`scripts/check_inputs.py` | 扩展真实入口检查和恢复；复用已有配置读写，不另写同功能解析器 |
 | `scripts/evidence.py`、`tests/test_evidence.py` | 复用支持的报告/几何/波形与依赖检查；freeze 是指纹清单，不是实际电路快照 |
-| `-fix/scripts/history.py` 及相关契约 | 参考并按兼容性复用实际迭代、提示词、追加证据保存能力，不直接整体覆盖 `-2` |
+| hby 中参考框架的 `scripts/history.py` 及相关契约 | 参考并按兼容性复用实际迭代、提示词、追加证据保存能力，不整体覆盖当前框架 |
 | 拟增 Reflect/状态调度及记忆写入口 | 只补缺失能力；可选 `scripts/reflect.py` 与 `scripts/memory.py`，共用既有工具；无需每个逻辑角色对应一个服务 |
 
 实施顺序：先初始化与结构契约 → 实际 Reflect 请求/回复和循环约束 → 记忆/自动记录/历史衔接 → 无 EDA 的端到端验证 → 获得相应实验指令后接真实设计任务。
