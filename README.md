@@ -30,8 +30,9 @@ package. The private configuration remains agent-managed.
 Reflect0 imports compiler and digital-flow layouts with `learn.py`, extracts
 geometry/hierarchy observations and specifies the next construction. `planner.py`
 performs bounded diverse beam search over measured blocks: order, row splitting,
-merging and allowed rotation. Human methods, AI proposals and actual algorithm
-outputs share route records. Human feedback is optional.
+merging and allowed rotation. AI self-reflection and actual algorithm outputs share route records. Every
+Reflect, including closure, must submit one new testable AI proposal with a
+difference from existing routes. Human proposals/feedback are not Reflect inputs.
 
 `workflow.py` enforces Reflect -> Builder -> Analyst -> committed short memory ->
 Reflect, including failed and final rounds. It persists real AI requests/replies;
@@ -49,7 +50,7 @@ No fixed SRAM grouping, bitcell, topology, node or decoder proportion is inherit
 
 Current search optimizes geometry and center-HPWL proxies. It does not synthesize
 transistor topology, route inter-block nets, establish electrical performance or
-submit EDA jobs. Human/AI explicit plans can be evaluated in the same geometry
+submit EDA jobs. AI explicit plans can be evaluated in the same geometry
 representation. New operator families require separate validated extensions.
 Protocol gates cover the fixed entry points, not arbitrary shell actions.
 

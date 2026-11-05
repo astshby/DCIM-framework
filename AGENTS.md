@@ -24,13 +24,15 @@ Do not silently apply the inherited 12FFC recipes or four-SRAM grouping to a
 different process or project.
 
 Reflect0 learns from compiler and digital-flow layouts and assigns specific
-learning-backed construction. Human methods are optional inputs alongside AI
-proposals and actual bounded heuristic search. The required loop is
+learning-backed construction. Reflect has exactly two method sources: AI
+self-reflection and actual bounded heuristic search. The required loop is
 initialization, initial Reflect, Builder, Analyst,
 committed concise action/experience memory, then Reflect and the next Builder.
 Reflect and a concise reflection record are required every reviewed round,
-including failure, unchanged strategy and final closure. Human feedback is an
-optional input. AI selects the method; programs enforce ordering and execute
+including failure, unchanged strategy and final closure. Each Reflect must
+originate one concrete AI proposal with a difference from existing routes and a
+minimal discriminating test. Selecting an algorithm winner alone is insufficient.
+No human feedback or human route enters Reflect. AI selects the method; programs enforce ordering and execute
 bounded searches. A fixed next-task response is not an AI Reflect implementation.
 
 Use stage-scoped route memory with structured action, experience and reflection
@@ -48,6 +50,44 @@ failed or rejected designs. Automatic observable event recording is distinct
 from short reusable memory. Keep independent review and verification scope.
 Run cheap applicable screens during development, qualify the selected module
 revision with its agreed full batch, and verify the final macro separately.
+
+## Guide boundaries and dispatch
+
+`dcim-self-improve/SKILL.md` preserves improve 2's general engineering experience;
+change its process-specific assumptions narrowly. Framework rules belong here.
+Short stage/route memory is maintained separately through memory.py; do not replace
+these three surfaces with one growing runtime guide.
+
+Initialize through the repository scripts, then call the run's pinned scripts.
+Use workflow status/context at entry, retain context tokens, and request only
+deltas for the same task. Reflect requests/replies and role results are persisted.
+See dcim-self-improve/references/runtime.md for actual commands and schemas.
+
+Reflect0 studies compiler and digital-flow layouts. In every round Reflect must
+submit self_proposal naming a NEW AI proposal in proposals, with mechanism,
+difference, expected effect, evidence, minimal_test and stop. It may select the
+algorithm route, its own plan, or close, but must retain its independent idea.
+An unselected idea may be deferred; final reflection does not authorize another
+experiment. Programs check the contract and reject verbatim mechanism reuse;
+semantic novelty and scientific value still require AI judgment and evidence.
+
+Builder owns one bounded block-level task and its ordinary local debugging. Pass
+role/packet/output paths and execution bounds instead of a complete conversation.
+Analyst independently checks frozen inputs, reviews the result and commits short
+memory before Reflect; it no longer owns the mandatory new idea or next-route
+selection. Use isolated role contexts when the available agent API supports them;
+report any lack of isolation. Current scripts enforce stage transitions but do
+not themselves create AI contexts. Match dispatch to actual available APIs.
+
+At structural decisions compare mechanism-distinct cheap screens when useful,
+with common frozen inputs and disjoint candidate/evidence/job namespaces. No peer
+output inspection or waiting inside an independent screen. Keep aggregate resource
+bounds; document serial or single-route reasons. This is not blanket permission
+for parallel macro implementation or PEX. Ordinary fixes do not require artificial
+competitors. No separate planner, curator, compression or retrieval AI role is needed.
+
+Framework validation must use synthetic inputs without launching EDA. Preserve
+role isolation limitations and actual execution provenance in the validation record.
 
 ## Ownership and delivery
 

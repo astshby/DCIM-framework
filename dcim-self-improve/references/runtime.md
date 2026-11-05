@@ -28,7 +28,7 @@ python3 RUN/scripts/workflow.py --run RUN context --role analyst
 python3 RUN/scripts/workflow.py --run RUN evidence --id REPORT_ID --path REPORT
 python3 RUN/scripts/workflow.py --run RUN review --input ANALYST_REVIEW
 python3 RUN/scripts/memory.py --run RUN commit --input MEMORY_BATCH
-python3 RUN/scripts/workflow.py --run RUN request --feedback OPTIONAL_JSON
+python3 RUN/scripts/workflow.py --run RUN request
 ```
 
 Names above are placeholders supplied by the agent, not literal paths. Each
@@ -67,9 +67,17 @@ restart, keeping structural diversity. Proposals remain unqualified proxies.
 ## Reflect and stage submissions
 
 Reflect reply fields: request_id, request_digest, author=`ai`, comparison (<=1200
-characters), evidence IDs, reflection (the short memory schema), decision
-(`build`/`close`), proposals (optional <=6), route_updates (optional), task.
-A close reply still requires reflection. Task fields:
+characters), evidence IDs, reflection (the short memory schema), self_proposal,
+decision (`build`/`close`), proposals (1..6), route_updates (optional), task.
+self_proposal names a NEW AI route in proposals. Its difference from existing
+routes and minimal distinguishing experiment are mandatory, even at closure.
+Each proposal needs source=ai, mechanism, expected, minimal_test, stop and evidence;
+the self-proposal additionally needs difference. Exact normalized mechanism reuse
+is rejected; semantic novelty remains an AI/evidence responsibility. The reply
+cannot supply human feedback or human-source proposals. Requests carry
+reflect_contract=ai-self-proposal-v1 and allowed_sources=[ai, algorithm]. Existing
+requests from an older contract must not be silently reinterpreted.
+A close reply still requires reflection and a new idea. Task fields:
 
 ```json
 {
@@ -80,8 +88,7 @@ A close reply still requires reflection. Task fields:
 }
 ```
 
-Human/AI proposals contain id, source (`human`/`ai`), mechanism, expected,
-minimal_test, stop and evidence. They may supply a `plan_spec` referencing an
+AI proposals contain the fields above. They may supply a `plan_spec` referencing an
 existing search artifact and explicit `order` (block-index permutation), `cuts`
 (row boundaries), `rotations` (per block). The same evaluator checks dimensions
 and allowed orientation. Algorithm proposals are created only by actual search.

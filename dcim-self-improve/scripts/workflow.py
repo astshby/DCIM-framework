@@ -5,15 +5,17 @@ import re
 from runtime import atomic, artifact, cli, event, evidence, identity, read, require, status, store, transaction
 import memory
 
+REFLECT_CONTRACT = 'ai-self-proposal-v1'
+
 
 def short(value, label, maximum=500):
-    require(isinstance(value, str) and 0 < len(value) <= maximum, 'Missing/oversized ' + label)
+    require(isinstance(value, str) and value.strip() and len(value) <= maximum, 'Missing/oversized ' + label)
     return value
 
 
 def context_data(root, state, role):
     task = state['task'] or {}
-    instructions = ['SKILL.md', role + '.md']
+    instructions = ['AGENTS.md', 'SKILL.md', role + '.md']
     return {
         'instructions': {n: (root/'instructions'/n).read_text(encoding='utf-8')
                          for n in instructions if (root/'instructions'/n).exists()},
@@ -27,7 +29,7 @@ def context_data(root, state, role):
         'routes': [dict({k:v for k,v in r.items() if k != 'plan'},
                         measurements={k:r['plan'][k] for k in ('area_um2','hpwl_proxy_um','width_um','height_um','feasible')}
                         if 'plan' in r else {}) for r in state['routes'].values()
-                   if r['lifecycle'] == 'active'],
+                   if r['lifecycle'] == 'active' and r['source'] in ('ai', 'algorithm')],
     }
 
 
@@ -47,7 +49,7 @@ def context(run, role, since=None):
         return {'token': token, 'changed': changed}
 
 
-def request(run, feedback=None):
+def request(run):
     with transaction(run) as (root, state):
         require(state['phase'] in ('learning', 'awaiting_reflect'), 'Reflect follows learning or memory commit')
         if state['round'] == 0:
@@ -56,12 +58,13 @@ def request(run, feedback=None):
         key = 'reflect-' + str(state['round'])
         # Open request is immutable. New evidence requires an explicit new round, not silent prompt replacement.
         if key in state['requests']:
-            if feedback is not None:
-                require(read(state['requests'][key]['path'])['human_feedback'] == feedback, 'Request already frozen with different feedback')
+            require(read(state['requests'][key]['path']).get('reflect_contract') == REFLECT_CONTRACT,
+                    'Saved request uses an earlier Reflect contract; use its pinned runtime or initialize a new run')
             return state['requests'][key]
         packet = context_data(root, state, 'reflect')
-        packet.update(id=key, source='real_ai_reply_required', human_feedback=feedback,
-                      allowed_sources=['human', 'ai', 'algorithm'])
+        packet.update(id=key, source='real_ai_reply_required', reflect_contract=REFLECT_CONTRACT,
+                      allowed_sources=['ai', 'algorithm'],
+                      self_proposal_required=True)
         packet['request_digest'] = identity(packet)
         path = root / 'requests' / (key + '.json')
         atomic(path, packet)
@@ -84,6 +87,11 @@ def reflect(run, payload, response_path):
         require(key == 'reflect-' + str(state['round']) and key in state['requests'], 'Wrong Reflect round')
         require(payload['request_digest'] == state['requests'][key]['request_digest'], 'Stale Reflect request')
         require(payload.get('author') == 'ai', 'Reflect requires an actual AI response')
+        require(not set(payload) - {'request_id', 'request_digest', 'author', 'comparison',
+                    'evidence', 'reflection', 'self_proposal', 'proposals', 'route_updates',
+                    'decision', 'task'}, 'Unknown Reflect reply field')
+        packet = read(state['requests'][key]['path'])
+        require(packet.get('reflect_contract') == REFLECT_CONTRACT, 'Wrong Reflect contract')
         short(payload['comparison'], 'comparison', 1200)
         evidence(root, state, payload['evidence'])
         # Make the full visible AI reply part of immutable history before its short memory record.
@@ -93,12 +101,25 @@ def reflect(run, payload, response_path):
         reflection['evidence'] = list(dict.fromkeys(reflection['evidence'] + [reply_id]))
         entries = memory.validate(root, state, [reflection], reflection=True)
         new_routes = payload.get('proposals', [])
-        require(isinstance(new_routes, list) and len(new_routes) <= 6, 'At most six route proposals')
+        require(isinstance(new_routes, list) and 1 <= len(new_routes) <= 6,
+                'Every Reflect, including closure, needs a new AI self-proposal')
+        require(all(isinstance(p, dict) for p in new_routes), 'Proposals must be objects')
+        own_id = payload.get('self_proposal')
+        require(isinstance(own_id, str) and any(p.get('id') == own_id for p in new_routes),
+                'self_proposal must identify a newly submitted AI proposal')
+        own = next(p for p in new_routes if p.get('id') == own_id)
+        short(own.get('difference'), 'self-proposal difference')
+        mechanism = short(own.get('mechanism'), 'self-proposal mechanism')
+        normalized = ' '.join(mechanism.casefold().split())
+        require(all(normalized != ' '.join(r['mechanism'].casefold().split())
+                    for r in state['routes'].values()),
+                'Self-proposal repeats an existing mechanism verbatim')
         for original_proposal in new_routes:
             proposal = dict(original_proposal)
             rid = proposal['id']
             require(re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,80}', rid) and rid not in state['routes'], 'Unique route ID required')
-            require(proposal['source'] in ('human', 'ai'), 'Algorithm routes must come from planner.py')
+            require(proposal['source'] == 'ai',
+                    'Reflect proposals must be AI-authored; algorithm routes come from planner.py')
             for field in ('mechanism', 'expected', 'minimal_test', 'stop'):
                 short(proposal[field], field)
             evidence(root, state, proposal['evidence'])
@@ -126,7 +147,8 @@ def reflect(run, payload, response_path):
         else:
             require(payload['decision'] == 'build', 'Reflect decision must be build or close')
             task = dict(payload['task'])
-            require(task['route'] in state['routes'] and state['routes'][task['route']]['lifecycle'] == 'active', 'Select an active route')
+            require(task['route'] in state['routes'] and state['routes'][task['route']]['lifecycle'] == 'active'
+                    and state['routes'][task['route']]['source'] in ('ai', 'algorithm'), 'Select an active AI/algorithm route')
             for field in ('module', 'stage', 'goal', 'stop'):
                 short(task[field], field)
             require(task['module'] in {m['id'] for m in state['project']['modules'] if m['enabled']} | {'dcim'}, 'Unknown module')
@@ -143,7 +165,8 @@ def reflect(run, payload, response_path):
             state['phase'] = 'awaiting_builder'
         state['memory'].extend(entries)
         state['submissions'][key] = fingerprint
-        event(state, 'reflect_commit', {'reply': reply_id, 'comparison': payload['comparison'], 'decision': payload['decision']})
+        event(state, 'reflect_commit', {'reply': reply_id, 'self_proposal': own_id,
+              'comparison': payload['comparison'], 'decision': payload['decision']})
         return dict(status(state), revision=state['revision'] + 1)
 
 
@@ -203,8 +226,7 @@ def main():
     c = sub.add_parser('context')
     c.add_argument('--role', choices=('reflect','builder','analyst'), required=True)
     c.add_argument('--since')
-    c = sub.add_parser('request')
-    c.add_argument('--feedback')
+    sub.add_parser('request')
     for name in ('reflect','result','review'):
         c = sub.add_parser(name)
         c.add_argument('--input', required=True)
@@ -215,7 +237,7 @@ def main():
     if a.command == 'context':
         return context(a.run, a.role, a.since)
     if a.command == 'request':
-        return request(a.run, read(a.feedback) if a.feedback else None)
+        return request(a.run)
     if a.command in ('reflect','result','review'):
         return globals()[a.command](a.run, read(a.input), a.input)
     with transaction(a.run) as (root, state):

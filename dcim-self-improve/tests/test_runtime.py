@@ -55,14 +55,29 @@ class RuntimeTests(unittest.TestCase):
                 'operation':'Compose explicit reference blocks', 'observation':'Geometry proxy observed',
                 'next_test':'Check overlap and envelope independently', 'evidence':[self.search]}
 
-    def dispatch(self,decision='build'):
+    def reply_payload(self,decision='build'):
         req=workflow.request(self.run)
+        round_number=read(self.run/'state.json')['round']
+        proposal_id='ai-point-'+str(round_number)
+        mechanisms=('Isolate rotation while holding row cuts fixed',
+                    'Measure center-wire bias against explicit pin access',
+                    'Probe feasibility under a tighter aspect bound')
         payload={'request_id':req['id'],'request_digest':req['request_digest'],'author':'ai',
                  'comparison':'Synthetic test reply; not an AI evaluation', 'evidence':[self.search],
                  'reflection':self.record(),'decision':decision,
+                 'self_proposal':proposal_id,
+                 'proposals':[{'id':proposal_id,'source':'ai','mechanism':mechanisms[round_number],
+                     'difference':'Controlled observation beyond selecting the ranked winner',
+                     'expected':'Distinguish geometry and proxy explanations',
+                     'minimal_test':'Hold the other variables constant and measure the changed quantity',
+                     'stop':'One bounded observation','evidence':[self.search]}],
                  'task':{'route':self.route,'module':'adder','stage':'module','goal':'Synthetic composition',
                          'stop':'One geometry candidate','checks':['geometry'], 'execution':'geometry_only',
                          'max_candidates':2,'learning_ids':self.ids}}
+        return payload
+
+    def dispatch(self,decision='build'):
+        payload=self.reply_payload(decision)
         path=self.root/'reply.json'
         atomic(path,payload)
         workflow.reflect(self.run,payload,path)
@@ -186,23 +201,90 @@ class RuntimeTests(unittest.TestCase):
         self.assertFalse((self.root/'runs/interrupted').exists())
         self.assertTrue(initialize(self.config,'interrupted').is_dir())
 
-    def test_human_plan_uses_same_geometry_validation_and_idempotency(self):
+    def test_ai_plan_uses_same_geometry_validation_and_idempotency(self):
         self.prepare()
         req=workflow.request(self.run)
         payload={'request_id':req['id'],'request_digest':req['request_digest'],'author':'ai',
-                 'comparison':'Fixture human proposal evaluation','evidence':[self.search],
+                 'comparison':'Fixture AI proposal evaluation','evidence':[self.search],
                  'reflection':self.record(),'decision':'close',
-                 'proposals':[{'id':'human-control','source':'human','mechanism':'Explicit order',
+                 'self_proposal':'ai-control',
+                 'proposals':[{'id':'ai-control','source':'ai','mechanism':'Explicit order',
+                     'difference':'Fixed orientation control for the measured plan',
                      'expected':'Known geometry','minimal_test':'Check envelope','stop':'one trial',
                      'evidence':[self.search], 'plan_spec':{'search':self.search,
                      'order':[0,2,1],'cuts':[1,2],'rotations':[0,0,0]}}]}
-        path=self.root/'human-reply.json'
+        path=self.root/'ai-reply.json'
         atomic(path,payload)
         workflow.reflect(self.run,payload,path)
         workflow.reflect(self.run,payload,path)
-        route=read(self.run/'state.json')['routes']['human-control']
+        route=read(self.run/'state.json')['routes']['ai-control']
         self.assertTrue(route['plan']['feasible'])
         self.assertEqual(route['plan']['area_um2'],68)
+
+    def test_reflect_requires_ai_point_even_on_closure(self):
+        self.prepare()
+        for decision in ('build','close'):
+            payload=self.reply_payload(decision)
+            payload.pop('self_proposal')
+            path=self.root/'missing-point.json'
+            atomic(path,payload)
+            with self.assertRaisesRegex(ValueError,'self_proposal'):
+                workflow.reflect(self.run,payload,path)
+            self.assertEqual(read(self.run/'state.json')['phase'],'awaiting_reflect')
+        payload=self.reply_payload('close')
+        payload['proposals']=[]
+        atomic(path,payload)
+        with self.assertRaisesRegex(ValueError,'new AI self-proposal'):
+            workflow.reflect(self.run,payload,path)
+
+    def test_human_and_fake_algorithm_proposals_rejected(self):
+        self.prepare()
+        for source in ('human','algorithm'):
+            payload=self.reply_payload('close')
+            payload['proposals'][0]['source']=source
+            path=self.root/'wrong-source.json'
+            atomic(path,payload)
+            with self.assertRaisesRegex(ValueError,'AI-authored'):
+                workflow.reflect(self.run,payload,path)
+        request=read(workflow.request(self.run)['path'])
+        self.assertNotIn('human_feedback',request)
+        self.assertEqual(request['allowed_sources'],['ai','algorithm'])
+
+    def test_self_point_must_have_difference_and_test(self):
+        self.prepare()
+        for key in ('difference','minimal_test'):
+            payload=self.reply_payload('close')
+            payload['proposals'][0][key]='   '
+            path=self.root/'empty-point.json'
+            atomic(path,payload)
+            with self.assertRaises(ValueError): workflow.reflect(self.run,payload,path)
+
+    def test_renaming_old_mechanism_does_not_count_as_new_point(self):
+        self.prepare()
+        first,_=self.dispatch()
+        self.complete()
+        memory.commit(self.run,{'round':1,'disposition':'no_new','entries':[]})
+        payload=self.reply_payload('close')
+        payload['proposals'][0]['mechanism']='  '+first['proposals'][0]['mechanism'].upper()+'  '
+        path=self.root/'repeated-point.json'
+        atomic(path,payload)
+        with self.assertRaisesRegex(ValueError,'repeats'):
+            workflow.reflect(self.run,payload,path)
+
+    def test_feedback_channel_is_removed(self):
+        import subprocess
+        command=[sys.executable,'-B',str(self.run/'scripts/workflow.py'),
+                 '--run',str(self.run),'request','--feedback','unused.json']
+        response=subprocess.run(command,capture_output=True,text=True)
+        self.assertNotEqual(response.returncode,0)
+        self.assertIn('unrecognized arguments',response.stderr)
+        self.prepare()
+        payload=self.reply_payload('close')
+        payload['human_feedback']='obsolete input'
+        path=self.root/'feedback.json'
+        atomic(path,payload)
+        with self.assertRaisesRegex(ValueError,'Unknown Reflect reply field'):
+            workflow.reflect(self.run,payload,path)
 
     def test_open_request_freezes_search_inputs(self):
         problem,_=self.prepare()
