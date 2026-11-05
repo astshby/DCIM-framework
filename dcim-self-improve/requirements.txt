@@ -1,0 +1,5 @@
+numpy>=1.23,<3
+shapely>=1.8,<3
+gdspy>=1.6,<2
+# Optional for emitting layout.il: install the user's verified virtuoso-bridge
+# package separately. Geometry-only generation does not import that bridge.

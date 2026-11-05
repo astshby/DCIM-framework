@@ -1,0 +1,4 @@
+interface:
+  display_name: "DCIM Self-Improve"
+  short_description: "Warm-start DCIM design with bounded agent contexts"
+  default_prompt: "Use $dcim-self-improve with the supplied project configuration to inspect the DCIM inputs and prepare the next bounded Builder or Analyst task; do not launch EDA until execution is requested."

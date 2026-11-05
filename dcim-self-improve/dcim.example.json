@@ -1,0 +1,10 @@
+{
+  "work_root": "./runs",
+  "pdk_root": "./external/pdk12",
+  "native_ref_root": "./external/native12",
+  "compiler_ref_root": "./external/compiler12/sram12_ref16x8m2",
+  "reference_22nm_root": "./external/reference22/packages_22nm",
+  "hierarchy_22nm": "./external/reference22/hierarchy.json",
+  "experience_root": "./external/experience",
+  "warm_start_root": "./external/warm-start12"
+}
