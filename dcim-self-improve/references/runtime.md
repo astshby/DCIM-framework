@@ -267,6 +267,24 @@ instruction text. Its returned context_token can be used for later deltas. Omit
 unknown tokens fall back to full instructions. An already frozen request remains
 immutable on retry. This optimizes delivery, not evidence retention.
 
+Run relocation preserves the whole run directory, including pinned programs,
+instructions, objects and experience bundles. New request indexes store relative
+paths; request/reply recovery reads the hash-verified request object. The returned
+`path` is a usable absolute object path in the current location. It is a read-only
+input, not a place to write an AI reply. Save the reply as a new file.
+Artifact `origin_path` and experience origin metadata describe where capture
+occurred; runtime lookup uses relative objects/manifests. Artifact `suffix` retains
+the input format; legacy `source` fields supply only that format and are never
+opened. Old request path fields are also ignored by this version's reader.
+
+Use the moved run's `scripts/workflow.py --run /new/run status` at entry, then its
+normal request/context commands. Migration does not update already pinned code:
+existing runs retain their original behavior and may still need compatibility
+links. Do not replace their scripts, config, state or immutable evidence in place.
+External EDA dependencies and older history bundles have their own path contracts;
+portable evidence manifests are described in evidence-tools.md. A moved run is
+not permission to rerun an interrupted candidate or resubmit a job.
+
 
 Tasks may request optional `export_gds_precision_m` (positive and <1e-6 meters)
 from an explicitly checked source/technology resolution. Builder then retains

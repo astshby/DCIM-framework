@@ -45,7 +45,9 @@ def build(run, name):
             item=next(x for x in state['learning'] if x['id']==source)
             original=state['artifacts'][source]
             saved=root/original['object']
-            if original['source'].lower().endswith('.json'):
+            # Legacy source/origin paths supply format metadata, never a file to open.
+            suffix=original.get('suffix', Path(original.get('origin_path', original.get('source', ''))).suffix.lower())
+            if suffix == '.json':
                 sources[source]=read(saved)['cells']
             else:
                 sources[source]=capture_closure(read_gds(saved),[item['observations']['top']])

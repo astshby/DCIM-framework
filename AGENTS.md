@@ -52,6 +52,13 @@ from short reusable memory. Keep independent review and verification scope.
 Run cheap applicable screens during development, qualify the selected module
 revision with its agreed full batch, and verify the final macro separately.
 
+Preserve original path strings as provenance, not recovery dependencies. Resolve
+run evidence through relative object paths and verify hashes. Move complete run
+trees without rewriting state, logs or pinned programs. New standalone evidence
+manifests may opt into a common base root; older manifests and pinned runtimes
+retain their original path contracts. Keep required compatibility links until
+their consumers have an explicitly validated migration.
+
 ## Guide boundaries and dispatch
 
 `dcim-self-improve/SKILL.md` preserves improve 2's general engineering experience;

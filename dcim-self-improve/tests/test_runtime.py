@@ -2,6 +2,8 @@
 import copy
 import json
 from pathlib import Path
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -10,7 +12,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'assets/tools'))
 from dcim_config import load_config
 from init_run import initialize
-from runtime import atomic, read, transaction
+from runtime import atomic, evidence, read, transaction
 import builder
 import learn
 import memory
@@ -648,6 +650,87 @@ class RuntimeTests(unittest.TestCase):
         key=memory.commit(self.run,{'round':1,'entries':[entry],'disposition':'new'})['ids'][0]
         with self.assertRaisesRegex(ValueError,'supported/refuted'):
             experience.promote(self.run,[key],self.run/'exports/uncertain')
+
+    def test_pending_request_and_builder_survive_rename_and_copy(self):
+        self.prepare()
+        request=workflow.request(self.run)
+        state=read(self.run/'state.json')
+        self.assertFalse(Path(state['requests'][request['id']]['path']).is_absolute())
+        for item in state['artifacts'].values():
+            self.assertIn('origin_path',item)
+            self.assertNotIn('source',item)
+        original=self.run
+        renamed=self.root/'renamed'
+        original.rename(renamed)
+        self.run=self.root/'deeper'/'copied'
+        shutil.copytree(renamed,self.run)
+        shutil.rmtree(renamed)
+        (self.root/'compiler.json').unlink()
+        (self.root/'digital_flow.json').unlink()
+        self.assertFalse(original.exists())
+        state_bytes=(self.run/'state.json').read_bytes()
+        restored=workflow.request(self.run)
+        self.assertEqual(restored['request_digest'],request['request_digest'])
+        self.assertTrue(Path(restored['path']).is_file())
+        self.assertEqual((self.run/'state.json').read_bytes(),state_bytes)
+        status=subprocess.run([sys.executable,'-B',str(self.run/'scripts/workflow.py'),
+                               '--run',str(self.run),'status'],capture_output=True,text=True)
+        self.assertEqual(status.returncode,0,status.stderr)
+        self.assertEqual(json.loads(status.stdout)['phase'],'awaiting_reflect')
+        evidence(self.run,state,list(state['artifacts']))
+        self.dispatch(); self.complete()
+        memory.commit(self.run,{'round':1,'entries':[],'disposition':'no_new'})
+        self.refresh_search()  # The immediately preceding candidate is still the baseline.
+
+    def test_legacy_request_path_and_source_are_metadata_only(self):
+        self.prepare(); request=workflow.request(self.run)
+        state=read(self.run/'state.json')
+        # A synthetic old-format fixture, not a rewrite of an existing experiment.
+        state['requests'][request['id']]['path']=str(self.run/'requests/reflect-0.json')
+        for item in state['artifacts'].values():
+            item['source']=item.pop('origin_path')
+            item.pop('suffix')
+        atomic(self.run/'state.json',state)
+        relocated=self.root/'legacy-renamed'
+        self.run.rename(relocated); self.run=relocated
+        (self.root/'compiler.json').unlink(); (self.root/'digital_flow.json').unlink()
+        self.assertEqual(workflow.request(self.run)['request_digest'],request['request_digest'])
+        self.dispatch(); self.complete()
+
+    def test_request_retry_rejects_tampered_object(self):
+        self.prepare(); request=workflow.request(self.run)
+        Path(request['path']).write_text('{}')
+        with self.assertRaisesRegex(ValueError,'Changed evidence'):
+            workflow.request(self.run)
+
+    def test_experience_bundle_and_receiver_survive_relocation(self):
+        self.prepare(); self.dispatch(); generated=self.complete()
+        entry=self.record('experience','supported');entry['evidence']=[generated['candidate']]
+        key=memory.commit(self.run,{'round':1,'entries':[entry],'disposition':'new'})['ids'][0]
+        output=self.run/'exports/method'
+        experience.promote(self.run,[key],output)
+        manifest_before=(output/'experience.json').read_bytes()
+        moved=self.root/'library'/'method'
+        shutil.copytree(output,moved)
+        shutil.rmtree(self.run)
+        self.assertEqual((moved/'experience.json').read_bytes(),manifest_before)
+        manifest=experience.check_manifest(moved/'experience.json')
+        self.assertIn('origin_path',manifest)
+        config=self.root/'receiver.json'
+        atomic(config,{'work_root':'receivers','experience_root':'library',
+                       'input_files':{'experience_root':['method/experience.json']}})
+        receiver=initialize(config,'receiver')
+        relocated=self.root/'new-place'/'receiver'
+        shutil.copytree(receiver,relocated); shutil.rmtree(receiver)
+        shutil.rmtree(moved.parent)
+        state=read(relocated/'state.json')
+        with transaction(relocated): pass
+        for bundle in state['experience_bundles']:
+            experience.check_manifest(relocated/bundle['manifest'])
+        methods=workflow.context(relocated,'initialize')['changed']['role_experience']
+        self.assertEqual(len(methods),1)
+        self.assertEqual(methods[0]['source_status'],'supported')
+        self.assertEqual(methods[0]['status'],'uncertain')
 
     def test_config_relative_paths_and_input_keys(self):
         settings=load_config(self.config)

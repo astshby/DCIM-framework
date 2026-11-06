@@ -6,6 +6,7 @@ import io
 import json
 import os
 from pathlib import Path
+import shutil
 import tempfile
 import unittest
 
@@ -134,7 +135,7 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaises(evidence.EvidenceError):
             evidence.pv(spec, self.frozen(paths, "wrongtop.json"))
 
-    def test_pv_lvs_full_bindings_and_wrong_source(self):
+    def lvs_fixture(self):
         spec, paths = self.pv_fixture()
         original, run, report = [Path(spec[k]) for k in
                                  ("original_deck", "run_deck", "report")]
@@ -155,10 +156,78 @@ class EvidenceTests(unittest.TestCase):
             "OVERALL COMPARISON RESULTS\nCELL  SUMMARY\nCORRECT top source\n"
             "NUMBERS OF OBJECTS AFTER TRANSFORMATION\n"
             "Total CPU Time: 0 sec\nTotal Elapsed Time: 0 sec\n")
+        return spec, paths
+
+    def test_pv_lvs_full_bindings_and_wrong_source(self):
+        spec, paths = self.lvs_fixture()
+        report = Path(spec['report'])
         self.assertEqual(evidence.pv(spec, self.frozen(paths))["status"], "passed")
         report.write_text(report.read_text().replace("('source')", "('wrong')"))
         with self.assertRaises(evidence.EvidenceError):
             evidence.pv(spec, self.frozen(paths, "wrongsource.json"))
+
+    def test_portable_pv_after_rename_and_copy_without_old_root(self):
+        parent = self.root
+        for kind in ('drc', 'lvs'):
+            with self.subTest(kind=kind):
+                self.root = parent / (kind + '-original')
+                self.root.mkdir()
+                spec, paths = self.pv_fixture() if kind == 'drc' else self.lvs_fixture()
+                spec_path = self.write('spec.json', json.dumps(spec))
+                (self.root / 'checks').mkdir()
+                manifest = self.root / 'checks' / 'manifest.json'
+                data = evidence.freeze(paths + [spec_path], manifest, self.root)
+                self.assertEqual(data['base_root'], '..')
+                original = self.root
+                renamed = parent / (kind + '-renamed')
+                copied = parent / (kind + '-copy')
+                original.rename(renamed)
+                shutil.copytree(renamed, copied)
+                shutil.rmtree(renamed)
+                self.assertFalse(original.exists())
+                relocated = copied / 'checks' / 'manifest.json'
+                frozen = evidence.Frozen(str(relocated))
+                self.assertEqual(frozen.json(str(spec_path)), spec)
+                self.assertEqual(frozen.path_for('a.gds'), copied / 'a.gds')
+                self.assertEqual(evidence.pv(frozen.json('spec.json'), frozen)['status'], 'passed')
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(evidence.main(['pv', 'spec.json', '--manifest', str(relocated)]), 0)
+                # A different file appearing at the old location is never a fallback.
+                original.mkdir(); (original / 'a.gds').write_text('unrelated')
+                self.assertEqual(frozen.text(spec['gds']), 'gds fixture bytes')
+                self.assertEqual(evidence.pv(spec, frozen)['status'], 'passed')
+                frozen.verify()
+                (copied / 'a.gds').write_text('changed')
+                with self.assertRaisesRegex(evidence.EvidenceError, 'changed'):
+                    frozen.verify()
+                with self.assertRaisesRegex(evidence.EvidenceError, 'Unbound evidence'):
+                    frozen.path_for(str(parent / 'unknown'))
+
+    def test_portable_manifest_rejects_escapes_and_missing_files(self):
+        base = self.root / 'base'; base.mkdir()
+        dependency = base / 'input'; dependency.write_text('same bytes')
+        outside = self.write('outside', 'same bytes')
+        manifest = base / 'manifest.json'
+        with self.assertRaisesRegex(evidence.EvidenceError, 'escapes'):
+            evidence.freeze([outside], manifest, base)
+        with self.assertRaisesRegex(evidence.EvidenceError, 'inside'):
+            evidence.freeze([dependency], self.root / 'manifest.json', base)
+        evidence.freeze(['input'], manifest, base)
+        frozen = evidence.Frozen(str(manifest))
+        with self.assertRaisesRegex(evidence.EvidenceError, 'relative'):
+            frozen.path_for('../outside')
+        dependency.unlink()
+        with self.assertRaises(OSError): evidence.Frozen(str(manifest))
+        dependency.symlink_to(outside)
+        with self.assertRaisesRegex(evidence.EvidenceError, 'escapes'):
+            frozen.verify()
+        with self.assertRaisesRegex(evidence.EvidenceError, 'escapes'):
+            evidence.Frozen(str(manifest))
+        dependency.unlink(); dependency.write_text('same bytes')
+        data=json.loads(manifest.read_text()); data['files'][0]['path']='../outside'
+        manifest.write_text(json.dumps(data))
+        with self.assertRaisesRegex(evidence.EvidenceError, 'relative'):
+            evidence.Frozen(str(manifest))
 
     def test_wave_samples_and_bad_vectors(self):
         spec = {"signals": ["out"], "sample_times_s": [0, .5, 1]}

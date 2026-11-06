@@ -77,7 +77,9 @@ def store(root, path):
             stream.write(data)
     require(digest(target) == fingerprint and digest(path) == fingerprint,
             'Artifact changed during snapshot')
-    return {'sha256': fingerprint, 'source': str(path), 'object': str(target.relative_to(root))}
+    # Provenance is descriptive only; readers use the run-owned object after relocation.
+    return {'sha256': fingerprint, 'origin_path': str(path), 'suffix': path.suffix.lower(),
+            'object': str(target.relative_to(root))}
 
 
 def artifact(root, state, name, path, kind):

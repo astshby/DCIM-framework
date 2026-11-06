@@ -72,6 +72,16 @@ def context(run, role, since=None):
         return {'token': token, 'changed': changed}
 
 
+def saved_request(root, state, key):
+    """Recover the immutable packet without dereferencing a historical request path."""
+    evidence(root, state, [key])
+    path = root / state['artifacts'][key]['object']
+    packet = read(path)
+    require(packet.get('request_digest') == state['requests'][key]['request_digest'],
+            'Saved request identity mismatch')
+    return path, packet
+
+
 def request(run, since=None):
     with transaction(run) as (root, state):
         require(state['phase'] in ('learning', 'awaiting_reflect'), 'Reflect follows learning or memory commit')
@@ -81,9 +91,10 @@ def request(run, since=None):
         key = 'reflect-' + str(state['round'])
         # Open request is immutable. New evidence requires an explicit new round, not silent prompt replacement.
         if key in state['requests']:
-            require(read(state['requests'][key]['path']).get('reflect_contract') == REFLECT_CONTRACT,
+            path, packet = saved_request(root, state, key)
+            require(packet.get('reflect_contract') == REFLECT_CONTRACT,
                     'Saved request uses an earlier Reflect contract; use its pinned runtime or initialize a new run')
-            return state['requests'][key]
+            return dict(state['requests'][key], path=str(path))
         packet = context_data(root, state, 'reflect')
         signatures={k:identity(v) for k,v in packet.items() if k!='instructions'}
         signatures.update({'instruction:'+k:identity(v) for k,v in packet['instructions'].items()})
@@ -101,10 +112,11 @@ def request(run, since=None):
         path = root / 'requests' / (key + '.json')
         atomic(path, packet)
         artifact(root, state, key, path, 'reflect_request')
-        state['requests'][key] = {'id': key, 'request_digest': packet['request_digest'], 'path': str(path), 'context_token':context_token}
+        state['requests'][key] = {'id': key, 'request_digest': packet['request_digest'],
+                                  'path': str(path.relative_to(root)), 'context_token':context_token}
         state['phase'] = 'awaiting_reflect'
         event(state, 'reflect_request', state['requests'][key])
-        return state['requests'][key]
+        return dict(state['requests'][key], path=str(root / state['artifacts'][key]['object']))
 
 
 def reflect(run, payload, response_path):
@@ -122,7 +134,7 @@ def reflect(run, payload, response_path):
         require(not set(payload) - {'request_id', 'request_digest', 'author', 'comparison',
                     'evidence', 'reflection', 'self_proposal', 'proposals', 'route_updates',
                     'decision', 'task', 'learning_updates'}, 'Unknown Reflect reply field')
-        packet = read(state['requests'][key]['path'])
+        _, packet = saved_request(root, state, key)
         require(packet.get('reflect_contract') == REFLECT_CONTRACT, 'Wrong Reflect contract')
         short(payload['comparison'], 'comparison', 1200)
         evidence(root, state, payload['evidence'])

@@ -7,7 +7,7 @@ role's own output directory. No command launches EDA or imports a generator.
 
 | Command | Purpose | Limits |
 | --- | --- | --- |
-| `freeze --out MANIFEST FILE...` | Fingerprint an explicit dependency list; refuses overwrite | Fingerprints only; does not copy the actual design |
+| `freeze --out MANIFEST [--base-root ROOT] FILE...` | Fingerprint explicit dependencies; portable v2 with a common root, legacy v1 otherwise | Refuses overwrite; does not copy the actual design |
 | `check MANIFEST` | Verify every recorded file is unchanged | Dependency identity only; omitted dependencies are not covered |
 | `pv SPEC --manifest MANIFEST` | Calibre DRC/LVS report, exact deck edits and execution-input hash checks | Supported report formats only; warnings and job provenance need review |
 | `gds SPEC --manifest MANIFEST` | Hierarchical bbox, direct reference count, selected-layer union areas, optional mask XOR and height-band check | Geometry, not connectivity or DRC |
@@ -39,13 +39,43 @@ python3 "$SKILL_ROOT/scripts/evidence.py" freeze --out /run/Bx/frozen.json /run/
 python3 "$SKILL_ROOT/scripts/evidence.py" pv /run/Bx/pv.json --manifest /run/Bx/frozen.json
 ```
 
-Paths in manifests/specs must be explicit absolute paths, not `latest` or globs.
+Legacy v1 paths must be explicit absolute paths, not `latest` or globs.
 Tool output goes outside frozen inputs. Analyst runs `check` and applicable
 commands itself against Builder's frozen original inputs, writing separate
 outputs; reading only Builder's tool JSON is insufficient. Commands recheck the
 manifest after reading. Do not edit a published snapshot while it is reviewed;
 an intentional update gets a new revision and manifest. Hash checks detect
 changes but are not a filesystem lock or a provenance guarantee.
+
+### Portable evidence trees
+
+For a new experiment intended to move, keep the selected dependencies and manifest
+under one root and add `--base-root /absolute/experiment`. The v2 manifest stores
+its base relative to its own directory, relative file names, hashes, byte counts,
+and an `origin_path` for the original root. File arguments may be absolute or
+relative to that base. A manifest in `checks/` may therefore use `base_root: ".."`.
+Move or copy the entire base tree together, including the manifest. Dependencies
+outside that root and paths escaping through symlinks are rejected.
+
+```bash
+python3 "$SKILL_ROOT/scripts/evidence.py" freeze --base-root /experiment --out /experiment/frozen.json inputs/layout.json spec.json
+python3 "$SKILL_ROOT/scripts/evidence.py" check /relocated-experiment/frozen.json
+```
+
+V2 spec fields accept base-relative names, current absolute names, or exact
+original absolute names recorded by the manifest. Original names are lookup
+aliases only; readers never open an old directory as a fallback. PV checks still
+compare unchanged deck/report text with the original execution paths and verify
+all execution hashes against the relocated files. Moving files does not create
+new verification results. Preserve decks, reports, specs and manifests byte-for-byte.
+
+Without `--base-root`, freeze still writes v1 for existing workflows with external
+dependencies; v1 reading is unchanged and still needs the recorded paths. Do not
+rewrite an immutable v1 manifest to claim portability. Select and freeze a complete,
+authorized common tree before moving a new experiment; this tool does not copy PDK
+files or rewrite historical path strings. Local drivers should derive their own
+directory from `Path(__file__).resolve().parent` or accept explicit paths, rather
+than hard-code experiment names.
 
 ## PV spec
 

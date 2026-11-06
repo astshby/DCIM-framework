@@ -57,6 +57,15 @@ bundles; explicitly configured receiving runs pin and retrieve applicable method
 as reference-only hypotheses, preserving source status and revalidation needs.
 The original evidence checker and compatible history helper remain available.
 
+New runs can be copied or renamed as complete trees: request recovery uses
+hash-verified run-owned objects and experience retrieval uses pinned bundles.
+Original paths remain provenance metadata. For standalone evidence trees,
+`evidence.py freeze --base-root /absolute/tree --out /absolute/tree/frozen.json FILE...`
+writes a portable v2 manifest; omit the flag for legacy v1. See
+`references/evidence-tools.md` for dependency and historical-report requirements.
+Existing runs keep their pinned versions; this update does not migrate them or
+make external EDA paths portable automatically.
+
 The research target is eight input/output channels and storage/compute ratio eight.
 Its accounting, precision, process and electrical conditions must be explicit.
 No fixed SRAM grouping, bitcell, topology, node or decoder proportion is inherited.

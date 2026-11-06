@@ -4,12 +4,13 @@ import argparse
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import re
 import sys
 
 
-VERSION = "1"
+VERSION = "2"
 
 
 class EvidenceError(ValueError):
@@ -39,13 +40,39 @@ def fingerprint(path):
     return {"sha256": digest.hexdigest(), "bytes": size}
 
 
-def freeze(paths, output):
+def within(path, root):
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def relative_file(value):
+    path = Path(value)
+    require(not path.is_absolute() and path.parts and '..' not in path.parts
+            and path.as_posix() == value, "Invalid relative dependency path")
+    return path
+
+
+def freeze(paths, output, base_root=None):
+    """Fingerprint files in place; an explicit common root opts into portable v2."""
     require(output.is_absolute(), "Manifest output path must be absolute")
-    resolved = sorted({absolute(p) for p in paths})
+    base = absolute(base_root) if base_root is not None else None
+    resolved = sorted({absolute(base / p if base is not None else p) for p in paths})
     require(resolved, "No dependencies supplied")
     require(output.resolve() not in resolved, "Manifest cannot include itself")
     manifest = {"schema_version": 1, "files": [
         {"path": str(p), **fingerprint(p)} for p in resolved]}
+    if base is not None:
+        require(base.is_dir() and within(output.resolve(), base),
+                "Portable manifest must be inside its base root")
+        require(all(within(p, base) for p in resolved), "Dependency escapes base root")
+        manifest = {"schema_version": 2,
+                    "base_root": os.path.relpath(str(base), str(output.parent.resolve())),
+                    "origin_path": str(base),
+                    "files": [{"path": p.relative_to(base).as_posix(), **fingerprint(p)}
+                              for p in resolved]}
     with output.open("x", encoding="utf-8") as stream:
         json.dump(manifest, stream, indent=2)
         stream.write("\n")
@@ -58,28 +85,67 @@ class Frozen:
         self.identity = fingerprint(self.path)
         data = json.loads(self.path.read_text())
         require(isinstance(data, dict), "Manifest must be a JSON object")
-        require(data.get("schema_version") == 1, "Unsupported manifest schema")
+        self.version = data.get("schema_version")
+        require(self.version in (1, 2), "Unsupported manifest schema")
         self.entries = {}
+        self.origins = {}
+        self.aliases = {}
+        self.base = None
+        if self.version == 2:
+            locator = Path(data["base_root"])
+            require(not locator.is_absolute(), "Base root must be manifest-relative")
+            self.base = (self.path.parent / locator).resolve(strict=True)
+            require(self.base.is_dir() and within(self.path, self.base),
+                    "Manifest escapes base root")
+            origin = Path(data["origin_path"])
+            require(origin.is_absolute() and '..' not in origin.parts,
+                    "Origin must be an absolute provenance path")
         require(isinstance(data.get("files"), list) and data["files"],
                 "Manifest needs explicit files")
         for entry in data["files"]:
             require(isinstance(entry, dict), "Invalid manifest file entry")
-            path = absolute(entry["path"])
-            require(str(path) == entry["path"], "Manifest paths must be resolved")
+            if self.version == 1:
+                path = absolute(entry["path"])
+                require(str(path) == entry["path"], "Manifest paths must be resolved")
+                recorded = str(path)
+            else:
+                relative = relative_file(entry["path"])
+                path = self.base / relative
+                require(within(path.resolve(strict=True), self.base), "Dependency escapes base root")
+                recorded = str(origin / relative)
             require(path not in self.entries, "Duplicate manifest path")
             self.entries[path] = entry
+            self.origins[path] = recorded
+            for alias in (str(path), recorded):
+                require(alias not in self.aliases or self.aliases[alias] == path,
+                        "Ambiguous dependency alias")
+                self.aliases[alias] = path
         self.verify()
 
     def verify(self):
         require(fingerprint(self.path) == self.identity, "Manifest changed during read")
         for path, entry in self.entries.items():
+            if self.base is not None:
+                require(within(path.resolve(strict=True), self.base), "Dependency escapes base root")
             require(fingerprint(path) == {k: entry[k] for k in ("sha256", "bytes")},
                     "Frozen dependency changed: " + str(path))
 
     def path_for(self, value):
-        path = absolute(value)
+        if self.version == 2:
+            # Old absolute spellings are exact aliases, never filesystem fallbacks.
+            path = self.aliases.get(str(value))
+            if path is None and not Path(value).is_absolute():
+                path = self.base / relative_file(str(value))
+        else:
+            path = absolute(value)
         require(path in self.entries, "Unbound evidence: " + str(path))
+        if self.base is not None:
+            require(within(path.resolve(strict=True), self.base), "Dependency escapes base root")
         return path
+
+    def recorded_path(self, value):
+        """Check historical deck/report bindings against the original execution spelling."""
+        return self.origins[self.path_for(value)]
 
     def text(self, value):
         return self.path_for(value).read_text()
@@ -151,22 +217,22 @@ def pv(spec, frozen):
         expected = expected.replace(old, new)
     text = run.read_text()
     require(expected == text, "Unlisted deck modification", "failed")
-    for field, value in (("LAYOUT PATH", str(gds)), ("LAYOUT PRIMARY", spec["top"])):
+    for field, value in (("LAYOUT PATH", frozen.recorded_path(spec["gds"])), ("LAYOUT PRIMARY", spec["top"])):
         require(re.search(r"^" + field + r'\s+"' + re.escape(value) + r'"\s*$',
                           text, re.M), "Run deck binding mismatch: " + field)
     report = frozen.text(spec["report"])
     if kind == "drc":
         require(re.search(r"^Layout Primary Cell:\s+" + re.escape(spec["top"])
                           + r"\s*$", report, re.M), "DRC report top mismatch")
-        require(re.search(r"^Layout Path\(s\):\s+" + re.escape(str(gds))
+        require(re.search(r"^Layout Path\(s\):\s+" + re.escape(frozen.recorded_path(spec["gds"]))
                           + r"\s*$", report, re.M), "DRC report GDS mismatch")
         result = parse_drc(report, spec.get("expected_rules"))
     else:
-        for field, value in (("SOURCE PATH", str(source)),
+        for field, value in (("SOURCE PATH", frozen.recorded_path(spec["source"])),
                              ("SOURCE PRIMARY", spec["source_top"])):
             require(re.search(r"^" + field + r'\s+"' + re.escape(value) + r'"\s*$',
                               text, re.M), "Run deck binding mismatch: " + field)
-        require(re.search(r"^SOURCE NAME:\s+" + re.escape(str(source))
+        require(re.search(r"^SOURCE NAME:\s+" + re.escape(frozen.recorded_path(spec["source"]))
                           + r"\s+\('" + re.escape(spec["source_top"]) + r"'\)\s*$",
                           report, re.M), "LVS report source mismatch")
         result = parse_lvs(report, spec["top"], spec["source_top"])
@@ -272,6 +338,8 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
     command = sub.add_parser("freeze", help="Snapshot explicitly selected dependencies")
     command.add_argument("--out", required=True, type=Path)
+    command.add_argument("--base-root", type=Path,
+                         help="Absolute common root for portable v2; move this whole tree together")
     command.add_argument("files", nargs="+")
     command = sub.add_parser("check", help="Verify a frozen dependency manifest")
     command.add_argument("manifest")
@@ -281,7 +349,7 @@ def main(argv=None):
             "gds": "Measure hierarchical geometry and selected-layer mask XOR",
             "wave": "Read and sample PSF ASCII (no circuit acceptance oracle)",
         }[name])
-        command.add_argument("spec", help="Absolute path to frozen JSON tool configuration")
+        command.add_argument("spec", help="Frozen JSON path; v2 also accepts base-relative or recorded origin paths")
         command.add_argument("--manifest", required=True)
     args = parser.parse_args(argv)
     base = {"tool_version": VERSION, "tool_sha256": fingerprint(Path(__file__))["sha256"],
@@ -289,7 +357,7 @@ def main(argv=None):
     try:
         if args.command == "freeze":
             result = {"status": "passed", "scope": "fingerprint snapshot only",
-                      "manifest": freeze(args.files, args.out)}
+                      "manifest": freeze(args.files, args.out, args.base_root)}
         else:
             frozen = Frozen(args.manifest)
             if args.command == "check":

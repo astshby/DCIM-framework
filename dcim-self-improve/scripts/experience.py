@@ -59,7 +59,7 @@ def promote(run, ids, output):
                 shutil.copyfile(root/item['object'],staged/'objects'/item['sha256'])
                 item['object']='objects/'+item['sha256']
             atomic(staged/'experience.json',{'schema':SCHEMA,'created_at':datetime.now(timezone.utc).isoformat(),
-                'source_run':str(root),'technology':state['project']['technology'],'entries':entries,'artifacts':retained,
+                'origin_path':str(root),'technology':state['project']['technology'],'entries':entries,'artifacts':retained,
                 'qualification':'source-scoped evidence only; revalidate in each receiving task'})
             staged.rename(destination)
         return {'bundle':str(destination/'experience.json'),'lessons':ids,'evidence_objects':len(retained),
@@ -107,7 +107,7 @@ def snapshot(settings, staged):
         require(digest(dest/'experience.json')==key,'Experience changed during snapshot')
         check_manifest(dest/'experience.json')
         result.append({'sha256':key,'manifest':str((dest/'experience.json').relative_to(staged)),
-                       'source':str(path),'created_at':manifest['created_at']})
+                       'origin_path':str(path),'created_at':manifest['created_at']})
     return result
 
 
