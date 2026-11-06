@@ -1,8 +1,9 @@
-# Runtime contract (v3 / reflect-search-v2)
+# Runtime contract (v4 / reflect-learning-v3)
 
 Initialize with the repository scripts. Use the initialized run's pinned
 `scripts/` thereafter: the run copies programs, geometry helpers and instructions
-once, including scripts/search and the role-specific reflect-SKILL.md. Candidate
+once, including scripts/search and references/{initialize,reflect,builder,analyst}.md
+(flat names under run/instructions). HANDOFF.md is developer history and is not copied. Candidate
 scripts also retain their actual helper versions. No redundant design/ copy is made. Updating the
 framework does not silently alter a running experiment. Start a new run when
 changing config/program contracts, linking the previous evidence deliberately.
@@ -15,7 +16,9 @@ Commands below use absolute RUN/INPUT paths. `--run` precedes the subcommand.
 
 ```sh
 python3 SKILL/scripts/configure.py --output PRIVATE_CONFIG --from-config OLD_CONFIG --init NAME
+python3 SKILL/scripts/roles.py --config PRIVATE_CONFIG
 python3 RUN/scripts/workflow.py --run RUN status
+python3 RUN/scripts/workflow.py --run RUN context --role initialize
 python3 RUN/scripts/workflow.py --run RUN context --role reflect
 python3 RUN/scripts/learn.py --run RUN --kind compiler --layout GDS_OR_JSON --top CELL --context SOURCE_JSON
 python3 RUN/scripts/learn.py --run RUN --kind digital_flow --layout GDS_OR_JSON --top CELL --context SOURCE_JSON
@@ -89,12 +92,38 @@ Budget example:
  "temperature":1,"cooling":0.99}
 ```
 
-Algorithms: `anneal` (default), `local`, `lns`, `beam`. Common limits: evaluations
+Algorithms: `anneal` (default), `local`, `lns`, `beam`, `adaptive`. Common limits: evaluations
 1..10000, steps 1..100000, seconds (0,60], integer seed. `beam` controls retained
 parent-pool width (1..64). `patience` bounds sampled non-improving local/LNS steps;
 `neighborhood` bounds LNS subset size (1..64, clamped to movable count). LNS requires
 `reinsert` in its allowed operations and samples a compound destroy/reinsert move;
 it does not claim exhaustive or optimal repair. All options are recorded.
+
+`adaptive` is a local ALNS-inspired strategy. It selects one of six pairs:
+random/related/edge subset selection times sampled/greedy repair. Related favors
+connected nearby instances; edge favors the right/top envelope. Sampled repair
+repositions the subset jointly. Greedy repair explores a bounded beam of complete
+coordinate states, one selected instance at a time; unprocessed members retain
+their old coordinates. This is not an exact solver for a removed partial layout.
+Each scored repair candidate consumes the SAME evaluation budget; duplicates use
+the cache. Best-so-far includes intermediate repair states even at budget stop.
+
+Additional options: repair_candidates 1..32 (default 8), repair_beam 1..4 (2),
+adaptation_decay [0,1] (0.8). Candidate anchors mix low-envelope positions and
+random positions; their preordering is an unqualified geometric heuristic, not
+an extra objective evaluation. SA acceptance uses temperature/cooling. Outcome
+rewards are 5=new best, 2=improved current, 1=accepted changed state, 0=otherwise.
+Pair weight becomes max(0.1, decay*weight+(1-decay)*reward); positive floor preserves
+exploration. Weights, uses, rewards and actual evaluations remain in the trace.
+Incomplete repairs get no outcome reward. Weights reset each search call; Reflect
+uses recorded summaries/experience for cross-round selection. No cross-run trained
+policy is implied. A repair-heavy call makes fewer macro proposals under the same
+evaluation cap. Do not compare algorithms only by proposal count.
+
+```json
+{"algorithm":"adaptive","evaluations":256,"steps":512,"seconds":5,"seed":4,
+ "neighborhood":3,"repair_candidates":8,"repair_beam":2,"adaptation_decay":0.8}
+```
 
 Each Reflect also has aggregate caps of eight search calls, 10000 evaluations,
 100000 proposal steps and 60 seconds of measured search wall time. Calls are
@@ -117,14 +146,15 @@ improves, the feasible baseline remains a possible unchanged result.
 
 Reflect reply fields: request_id, request_digest, author=`ai`, comparison (<=1200
 characters), evidence IDs, reflection (the short memory schema), self_proposal,
-decision (`build`/`close`), proposals (1..6), route_updates (optional), task.
+decision (`build`/`close`), proposals (1..6), route_updates and learning_updates
+(optional), task.
 self_proposal names a NEW AI route in proposals. Its difference from existing
 routes and minimal distinguishing experiment are mandatory, even at closure.
 Each proposal needs source=ai, mechanism, expected, minimal_test, stop and evidence;
 the self-proposal additionally needs difference. Exact normalized mechanism reuse
 is rejected; semantic novelty remains an AI/evidence responsibility. The reply
 cannot supply human feedback or human-source proposals. Requests carry
-reflect_contract=reflect-search-v2 and allowed_sources=[ai, algorithm]. Existing
+reflect_contract=reflect-learning-v3 and allowed_sources=[ai, algorithm]. Existing
 requests from an older contract must not be silently reinterpreted.
 A close reply still requires reflection and a new idea. Task fields:
 
@@ -133,9 +163,37 @@ A close reply still requires reflection and a new idea. Task fields:
   "route":"ROUTE_ID","module":"adder","stage":"module",
   "goal":"Test the learned grouping","stop":"One screened candidate",
   "checks":["geometry"],"execution":"geometry_only",
-  "max_candidates":2,"learning_ids":["learn-ID"]
+  "max_candidates":2,"learning_ids":["learn-compiler","learn-flow"],
+  "learning_goals":["goal-parent-boundary"]
 }
 ```
+
+`learning_updates` creates or supersedes bounded persistent hypotheses. Example:
+
+```json
+[{"id":"goal-parent-boundary","module":"adder","stage":"module","scope":"general",
+  "condition":"Compiler and flow references have explicit retained boundaries",
+  "operation":"Test the complete parent at a shared interface",
+  "observation":"Reference envelopes motivate a grouping hypothesis, not qualification",
+  "next_test":"Independently check actual parent geometry and separation",
+  "evidence":["learn-compiler","learn-flow"],"checks":["geometry"]}]
+```
+
+Each text field is <=240 characters, updates <=6, evidence <=8, active goals <=6
+per module and <=24 overall. Stage/module and process scope must match the task;
+process scope requires exact technology. General methods carry no technology
+claim. Evidence must include captured learning observations; Analyst review IDs
+may additionally justify a correction. A correction supplies supersedes and a
+new ID, retaining the old goal and all outcomes. Task learning_ids must carry its
+goals' reference sources and task checks must include their checks. Reflect0's
+first task must bind BOTH compiler and digital-flow learning; later tasks reuse
+or revise applicable goals. Closing without a construction needs no new goal.
+
+Context learning_focus returns active goals plus latest learning_checks regardless
+of recent-memory age. Reflect sees all modules; Builder/Analyst see their task
+module. Full old outcomes stay in state and immutable reviews. This is persistent
+within the run; importing conclusions from another run/node still requires explicit
+capture and new validation, not an automatic trust transfer.
 
 AI proposals contain the fields above. They may supply a `plan_spec` referencing an
 search artifact from this Reflect and explicit `placements` (the coordinate
@@ -154,7 +212,23 @@ Analyst review: round, result_id, verdict (same values), scope,
 summary, evidence, checks mapping each required check to passed/failed/incomplete/
 not_run. Required checks must all pass before a passed verdict. Review evidence
 must include the chosen baseline candidate. A failed review with usable geometry
-can seed repair, retaining its failed qualification status.
+can seed repair, retaining its failed qualification status. Each candidate stores
+learning_contract.json containing the exact bound goal versions. Analyst must
+add learning_checks with exactly the task goal IDs:
+
+```json
+{"goal-parent-boundary":{"conclusion":"supported",
+ "observation":"Independent checks passed within the synthetic geometry scope",
+ "evidence":["CANDIDATE_ID","INDEPENDENT_REPORT_ID"]}}
+```
+
+Evidence must be included in the review and include current-round candidate/file
+or evidence artifacts. Supported requires every goal check passed; refuted requires
+checks completed (passed or failed); missing work is inconclusive. An inconclusive
+result may cite the current Builder result when construction produced no output.
+No check status alone proves scientific validity: Analyst must inspect evidence.
+Learning outcomes are retained separately from the original goal and are available
+to subsequent Reflect. Ordinary short memory still follows the review.
 
 Memory batch: round, disposition (`new`/`revised`/`no_new`), entries. See
 experience-memory.md for the single bounded record format.

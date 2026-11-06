@@ -2,8 +2,9 @@
 
 ## Entry and scope
 
-This directory is the active framework repository. Start with this file and
-`HANDOFF.md`; use `README.md` for setup commands. The reusable skill remains in
+This directory is the active framework repository. Start with this file; use
+`README.md` for setup commands. Framework developers also read `HANDOFF.md` as the
+user/developer optimization record; design roles do not load that history. The reusable skill remains in
 `dcim-self-improve/`. Read its `SKILL.md` and only the references needed for the
 current task. The handoff records accepted changes and their implementation
 status; planned features must not be reported as working features.
@@ -17,9 +18,9 @@ automatically synchronizing those reference directories.
 
 Upgrade the framework using evidence from both improve 1 and improve 2. Reuse
 general helpers; remove process-specific defaults from the active execution path.
-Implement the accepted contracts in `HANDOFF.md`.
-Its current decisions supersede conflicting inherited campaign instructions,
-including fixed role interfaces and discarding rejected design branches.
+Keep accepted runtime contracts in this file and the references, and record
+implementation changes/evidence in `HANDOFF.md`. Current runtime contracts override
+inherited campaign instructions, including discarding rejected design branches.
 Do not silently apply the inherited 12FFC recipes or four-SRAM grouping to a
 different process or project.
 
@@ -55,6 +56,10 @@ revision with its agreed full batch, and verify the final macro separately.
 
 `dcim-self-improve/SKILL.md` preserves improve 2's general engineering experience;
 change its process-specific assumptions narrowly. Framework rules belong here.
+Role responsibilities and reusable experience stay in references/initialize.md,
+reflect.md, builder.md and analyst.md; roles.py loads the appropriate entry.
+Do not create a parallel role-SKILL hierarchy. Developer history remains only in
+HANDOFF.md and is not copied into new runs.
 Short stage/route memory is maintained separately through memory.py; do not replace
 these three surfaces with one growing runtime guide.
 
@@ -89,7 +94,7 @@ competitors. No separate planner, curator, compression or retrieval AI role is n
 Search is part of Reflect, not an additional phase. Reflect reads reviewed memory,
 originates an AI idea, selects an algorithm/operations and budget, executes proxy
 searches, then chooses the next Builder plan. Read the role-specific
-`dcim-self-improve/roles/reflect/SKILL.md` once per version. Preserve the main
+`dcim-self-improve/references/reflect.md` once per version. Preserve the main
 SKILL.md as the general experience guide.
 
 After Reflect0, every search baseline must be actual geometry from the immediately
@@ -102,6 +107,17 @@ and candidates with the same fixed evaluator; proxy gains are not qualification.
 Builder retains measured placement state, and Analyst records applicable results
 in the existing bounded memory format. New operations are implemented and checked
 within the ordinary loop; no operator-development stage is added.
+
+Reflect0 learning hypotheses use the same four short text fields as memory, plus
+scope, source evidence and required checks. Each Builder task binds active goals;
+the first task binds compiler AND digital-flow observations. Candidate output
+retains exact goal versions. Analyst reports every bound goal with current evidence
+and explicit supported/refuted/inconclusive status before committing short memory.
+Active goals remain retrievable independently of recent-memory limits; corrections
+supersede and retain the original. General method hypotheses are not cross-node
+signoff; process details require exact technology and affected conclusions must be
+revalidated. Read roles and recent applicable experience newest first without
+changing the existing stage sequence.
 
 Framework validation must use synthetic inputs without launching EDA. Preserve
 role isolation limitations and actual execution provenance in the validation record.

@@ -14,3 +14,43 @@ migration, not silent reuse. No node-specific compiler filenames are prescribed.
 `learn.py` accepts captured geometry JSON or GDS (optional gdspy). Context identifies
 module/process/release/stack/source_run. Keep reference-only observations distinct
 from qualified implementation. Proprietary inputs stay outside the package.
+
+
+## Method references used in this framework
+
+| Source | Reusable content | Boundary |
+| --- | --- | --- |
+| improve 1 | Config, history, geometry helpers | No inherited process defaults |
+| improve 2, experience-memory/compactness/analyst references | Scoped retrieval; concise conditional claims; supersession; complete-parent and independent checks | No new per-round diary or Analyst-owned mandatory idea |
+| Legacy tsmc22nm-dcim_start knowledge/general and decisions | Repeated-seam tests; parent connectivity; local neighbor context; capacity/bandwidth accounting; raw-output retention | No fixed capacity, dimensions, rule decks, topology, PEX waiver or job permissions |
+
+Legacy source topics include precompaction-lessons, local-route-repair-neighbor-context,
+output-inactivity-and-removal, source-interface-and-integrated-routing037,
+primitive-screen-does-not-compose039, raw-prefix-retention-guard033,
+storage-bandwidth-and-locality035 and decisions 025/031. These are historical
+observations, not present framework instructions. Extracted methods live in the
+role references. Source snapshots/hashes and developer rationale stay in the
+private workspace audit referenced by HANDOFF.md; proprietary material is not
+copied into this package. General methods must be revalidated for new conditions.
+
+## Open-source algorithm research
+
+- [N-Wouda/ALNS](https://github.com/N-Wouda/ALNS), MIT license;
+  [operator selection, documentation 7.0.0](https://alns.readthedocs.io/en/latest/api/select.html)
+  and [acceptance criteria](https://alns.readthedocs.io/en/latest/api/accept.html).
+  The adaptive strategy borrows the destroy/repair, outcome reward and decayed
+  selection ideas. This repository contains its OWN standard-library placement
+  implementation; no ALNS code is copied, vendored, imported or installed. Local
+  choices differ: six pair weights with a positive floor, complete-state bounded
+  repair, framework evaluation accounting and frozen-instance enforcement.
+- [SciPy differential evolution](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.differential_evolution.html)
+  and [dual annealing](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.dual_annealing.html)
+  were compared as generic numerical search options. They are not integrated.
+  The current discrete coordinate and repair contract motivated choosing ALNS-style
+  neighborhoods first; this is a task-fit decision, not a performance ranking.
+- [Google OR-Tools](https://github.com/google/or-tools) was examined as a future
+  constraint-solver option, not a heuristic library installed by this release.
+  No CP-SAT adapter or certified optimal placement is implemented.
+
+Search remains cheap module geometry/center-wire estimation. External standard-cell
+placement/routing engines require explicit adapters and authorized validation.

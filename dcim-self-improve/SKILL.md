@@ -51,7 +51,7 @@ must establish the target and acceptance scope. This project's eight input/outpu
 channels and storage/compute ratio eight are explicit requirements, not weight
 bitwidth or a universal reference design. Do not transfer historical area numbers.
 
-Read only the role needed now: [Reflect guide](roles/reflect/SKILL.md), [builder.md](references/builder.md) or
+Read only the role needed now: [initialize.md](references/initialize.md), [reflect.md](references/reflect.md), [builder.md](references/builder.md) or
 [analyst.md](references/analyst.md). Do not load both roles' full evidence.
 
 ## Authorization and planning

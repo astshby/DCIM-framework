@@ -5,7 +5,8 @@ It combines improve 1's generic configuration/history/geometry with improve 2's
 evidence checking and route-memory principles. The old 12FFC seed is retained in
 Git history and is absent from the active package.
 
-Read AGENTS.md and HANDOFF.md once at entry. The reusable skill is
+Read AGENTS.md at entry; HANDOFF.md is the user/developer optimization record,
+not a runtime input. The reusable skill is
 `dcim-self-improve/SKILL.md`; its `references/runtime.md` describes executable
 commands and payloads. No PDK, compiler IP, models or EDA binaries are distributed.
 
@@ -30,9 +31,9 @@ package. The private configuration remains agent-managed.
 Reflect0 imports compiler and digital-flow layouts with `learn.py`, extracts
 geometry/hierarchy observations and specifies the next construction. Inside Reflect,
 `planner.py` runs simulated annealing, local improvement, sampled large-neighborhood
-rearrangement or coordinate beam search. Every later search starts at actual output
-from the immediately preceding reviewed round, preserving its coordinates. The
-Reflect-specific guide is `dcim-self-improve/roles/reflect/SKILL.md`. AI self-reflection and actual algorithm outputs share route records. Every
+rearrangement, coordinate beam search or adaptive destroy/repair search. Every later search starts at actual output
+from the immediately preceding reviewed round, preserving its coordinates. All four role guides stay under `dcim-self-improve/references/`: initialize.md,
+reflect.md, builder.md and analyst.md. `roles.py` centralizes their loading. AI self-reflection and actual algorithm outputs share route records. Every
 Reflect, including closure, must submit one new testable AI proposal with a
 difference from existing routes. Human proposals/feedback are not Reflect inputs.
 
@@ -46,6 +47,11 @@ It recovers a `placement_state.json` from actual generated instance geometry; th
 next search verifies that state against retained layout evidence. Multiple Builder
 candidates require an explicit primary baseline; missing output cannot silently
 fall back to an older round.
+Reflect0 creates bounded learning goals linked to captured references and required
+checks. Builder retains exact goals in learning_contract.json; Analyst reports
+per-goal conclusions with current evidence. Context keeps active goals and latest
+outcomes available beyond recent-memory limits. Corrections supersede old versions;
+process-bound conclusions do not automatically apply to another node or run.
 The original evidence checker and compatible history helper remain available.
 
 The research target is eight input/output channels and storage/compute ratio eight.
@@ -59,7 +65,11 @@ No fixed SRAM grouping, bitcell, topology, node or decoder proportion is inherit
 - `scripts/search/operators.py`: reusable placement modifications.
 - `scripts/search/algorithms.py`: strategy registry and bounded exploration.
 - `scripts/search/baseline.py`: recover and verify actual previous-round placements.
-- `roles/reflect/SKILL.md`: task-dependent algorithm/operation selection and interpretation.
+- `scripts/search/adaptive.py`: ALNS-inspired operator selection and bounded repair.
+- `scripts/roles.py`: one registry for existing role references and initialization context.
+- `scripts/learning_contract.py`: persistent goals, task/check binding and outcome retrieval.
+- `references/{initialize,reflect,builder,analyst}.md`: role functions and reusable experience.
+- `references/sources.md`: method provenance and external-library research status.
 
 These paths are relative to `dcim-self-improve/`. Programs and guidance are pinned
 at initialization; ordinary calls use those copies and context deltas. Search caches
@@ -76,6 +86,11 @@ submit EDA jobs. AI explicit plans can be evaluated in the same geometry
 representation. New operations use the shared state/evaluator interface and are
 implemented and checked within the existing role loop. No new planning stage is
 introduced. External standard-cell engines and routing adapters remain unsupported.
+The adaptive search references [N-Wouda/ALNS](https://github.com/N-Wouda/ALNS)
+concepts through a local standard-library implementation. No external algorithm
+library is installed or vendored. It records six destroy/repair pair weights and
+charges all evaluated repair states to the common budget; it is not guaranteed
+to beat other strategies. See references/sources.md for comparisons and provenance.
 Protocol gates cover the fixed entry points, not arbitrary shell actions.
 
 ```sh

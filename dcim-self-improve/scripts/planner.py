@@ -28,7 +28,7 @@ def validate_references(state, problem):
 def plan(run, problem=None, budget=None, baseline=None):
     budget=budget or {}
     with transaction(run) as (root,state):
-        require(state.get('schema_version')==3,'Use a new run for the coordinate search contract')
+        require(state.get('schema_version')==4,'Use a new run for the coordinate search contract')
         require('reflect-'+str(state['round']) not in state['requests'],
                 'Finish the saved Reflect request before adding search evidence')
         require(state['phase'] in ('learning','awaiting_reflect'),'Search belongs inside Reflect after memory commit')

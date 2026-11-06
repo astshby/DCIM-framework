@@ -22,7 +22,7 @@ def problem():
 class SearchTests(unittest.TestCase):
     def test_all_strategies_start_exactly_at_baseline_and_improve_fixture(self):
         p=problem(); initial=((0,0,0),(12,0,0))
-        for algorithm in ('anneal','local','lns','beam'):
+        for algorithm in ('anneal','local','lns','beam','adaptive'):
             with self.subTest(algorithm=algorithm):
                 r=search(p,{'algorithm':algorithm,'seed':7,'evaluations':100,'steps':300,'seconds':5},initial)
                 self.assertEqual(r['trials'][0]['state'],initial)
@@ -43,7 +43,7 @@ class SearchTests(unittest.TestCase):
     def test_frozen_baseline_and_budget_one_do_not_repack(self):
         p=problem(); p['movable_ids']=[]
         initial=((3,4,90),(9,4,0))
-        for algorithm in ('anneal','local','lns','beam'):
+        for algorithm in ('anneal','local','lns','beam','adaptive'):
             r=search(p,{'algorithm':algorithm},initial)
             self.assertEqual(r['evaluations'],1)
             self.assertEqual(r['best']['state'],initial)
@@ -87,6 +87,38 @@ class SearchTests(unittest.TestCase):
             for _ in range(30):
                 candidate,_,_=propose(p,state,rng,[op])
                 self.assertEqual(candidate[0],state[0])
+
+    def test_adaptive_nested_repair_counts_every_evaluation_and_keeps_best(self):
+        p=problem(); initial=((0,0,0),(12,0,0))
+        for limit in (1,2,7,80):
+            r=search(p,{'algorithm':'adaptive','seed':7,'evaluations':limit,
+                        'steps':100,'repair_candidates':16,'repair_beam':4},initial)
+            self.assertLessEqual(r['evaluations'],limit)
+            self.assertEqual(r['evaluations'],len(r['trials']))
+            self.assertEqual(rank(r['best']),min(map(rank,r['trials'])))
+            self.assertEqual(sum(r['adaptation']['pair_uses'].values()),
+                             sum(t['candidate'] is not None for t in r['trace']))
+            self.assertTrue(all(t['state'][0]==initial[0] for t in r['trials']))
+            self.assertEqual(r['qualification'],'not_run')
+        self.assertTrue(any(t['operation']=='adaptive_repair' for t in r['trials']))
+        self.assertTrue(any(w!=1 for w in r['adaptation']['pair_weights'].values()))
+
+    def test_adaptive_deterministic_budget_and_selection_rewards(self):
+        from search.adaptive import Selection
+        choice=Selection(.8)
+        choice.update('edge','greedy',5)
+        self.assertAlmostEqual(choice.weights['edge:greedy'],1.8)
+        self.assertEqual(choice.weights['random:sampled'],1)
+        p=problem(); initial=((0,0,0),(12,0,0))
+        budget={'algorithm':'adaptive','seed':4,'evaluations':50,'steps':100,'seconds':10}
+        a=search(p,budget,initial); b=search(p,budget,initial)
+        self.assertEqual(a['trials'],b['trials'])
+        self.assertEqual(a['trace'],b['trace'])
+        self.assertEqual(a['adaptation'],b['adaptation'])
+        self.assertTrue(a['cache_hits'])
+        for options in ({'repair_candidates':0},{'repair_beam':5},{'adaptation_decay':1.1},
+                        {'operators':['translate']}):
+            with self.assertRaises(ValueError): search(p,dict(budget,**options),initial)
 
     def test_invalid_algorithms_parameters_and_orientation_fail(self):
         p=problem()

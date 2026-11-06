@@ -4,8 +4,10 @@ from pathlib import Path
 import re
 from runtime import atomic, artifact, cli, event, evidence, identity, read, require, status, store, transaction
 import memory
+import roles
+import learning_contract
 
-REFLECT_CONTRACT = 'reflect-search-v2'
+REFLECT_CONTRACT = 'reflect-learning-v3'
 
 
 def short(value, label, maximum=500):
@@ -15,12 +17,11 @@ def short(value, label, maximum=500):
 
 def context_data(root, state, role):
     task = state['task'] or {}
-    instructions = ['AGENTS.md', 'SKILL.md', role + '.md']
-    if role == 'reflect':
-        instructions.append('reflect-SKILL.md')
+    instructions = roles.names(role)
+    focus=learning_contract.focus(state, None if role in ('reflect','initialize') else task.get('module'))
+    learning_ids={e for goal in focus for e in goal['evidence']}
     return {
-        'instructions': {n: (root/'instructions'/n).read_text(encoding='utf-8')
-                         for n in instructions if (root/'instructions'/n).exists()},
+        'instructions': roles.instructions(root,role),
         'instruction_scope': instructions,
         'task': task, 'phase': state['phase'], 'round': state['round'],
         'baseline': state.get('last_result',{}).get('baseline_candidate'),
@@ -32,8 +33,11 @@ def context_data(root, state, role):
                          if role=='reflect' else [],
         'project': state['project'],
         'learning': state['learning'] if state['round'] == 0 else [
-            x for x in state['learning'] if x['context']['module'] == task.get('module')],
+            x for x in state['learning'] if x['id'] in learning_ids or x['context']['module'] == task.get('module')],
         'memory': memory.select(state, task.get('stage'), task.get('module')),
+        'memory_order':'newest applicable first',
+        'learning_focus': focus,
+        'open_items': __import__('project_config').open_items(state['project']) if role=='initialize' else None,
         'review': state['reviews'].get(str(state['round'])),
         'artifacts': {k:v for k,v in state['artifacts'].items() if v['round'] == state['round']},
         'routes': [dict({k:v for k,v in r.items() if k != 'plan'},
@@ -49,7 +53,8 @@ def context(run, role, since=None):
         expected = {'learning': 'reflect', 'awaiting_reflect': 'reflect',
                     'awaiting_builder': 'builder', 'awaiting_analyst': 'analyst',
                     'awaiting_memory': 'analyst', 'closed': 'reflect'}
-        require(role == expected[state['phase']], 'Role cannot act at this stage')
+        require(role == expected[state['phase']] or
+                (role=='initialize' and state['phase']=='learning' and state['round']==0), 'Role cannot act at this stage')
         data = context_data(root, state, role)
         signatures = {k: identity(v) for k,v in data.items() if k!='instructions'}
         signatures.update({'instruction:'+k:identity(v) for k,v in data['instructions'].items()})
@@ -105,7 +110,7 @@ def reflect(run, payload, response_path):
         require(payload.get('author') == 'ai', 'Reflect requires an actual AI response')
         require(not set(payload) - {'request_id', 'request_digest', 'author', 'comparison',
                     'evidence', 'reflection', 'self_proposal', 'proposals', 'route_updates',
-                    'decision', 'task'}, 'Unknown Reflect reply field')
+                    'decision', 'task', 'learning_updates'}, 'Unknown Reflect reply field')
         packet = read(state['requests'][key]['path'])
         require(packet.get('reflect_contract') == REFLECT_CONTRACT, 'Wrong Reflect contract')
         short(payload['comparison'], 'comparison', 1200)
@@ -160,6 +165,7 @@ def reflect(run, payload, response_path):
         for rid, lifecycle in payload.get('route_updates', {}).items():
             require(rid in state['routes'] and lifecycle in ('active','deferred','refuted-in-scope','superseded'), 'Invalid route update')
             state['routes'][rid]['lifecycle'] = lifecycle
+        learning_contract.update(root,state,payload.get('learning_updates',[]))
         # Explicit closure still commits a reflection.
         if payload['decision'] == 'close':
             state['phase'] = 'closed'
@@ -183,6 +189,7 @@ def reflect(run, payload, response_path):
             require(isinstance(task['checks'], list) and task['checks'], 'Task checks required')
             require(isinstance(task['learning_ids'], list) and task['learning_ids'], 'Builder must receive specific learned observations')
             require(set(task['learning_ids']) <= {x['id'] for x in state['learning']}, 'Unknown learning reference')
+            learning_contract.bind_task(state,task)
             require(type(task['max_candidates']) is int and 1 <= task['max_candidates'] <= 20, 'Bound candidate budget')
             task['round'] = state['round'] + 1
             task['id'] = 'task-' + str(task['round'])
@@ -253,6 +260,7 @@ def review(run, payload, path):
             require(all(payload['checks'][k] == 'passed' for k in state['task']['checks']), 'Cannot pass missing checks')
         baseline=state.get('last_result',{}).get('baseline_candidate')
         require(not baseline or baseline in payload['evidence'],'Review must inspect the chosen previous-round baseline')
+        learning_contract.review(root,state,payload)
         artifact(root, state, token, path, 'analyst_review')
         state['reviews'][str(state['round'])] = dict(payload, id=token)
         state['submissions'][token] = signature
@@ -267,7 +275,7 @@ def main():
     sub = p.add_subparsers(dest='command', required=True)
     sub.add_parser('status')
     c = sub.add_parser('context')
-    c.add_argument('--role', choices=('reflect','builder','analyst'), required=True)
+    c.add_argument('--role', choices=tuple(roles.REFERENCES), required=True)
     c.add_argument('--since')
     sub.add_parser('request')
     for name in ('reflect','result','review'):

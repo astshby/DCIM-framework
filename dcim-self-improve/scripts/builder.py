@@ -10,6 +10,7 @@ from geometry import capture_closure, read_gds
 from runtime import atomic, artifact, cli, event, evidence, identity, read, require, transaction
 from search.baseline import measured_placements
 from search.model import state_from_placements, states_match
+from learning_contract import bind_task
 
 TOOLS = Path(__file__).resolve().parents[1]/'assets/tools'
 DRAW = '''"""Generated Builder program. Modify only in a new candidate revision."""
@@ -49,6 +50,7 @@ def build(run, name):
             else:
                 sources[source]=capture_closure(read_gds(saved),[item['observations']['top']])
         directory.mkdir()
+        atomic(directory/'learning_contract.json',{'task':task['id'],'goals':bind_task(state,task)})
         atomic(directory/'input.json', {'placements':route['plan']['placements'],'sources':sources})
         (directory/'draw.py').write_text(DRAW,encoding='utf-8')
         for file in ('geometry.py','layout_tools.py'):

@@ -19,3 +19,30 @@ Reflect owns the next route choice. Do not bypass it or delete failed branches.
 The mandatory new idea belongs to Reflect. Analyst supplies independent findings,
 uncertainty and reviewed short memory; do not invent a competing route merely to
 meet an old Analyst-role requirement or assign the next task.
+
+
+## Learning checks and general experience
+
+Report learning_checks for EVERY task learning_goals ID, each with conclusion
+(supported/refuted/inconclusive), observation <=240 characters and evidence IDs
+also present in the review. Decisive conclusions need actual current-round evidence
+and completed required checks; support requires those checks to pass. Missing
+outputs/checks remain inconclusive. An incomplete Builder result can evidence why
+no conclusion is possible. Candidate learning_contract.json preserves the exact
+hypothesis under test. Pass/fail is local to the recorded scope and conditions.
+
+- Labels, device counts, geometric validity, connectivity, DRC/LVS/ERC and electrical
+  behavior answer different questions. A clean tool exit is not their substitute.
+- Check the repeated/assembled structure: passing a leaf does not prove a slice or
+  macro passes. Report the smallest counterexample and affected scope.
+- Compare complete parent cost and frozen interfaces; report width/height alongside
+  area. Do not generalize from a trimmed leaf with omitted overhead.
+- Compress into condition / operation / observation / next_test. Keep applicability,
+  counterexample and evidence; split general methods from exact process details.
+  Correct by supersession, never erase the original. Use no_new for no new lesson.
+- Separate measured failure from missing validation and from a refuted hypothesis.
+  A failed hypothesis can still teach a useful general test; it cannot justify a
+  successful action record. Reflect owns invention and next-task selection.
+
+These methods draw on improve 2 and the legacy experiment sources catalogued in
+[sources.md](sources.md); old exemptions and process outcomes are not inherited.

@@ -16,6 +16,8 @@ import learn
 import memory
 import planner
 import workflow
+import roles
+import learning_contract
 from geometry import bbox
 
 
@@ -82,8 +84,22 @@ class RuntimeTests(unittest.TestCase):
                      'stop':'One bounded observation','evidence':[self.search]}],
                  'task':{'route':self.route,'module':'adder','stage':'module','goal':'Synthetic composition',
                          'stop':'One geometry candidate','checks':['geometry'], 'execution':'geometry_only',
-                         'max_candidates':2,'learning_ids':self.ids}}
+                         'max_candidates':2,'learning_ids':self.ids,'learning_goals':['goal-layout']}}
+        if round_number==0:
+            payload['learning_updates']=[self.learning_goal()]
         return payload
+
+    def learning_goal(self):
+        return {'id':'goal-layout','module':'adder','stage':'module','scope':'general',
+                'condition':'Observed compiler and digital-flow rectangles; geometry scope only',
+                'operation':'Test grouping under the common envelope and separation checks',
+                'observation':'Reference geometry motivates a composition hypothesis',
+                'next_test':'Check the actually generated parent independently',
+                'evidence':self.ids,'checks':['geometry']}
+
+    def learning_check(self, evidence, conclusion='supported'):
+        return {'goal-layout':{'conclusion':conclusion,'observation':'Synthetic scope only',
+                               'evidence':evidence}}
 
     def dispatch(self,decision='build'):
         payload=self.reply_payload(decision)
@@ -103,7 +119,9 @@ class RuntimeTests(unittest.TestCase):
         atomic(path,payload)
         workflow.result(self.run,payload,path)
         review={'round':n,'result_id':'result-'+str(n),'verdict':verdict,'scope':'geometry only',
-                'summary':'Fixture checks', 'checks':{'geometry':verdict},'evidence':generated['evidence']}
+                'summary':'Fixture checks', 'checks':{'geometry':verdict},'evidence':generated['evidence'],
+                'learning_checks':self.learning_check([generated['candidate']],
+                                  'supported' if verdict=='passed' else 'inconclusive')}
         atomic(path,review)
         workflow.review(self.run,review,path)
         return generated
@@ -178,7 +196,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertNotIn('AGENTS.md',third['changed']['instructions'])
         self.assertNotIn('SKILL.md',third['changed']['instructions'])
         self.assertIn('builder.md',third['changed']['instructions'])
-        self.assertNotIn('reflect-SKILL.md',third['changed']['instruction_scope'])
+        self.assertNotIn('reflect.md',third['changed']['instruction_scope'])
 
     def test_immutable_source_and_geometry_script_reproduction(self):
         self.prepare(); self.dispatch()
@@ -362,7 +380,8 @@ class RuntimeTests(unittest.TestCase):
         path=self.root/'result.json'; atomic(path,payload)
         workflow.result(self.run,payload,path)
         review={'round':1,'result_id':'result-1','verdict':'incomplete','scope':'no geometry',
-                'summary':'Interrupted construction','checks':{'geometry':'not_run'},'evidence':[self.search]}
+                'summary':'Interrupted construction','checks':{'geometry':'not_run'},'evidence':[self.search,'result-1'],
+                'learning_checks':self.learning_check(['result-1'],'inconclusive')}
         atomic(path,review); workflow.review(self.run,review,path)
         memory.commit(self.run,{'round':1,'disposition':'no_new','entries':[]})
         with self.assertRaisesRegex(ValueError,'no layout baseline'):
@@ -397,7 +416,8 @@ class RuntimeTests(unittest.TestCase):
         payload['baseline_candidate']='two'; atomic(path,payload)
         workflow.result(self.run,payload,path)
         review={'round':1,'result_id':'result-1','verdict':'passed','scope':'geometry',
-                'summary':'Check both candidates','checks':{'geometry':'passed'},'evidence':a['evidence']}
+                'summary':'Check both candidates','checks':{'geometry':'passed'},'evidence':a['evidence'],
+                'learning_checks':self.learning_check([a['candidate']])}
         atomic(path,review)
         with self.assertRaisesRegex(ValueError,'baseline'):
             workflow.review(self.run,review,path)
@@ -474,13 +494,97 @@ class RuntimeTests(unittest.TestCase):
 
     def test_reflect_guide_pinned_and_role_scoped(self):
         first=workflow.context(self.run,'reflect')
-        self.assertIn('reflect-SKILL.md',first['changed']['instructions'])
+        self.assertIn('reflect.md',first['changed']['instructions'])
         self.assertEqual(workflow.context(self.run,'reflect',first['token'])['changed'],{})
         self.prepare(); self.dispatch()
         packet=workflow.context(self.run,'builder')
-        self.assertNotIn('reflect-SKILL.md',packet['changed']['instructions'])
+        self.assertNotIn('reflect.md',packet['changed']['instructions'])
         self.assertTrue((self.run/'scripts/search/algorithms.py').is_file())
         self.assertFalse((self.run/'design').exists())
+
+    def test_initialization_and_pinned_roles_exclude_developer_history(self):
+        packet=roles.initialization(self.config)
+        self.assertFalse(packet['eda_launched'])
+        self.assertIn('open_items',packet)
+        first=workflow.context(self.run,'initialize')
+        self.assertIn('initialize.md',first['changed']['instructions'])
+        self.assertEqual(workflow.context(self.run,'initialize',first['token'])['changed'],{})
+        self.assertFalse((self.run/'instructions/HANDOFF.md').exists())
+        self.assertFalse((self.run/'instructions/workspace-HANDOFF.md').exists())
+        self.assertFalse((self.run/'instructions/framework-history.md').exists())
+        import subprocess
+        result=subprocess.run([sys.executable,str(self.run/'scripts/roles.py'),'--config',str(self.run/'config.json')],
+                              capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertIn('Initialization',json.loads(result.stdout)['instructions'])
+
+    def test_learning_targets_required_and_bind_both_reference_kinds(self):
+        self.prepare()
+        payload=self.reply_payload(); path=self.root/'learning-reply.json'
+        for change in ('missing','wrong_module','missing_check','one_source','process'):
+            bad=copy.deepcopy(payload)
+            if change=='missing': bad['task'].pop('learning_goals')
+            if change=='wrong_module': bad['learning_updates'][0]['module']='sram'
+            if change=='missing_check': bad['learning_updates'][0]['checks']=['connectivity']
+            if change=='one_source': bad['learning_updates'][0]['evidence']=self.ids[:1]
+            if change=='process':
+                bad['learning_updates'][0].update(scope='process',technology={'process':'OTHER','release':'r1','stack':'m1'})
+            atomic(path,bad)
+            with self.assertRaises(ValueError): workflow.reflect(self.run,bad,path)
+        self.assertEqual(read(self.run/'state.json')['learning_goals'],[])
+        atomic(path,payload); workflow.reflect(self.run,payload,path)
+        generated=self.complete()
+        binding=read(Path(generated['directory'])/'learning_contract.json')
+        self.assertEqual(binding['goals'][0]['id'],'goal-layout')
+        self.assertEqual(binding['goals'][0]['round'],0)
+
+    def test_foundational_learning_survives_recent_memory_and_corrections(self):
+        self.prepare(); self.dispatch(); self.complete()
+        memory.commit(self.run,{'round':1,'entries':[],'disposition':'no_new'})
+        state=read(self.run/'state.json')
+        # Long-run retrieval fixture: newer ordinary records must not crowd out a goal.
+        for i in range(20):
+            entry=self.record('experience'); entry['id']='later-'+str(i)
+            state['memory'].append(entry)
+        packet=workflow.context_data(self.run,state,'reflect')
+        self.assertEqual(len(packet['memory']),8)
+        self.assertEqual(packet['learning_focus'][0]['id'],'goal-layout')
+        self.assertEqual(packet['learning_focus'][0]['latest_check']['conclusion'],'supported')
+        corrected=self.learning_goal()
+        corrected.update(id='goal-revised',supersedes='goal-layout',observation='Apply only to the observed boundary')
+        corrected['evidence']=self.ids+['review-1']
+        learning_contract.update(self.run,state,[corrected])
+        self.assertEqual(len(state['learning_goals']),2)
+        self.assertEqual([g['id'] for g in learning_contract.focus(state)],['goal-revised'])
+        task=copy.deepcopy(state['task'])
+        with self.assertRaisesRegex(ValueError,'superseded'): learning_contract.bind_task(state,task)
+        task['learning_goals']=['goal-revised']
+        self.assertEqual(learning_contract.bind_task(state,task)[0]['id'],'goal-revised')
+        changed=copy.deepcopy(state)
+        changed['learning_goals'][-1].update(scope='process',technology=changed['project']['technology'])
+        changed['project']['technology']={'process':'NEXT','release':'r2','stack':'m2'}
+        self.assertEqual(learning_contract.focus(changed),[])
+
+    def test_analyst_learning_evidence_is_current_and_required(self):
+        self.prepare(); self.dispatch()
+        generated=builder.build(self.run,'current')
+        result={'round':1,'task_id':'task-1','outcome':'passed','summary':'Fixture',
+                'evidence':generated['evidence']}
+        path=self.root/'check.json'; atomic(path,result); workflow.result(self.run,result,path)
+        review={'round':1,'result_id':'result-1','verdict':'passed','scope':'geometry',
+                'summary':'Fixture','checks':{'geometry':'passed'},'evidence':generated['evidence']+self.ids}
+        for outcomes in ({},self.learning_check(self.ids),
+                         {'unbound':{'conclusion':'supported','observation':'bad','evidence':generated['evidence']}}):
+            review['learning_checks']=outcomes; atomic(path,review)
+            with self.assertRaises(ValueError): workflow.review(self.run,review,path)
+        review.update(verdict='incomplete',checks={'geometry':'not_run'},
+                      learning_checks=self.learning_check([generated['candidate']]))
+        atomic(path,review)
+        with self.assertRaisesRegex(ValueError,'completed checks'): workflow.review(self.run,review,path)
+        review.update(verdict='failed',checks={'geometry':'failed'},
+                      learning_checks=self.learning_check([generated['candidate']],'refuted'))
+        atomic(path,review); workflow.review(self.run,review,path)
+        self.assertEqual(read(self.run/'state.json')['learning_outcomes'][0]['conclusion'],'refuted')
 
     def test_config_relative_paths_and_input_keys(self):
         settings=load_config(self.config)

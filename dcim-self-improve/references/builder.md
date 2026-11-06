@@ -15,3 +15,26 @@ round, task_id, outcome, summary and evidence IDs. When retaining multiple
 candidates, set baseline_candidate to the primary output for the next Reflect.
 It must belong to this round and be included in result evidence. Propose short action/experience
 records for Analyst. Do not write accepted memory or assign the next task.
+
+
+## Learning target binding and general experience
+
+Task learning_goals identify active, scoped hypotheses and required checks.
+The fixed builder writes the exact goal versions to learning_contract.json in
+EVERY candidate; retain this alongside draw.py, actual geometry and inputs.
+Do not drop a difficult check or substitute an easier goal during local repair.
+An unsupported construction remains an explicit capability gap.
+
+- Verify hierarchy transforms and boundary ownership (wells, taps, supplies and
+  rails) at assembled scope. Reusing a proven leaf does not qualify its parent.
+- Screen the smallest real repeated seam before replicating a primitive. Old
+  transistor dimensions, routing layers or spacing tricks are not generic recipes.
+- A local route repair can change neighboring conflicts; preserve before/after
+  connectivity and inspect the affected neighborhood independently.
+- Retain the full parent including periphery, routing and control. Bare-array
+  compaction is not evidence of a smaller complete DCIM macro.
+- Use disjoint candidate/output namespaces. Preserve failed programs and raw logs,
+  including partially generated layouts; summaries do not replace raw evidence.
+
+Method sources: [sources.md](sources.md). Fresh route-specific lessons stay in
+structured short memory; do not grow this file into a per-round diary.
