@@ -26,3 +26,34 @@ retains active goals and latest Analyst outcomes in learning_focus; they do not
 age out when memory.select returns its newest eight records. Correct by explicit
 supersession. Treat general goals as conditional methods to test, not portable
 process qualification. Runtime payloads are in [runtime.md](runtime.md).
+
+
+## Programmatic promotion and cross-run retrieval
+
+After Analyst commits a current supported/refuted experience, the agent may run:
+
+```sh
+python3 RUN/scripts/experience.py --run RUN --ids MEMORY_ID --output RUN/exports/METHOD_VERSION
+```
+
+This publishes an immutable experience.json and the referenced artifact closure,
+including the source review and available Reflect prompt/reply. Uncertain,
+superseded or unreviewed lessons are rejected; evidence must have been inspected
+by the source Analyst. A failed review can support a refuted lesson; it cannot
+create a successful action. Existing bundles cannot be overwritten.
+
+For a later run set experience_root to the library directory and list explicit
+bundle manifests in input_files.experience_root. Initialization verifies all
+retained object identities and copies a fixed snapshot. It never writes to that
+read-only library. Publish a revised bundle in a new path and explicitly replace
+the configured selection; retain old bundles and old runs. At most 16 bundles,
+six lessons each, and eight applicable retrieved records bound ordinary context.
+
+workflow context/request supplies role_experience newest first, filtered by
+stage/module and exact technology for process scope. General methods may cross
+nodes, but every imported record is uncertain/reference-only in the receiver;
+source_status remains visible. It cannot count as a locally supported action or
+a validated learning goal. Test and review it locally before promoting a new claim.
+This is a maintained role-experience library supplied beside role Markdown; static
+policy is changed only through a versioned framework revision. Source evidence
+bundles may contain private IP and must remain outside the framework Git/ZIP.

@@ -19,7 +19,7 @@ class PackageWorkspaceTests(unittest.TestCase):
         self.parent = Path(self.temp.name)
         self.root = self.parent / "source"
         self.root.mkdir()
-        for name in ("README.md", "AGENTS.md", "HANDOFF.md", ".gitignore"):
+        for name in ("README.md", "AGENTS.md", "HANDOFF.md", "LICENSE", ".gitignore"):
             (self.root / name).write_text("synthetic " + name)
         for name in ("dcim-self-improve", "scripts", "tests"):
             (self.root / name).mkdir()
@@ -48,7 +48,7 @@ class PackageWorkspaceTests(unittest.TestCase):
             path.write_text("private")
         package_workspace(self.root)
         with zipfile.ZipFile(self.archive) as stream:
-            self.assertEqual(len(stream.namelist()), 5)
+            self.assertEqual(len(stream.namelist()), 6)
             self.assertTrue(all("private" not in stream.read(n).decode()
                                 for n in stream.namelist()))
 

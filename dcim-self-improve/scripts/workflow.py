@@ -6,6 +6,7 @@ from runtime import atomic, artifact, cli, event, evidence, identity, read, requ
 import memory
 import roles
 import learning_contract
+import experience
 
 REFLECT_CONTRACT = 'reflect-learning-v3'
 
@@ -36,6 +37,7 @@ def context_data(root, state, role):
             x for x in state['learning'] if x['id'] in learning_ids or x['context']['module'] == task.get('module')],
         'memory': memory.select(state, task.get('stage'), task.get('module')),
         'memory_order':'newest applicable first',
+        'role_experience':experience.select(root,state,task.get('stage'),task.get('module')),
         'learning_focus': focus,
         'open_items': __import__('project_config').open_items(state['project']) if role=='initialize' else None,
         'review': state['reviews'].get(str(state['round'])),
@@ -70,7 +72,7 @@ def context(run, role, since=None):
         return {'token': token, 'changed': changed}
 
 
-def request(run):
+def request(run, since=None):
     with transaction(run) as (root, state):
         require(state['phase'] in ('learning', 'awaiting_reflect'), 'Reflect follows learning or memory commit')
         if state['round'] == 0:
@@ -83,6 +85,15 @@ def request(run):
                     'Saved request uses an earlier Reflect contract; use its pinned runtime or initialize a new run')
             return state['requests'][key]
         packet = context_data(root, state, 'reflect')
+        signatures={k:identity(v) for k,v in packet.items() if k!='instructions'}
+        signatures.update({'instruction:'+k:identity(v) for k,v in packet['instructions'].items()})
+        context_token=identity(signatures)
+        old=state['context_receipts'].get(since,{})
+        packet['instruction_hashes']={k:identity(v) for k,v in packet['instructions'].items()}
+        packet['instructions']={k:v for k,v in packet['instructions'].items()
+                                if old.get('instruction:'+k)!=signatures['instruction:'+k]}
+        packet['context_token']=context_token
+        state['context_receipts'][context_token]=signatures
         packet.update(id=key, source='real_ai_reply_required', reflect_contract=REFLECT_CONTRACT,
                       allowed_sources=['ai', 'algorithm'],
                       self_proposal_required=True)
@@ -90,7 +101,7 @@ def request(run):
         path = root / 'requests' / (key + '.json')
         atomic(path, packet)
         artifact(root, state, key, path, 'reflect_request')
-        state['requests'][key] = {'id': key, 'request_digest': packet['request_digest'], 'path': str(path)}
+        state['requests'][key] = {'id': key, 'request_digest': packet['request_digest'], 'path': str(path), 'context_token':context_token}
         state['phase'] = 'awaiting_reflect'
         event(state, 'reflect_request', state['requests'][key])
         return state['requests'][key]
@@ -191,6 +202,10 @@ def reflect(run, payload, response_path):
             require(set(task['learning_ids']) <= {x['id'] for x in state['learning']}, 'Unknown learning reference')
             learning_contract.bind_task(state,task)
             require(type(task['max_candidates']) is int and 1 <= task['max_candidates'] <= 20, 'Bound candidate budget')
+            if 'export_gds_precision_m' in task:
+                from search.model import number
+                precision=number(task['export_gds_precision_m'],'GDS precision',True)
+                require(precision<1e-6,'GDS export precision must be sub-micrometer')
             task['round'] = state['round'] + 1
             task['id'] = 'task-' + str(task['round'])
             task['request'] = key
@@ -277,7 +292,8 @@ def main():
     c = sub.add_parser('context')
     c.add_argument('--role', choices=tuple(roles.REFERENCES), required=True)
     c.add_argument('--since')
-    sub.add_parser('request')
+    c=sub.add_parser('request')
+    c.add_argument('--since',help='Context token already consumed by this AI context; omit for a fresh role')
     for name in ('reflect','result','review'):
         c = sub.add_parser(name)
         c.add_argument('--input', required=True)
@@ -288,7 +304,7 @@ def main():
     if a.command == 'context':
         return context(a.run, a.role, a.since)
     if a.command == 'request':
-        return request(a.run)
+        return request(a.run,a.since)
     if a.command in ('reflect','result','review'):
         return globals()[a.command](a.run, read(a.input), a.input)
     with transaction(a.run) as (root, state):

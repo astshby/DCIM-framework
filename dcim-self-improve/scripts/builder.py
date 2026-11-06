@@ -51,7 +51,8 @@ def build(run, name):
                 sources[source]=capture_closure(read_gds(saved),[item['observations']['top']])
         directory.mkdir()
         atomic(directory/'learning_contract.json',{'task':task['id'],'goals':bind_task(state,task)})
-        atomic(directory/'input.json', {'placements':route['plan']['placements'],'sources':sources})
+        atomic(directory/'input.json', {'placements':route['plan']['placements'],'sources':sources,
+            'export_gds_precision_m':task.get('export_gds_precision_m')})
         (directory/'draw.py').write_text(DRAW,encoding='utf-8')
         for file in ('geometry.py','layout_tools.py'):
             shutil.copyfile(TOOLS/file,directory/file)

@@ -116,10 +116,14 @@ and explicit supported/refuted/inconclusive status before committing short memor
 Active goals remain retrievable independently of recent-memory limits; corrections
 supersede and retain the original. General method hypotheses are not cross-node
 signoff; process details require exact technology and affected conclusions must be
-revalidated. Read roles and recent applicable experience newest first without
+revalidated. Reviewed experience may be published with experience.py into immutable
+private bundles. Receiving runs pin explicitly selected bundles and retrieve them
+as reference-only hypotheses, never inherited passes. Read roles and recent applicable experience newest first without
 changing the existing stage sequence.
 
-Framework validation must use synthetic inputs without launching EDA. Preserve
+Routine framework regression uses synthetic inputs without launching EDA.
+Explicitly requested real-design trials use independent copies and retain actual
+qualification limits; framework setup alone still does not authorize EDA. Preserve
 role isolation limitations and actual execution provenance in the validation record.
 
 ## Ownership and delivery

@@ -6,6 +6,7 @@ import shutil
 import tempfile
 from dcim_config import load_config
 from runtime import atomic, cli, identity
+import experience
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -42,6 +43,7 @@ def initialize(config, name):
                 saved_name = 'workspace-' + name
                 shutil.copyfile(path, staged / 'instructions' / saved_name)
                 instructions[saved_name] = identity(path.read_text(encoding='utf-8'))
+        bundles=experience.snapshot(settings,staged)
         local = settings.rebased(output)
         local['work_root'] = '.'
         atomic(staged / 'config.json', local)
@@ -49,7 +51,7 @@ def initialize(config, name):
             'schema_version': 4, 'phase': 'learning', 'round': 0, 'revision': 0,
             'project': settings.project, 'config_identity': identity(local),
             'task': None, 'artifacts': {}, 'learning': [], 'memory': [],
-            'learning_goals': [], 'learning_outcomes': [],
+            'learning_goals': [], 'learning_outcomes': [], 'experience_bundles':bundles,
             'routes': {}, 'requests': {}, 'submissions': {}, 'events': [],
             'instructions': instructions, 'context_receipts': {}, 'reviews': {},
         })

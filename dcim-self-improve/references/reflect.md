@@ -157,3 +157,14 @@ reusing a goal. Up to six active goals per module and 24 overall bound retrieval
 
 These are conditional methods distilled from improve 2 and legacy experiments,
 not transferred qualification. Sources and exclusions: [sources.md](sources.md).
+
+
+Plan a meaningful compact preliminary experiment before deciding repair scope. Treat a high DRC count as diagnostic input, not sufficient evidence to discard a route; preserve the mandatory PP/NP and body-supply constraints in SKILL.md.
+
+
+The program may add role_experience from explicitly configured, pinned experience
+bundles. These are reviewed source methods, always reference-only in this run;
+inspect source_status, conditions and evidence before a new test. To maintain
+reusable experience after review, publish selected current lessons with
+experience.py; see experience-memory.md. Static role text remains versioned policy,
+not a per-round journal. No automatic write to the installed guide is performed.

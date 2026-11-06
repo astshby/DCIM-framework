@@ -40,7 +40,7 @@ foundry/IP/project channels. No public download address is assumed. Record the
 actual user-provided addresses in the private config and task packet; never
 hardcode them in reusable source. See `sources.md` for PDK-relative layer-map,
 DRC/LVS and model locations. Inspect redistribution rights for technology-specific
-recipes before publishing; no project license is selected by this change.
+recipes before publishing; the framework code is MIT-licensed; external PDK/IP rights remain separate.
 
 The bundled [Python tools](assets/tools/) support geometry inspection, drawing
 and explicit construction inputs. They are not a qualified circuit or macro flow.
@@ -60,7 +60,7 @@ Read only the role needed now: [initialize.md](references/initialize.md), [refle
   packets and local checks only. An execution/resume request authorizes the
   bounded workflow within the user's stated resource limits.
 - Main chat handles Planning: objective, stage, electrical/area comparison scope,
-  time budget if supplied, and task assignment. Ordinary failures do not require
+  time budget if supplied, and project constraints. Reflect alone commits the next Builder task. Ordinary failures do not require
   renewed approval. Ask the user only for a genuine unresolved blocker.
 - Establish independent circuit/netlist intent and a functional baseline before
   layout. In this DCIM campaign, satisfy the applicable parent height, width,
@@ -85,18 +85,29 @@ Read only the role needed now: [initialize.md](references/initialize.md), [refle
 ## Initial physical-planning order
 
 Read [layout-order.md](references/layout-order.md) before selecting layout tasks.
-Inspect the supplied reference GDS's actual hierarchy and functional placement,
-then establish a target-node reference-consistent SRAM grouping and measure
-its height/pitch and interfaces. The alignment object is the **whole associated
-multiplication and complete multibit-adder organization against one SRAM
-group**, not one FA, one multiplier or an isolated adder. Use that group's available
-device height for vertical packing/folding to reduce actual routed width;
-a single low device row with high escape/PG wiring does not establish matching.
-Do not pad individual primitive bboxes to equal height or stack multiplication and adder
-as separately height-budgeted blocks. Measure a connected compute tile, then
-shape the decoder beneath its width (half-width only for the matching two-decoder
-organization). Derive the grouping from the declared task and actual reference;
-Reflect compares measured alternatives if that grouping is inappropriate.
+Inspect actual reference hierarchy, interfaces and repeated boundaries before
+choosing the organization. Derive SRAM grouping, compute alignment and decoder
+placement from the declared task and measured alternatives. Align complete
+functional blocks where the parent contract requires it; never pad primitive
+bounding boxes merely to mimic alignment. No grouping, decoder fraction or
+placement order is a universal cross-process requirement.
+
+### Mandatory compaction constraints
+
+- PP and NP boundaries MUST abut directly: no artificial gap and no overlap.
+  Check the actual implant polygons at the intended seam, not only cell boxes.
+- During composition, remove redundant TAPs where needed while preserving legal,
+  real body-supply connections. Never replace physical body ties with labels or
+  assume the remaining TAPs cover the assembled circuit. Revalidate the FINAL
+  assembled layout, including applicable DRC, independent LVS and body/ERC checks.
+- Run a meaningful compact preliminary experiment FIRST, then diagnose and repair
+  specific DRC violations. A large violation count alone MUST NOT be used to
+  declare a route unsuccessful. Record rule families, locations, causal evidence,
+  attempted repairs and the decisive reason to continue, restructure or stop.
+
+These requirements do not waive a foundry rule or qualify an unverified layout.
+If the applicable rule domain conflicts with a required seam, report the exact
+conflict and resolve the construction; do not silently add a gap, overlap or waiver.
 
 Read [compactness.md](references/compactness.md) at each physical stage's start
 and final review. Start from reviewed references and applicable DRC rules with

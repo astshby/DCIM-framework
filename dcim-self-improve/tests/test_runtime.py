@@ -18,6 +18,7 @@ import planner
 import workflow
 import roles
 import learning_contract
+import experience
 from geometry import bbox
 
 
@@ -585,6 +586,68 @@ class RuntimeTests(unittest.TestCase):
                       learning_checks=self.learning_check([generated['candidate']],'refuted'))
         atomic(path,review); workflow.review(self.run,review,path)
         self.assertEqual(read(self.run/'state.json')['learning_outcomes'][0]['conclusion'],'refuted')
+
+    def test_reflect_request_reuses_consumed_instructions(self):
+        self.prepare()
+        context=workflow.context(self.run,'reflect')
+        req=workflow.request(self.run,context['token'])
+        packet=read(req['path'])
+        self.assertEqual(packet['instructions'],{})
+        self.assertEqual(set(packet['instruction_hashes']),{'AGENTS.md','SKILL.md','reflect.md'})
+        self.assertIn('context_token',req)
+        self.dispatch(); self.complete()
+        memory.commit(self.run,{'round':1,'entries':[],'disposition':'no_new'})
+        fresh=read(workflow.request(self.run)['path'])
+        self.assertEqual(set(fresh['instructions']),{'AGENTS.md','SKILL.md','reflect.md'})
+
+    def test_optional_gds_export_preserves_label_attributes(self):
+        try: import gdspy
+        except ImportError: self.skipTest('gdspy unavailable')
+        from layout_tools import export_gds
+        cells=layout(2,3)['cells']
+        cells['leaf']['labels'][0].update(anchor=10,rotation_deg=90,magnification=2,x_reflection=True)
+        output=self.root/'roundtrip.gds'
+        mapping=export_gds(cells,'leaf',output,5e-10)
+        label=gdspy.GdsLibrary(infile=str(output)).cells[mapping['leaf']].labels[0]
+        self.assertEqual((label.anchor,label.rotation,label.magnification,label.x_reflection),(10,90,2,True))
+        self.prepare()
+        payload=self.reply_payload();payload['task']['export_gds_precision_m']=5e-10
+        path=self.root/'export-reply.json';atomic(path,payload);workflow.reflect(self.run,payload,path)
+        generated=builder.build(self.run,'exported')
+        self.assertEqual(generated['outcome']['returncode'],0)
+        self.assertTrue((Path(generated['directory'])/'layout.gds').is_file())
+        self.assertIn('exported-layout.gds',generated['evidence'])
+
+    def test_reviewed_experience_publication_and_cross_run_scope(self):
+        self.prepare(); self.dispatch(); generated=self.complete()
+        entry=self.record('experience','supported');entry['evidence']=[generated['candidate']]
+        key=memory.commit(self.run,{'round':1,'entries':[entry],'disposition':'new'})['ids'][0]
+        output=self.run/'exports/method'
+        exported=experience.promote(self.run,[key],output)
+        with self.assertRaisesRegex(ValueError,'immutable'): experience.promote(self.run,[key],output)
+        config=self.root/'next.json'
+        atomic(config,{'work_root':'next-runs','experience_root':str(self.run/'exports'),
+                      'input_files':{'experience_root':['method/experience.json']},
+                      'project':{'technology':{'process':'NEW','release':'r2','stack':'m2'}}})
+        new=initialize(config,'next')
+        state=read(new/'state.json'); retrieved=experience.select(new,state,module='adder')
+        self.assertEqual(len(retrieved),1)
+        self.assertEqual(retrieved[0]['status'],'uncertain')
+        self.assertEqual(retrieved[0]['source_status'],'supported')
+        self.assertEqual(experience.select(new,state,module='sram'),[])
+        manifest=read(output/'experience.json')
+        artifact=next(iter(manifest['artifacts'].values()))
+        (output/artifact['object']).write_text('tampered')
+        # Existing receiver is pinned; a new receiver must reject changed evidence.
+        self.assertEqual(len(experience.select(new,state)),1)
+        with self.assertRaisesRegex(ValueError,'Changed experience'): initialize(config,'bad')
+
+    def test_uncertain_experience_cannot_be_promoted(self):
+        self.prepare(); self.dispatch(); self.complete('failed')
+        entry=self.record('experience','uncertain')
+        key=memory.commit(self.run,{'round':1,'entries':[entry],'disposition':'new'})['ids'][0]
+        with self.assertRaisesRegex(ValueError,'supported/refuted'):
+            experience.promote(self.run,[key],self.run/'exports/uncertain')
 
     def test_config_relative_paths_and_input_keys(self):
         settings=load_config(self.config)

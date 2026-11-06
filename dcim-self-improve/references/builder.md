@@ -38,3 +38,14 @@ An unsupported construction remains an explicit capability gap.
 
 Method sources: [sources.md](sources.md). Fresh route-specific lessons stay in
 structured short memory; do not grow this file into a per-round diary.
+
+
+Enforce the mandatory PP/NP abutment, real body-supply/TAP and compact-preexperiment constraints in SKILL.md. Retain seam geometry and final assembled validation evidence; do not substitute a violation count for diagnosis.
+
+
+The program may add role_experience from explicitly configured, pinned experience
+bundles. These are reviewed source methods, always reference-only in this run;
+inspect source_status, conditions and evidence before a new test. To maintain
+reusable experience after review, publish selected current lessons with
+experience.py; see experience-memory.md. Static role text remains versioned policy,
+not a per-round journal. No automatic write to the installed guide is performed.

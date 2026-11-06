@@ -35,3 +35,11 @@ and checking dcim.local.json; do not inherit another run's paths or node default
 See [runtime.md](runtime.md) for executable contracts and [sources.md](sources.md)
 for provenance. Developer optimization history stays in repository HANDOFF.md;
 it is not a design-role instruction or a run input.
+
+
+The program may add role_experience from explicitly configured, pinned experience
+bundles. These are reviewed source methods, always reference-only in this run;
+inspect source_status, conditions and evidence before a new test. To maintain
+reusable experience after review, publish selected current lessons with
+experience.py; see experience-memory.md. Static role text remains versioned policy,
+not a per-round journal. No automatic write to the installed guide is performed.

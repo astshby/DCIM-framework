@@ -70,7 +70,9 @@ def export_gds(cells, top, path, precision_m):
         for poly in cells[name]['polygons']:
             cell.add(gdspy.Polygon(poly['points_um'],layer=poly['layer'],datatype=poly['datatype']))
         for label in cells[name]['labels']:
-            cell.add(gdspy.Label(label['text'],label['origin_um'],layer=label['layer'],texttype=label['datatype']))
+            cell.add(gdspy.Label(label['text'],label['origin_um'],anchor={0:'nw',1:'n',2:'ne',4:'w',5:'o',6:'e',8:'sw',9:'s',10:'se'}[label.get('anchor',5)],
+                rotation=label.get('rotation_deg',0),magnification=label.get('magnification',1),
+                x_reflection=label.get('x_reflection',False),layer=label['layer'],texttype=label['datatype']))
         for ref0 in cells[name]['references']:
             for ref in expanded_refs(ref0):
                 cell.add(gdspy.CellReference(mapping[ref['child']],ref['origin_um'],
@@ -86,4 +88,8 @@ def generate(spec, output):
             'connectivity': 'inter-block routing not generated', 'bbox_um': bbox(cells,'candidate_top')}
     (output/'layout.json').write_text(json.dumps(data,indent=2)+'\n',encoding='utf-8')
     draw_svg(cells,'candidate_top',output/'layout.svg')
+    if spec.get('export_gds_precision_m') is not None:
+        mapping=export_gds(cells,'candidate_top',output/'layout.gds',spec['export_gds_precision_m'])
+        (output/'gds-map.json').write_text(json.dumps({'top':mapping['candidate_top'],
+            'cells':mapping,'precision_m':spec['export_gds_precision_m']},indent=2)+'\n')
     return {'bbox_um':data['bbox_um'], 'qualification':'geometry_only'}

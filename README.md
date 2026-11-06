@@ -42,7 +42,7 @@ Reflect, including failed and final rounds. It persists real AI requests/replies
 it does not supply a canned AI answer. `context --since TOKEN` returns only changed
 sections. `memory.py` provides bounded same-format reads/writes and supersession.
 `builder.py` creates and executes a new drawing Python script, retaining actual
-inputs, helper code, hierarchical geometry JSON, SVG, stdout/stderr and evidence.
+inputs, helper code, hierarchical geometry JSON, SVG, optional explicit-precision GDS, stdout/stderr and evidence.
 It recovers a `placement_state.json` from actual generated instance geometry; the
 next search verifies that state against retained layout evidence. Multiple Builder
 candidates require an explicit primary baseline; missing output cannot silently
@@ -52,6 +52,9 @@ checks. Builder retains exact goals in learning_contract.json; Analyst reports
 per-goal conclusions with current evidence. Context keeps active goals and latest
 outcomes available beyond recent-memory limits. Corrections supersede old versions;
 process-bound conclusions do not automatically apply to another node or run.
+experience.py publishes reviewed methods and their evidence as immutable private
+bundles; explicitly configured receiving runs pin and retrieve applicable methods
+as reference-only hypotheses, preserving source status and revalidation needs.
 The original evidence checker and compatible history helper remain available.
 
 The research target is eight input/output channels and storage/compute ratio eight.
@@ -109,3 +112,8 @@ replaces the sibling `dcim-framework.zip`. Git retains revisions; one ZIP holds
 the current framework. Private configuration, experiments, caches and proprietary
 inputs remain outside Git/package. Preserve existing reference directories and
 experimental history in the enclosing workspace.
+
+## License
+
+Framework code and documentation are [MIT licensed](LICENSE). External PDK, compiler,
+standard-cell IP, EDA tools and private experiment artifacts are not covered or distributed.

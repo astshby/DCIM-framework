@@ -3,6 +3,58 @@
 本文件供用户与框架开发者追踪优化，不再作为设计运行输入。运行契约在 AGENTS.md、
 README.md 和 references；历史描述仅用于追溯，后文旧版本不覆盖当前契约。
 
+## 2026-11-06：强制紧凑约束、四项收尾与真实加法器实践
+
+用户要求英文强约束、补齐上次审查问题，在旧实验目录的新副本从 Reflect₀ 做加法器实践，
+若运行不好修正后复测，并增加 MIT、提交指定 GitHub。采用方法二，由当前 agent 执行；
+实际目录为 tsmc22nm-dcim_start（下划线），原实验只读。未使用另一智能体或伪称独立 AI 评审。
+
+- SKILL.md 新增 MUST 约束：PP/NP 边界直接贴合、无人工间隙/重叠；组合时按需删冗余 TAP，
+  保留合法真实 body 供电并重新验证最终布局；先有意义的紧凑预实验，再具体诊断/修复 DRC，
+  不能单凭违规数否决路线。不能借此豁免工艺规则；冲突须明确诊断并解决构建。
+- 四项收尾：模板补 learning_goals/learning_checks/baseline_candidate；SKILL 改为参考驱动组织，
+  去除旧固定对齐/解码器默认并明确 Reflect 分配任务；request --since 提供真正的指令增量，
+  保留身份与固定证据，独立新上下文必须取全文；新增 experience.py 维护可跨 run 检索的经验包。
+- 经验晋升：只接受当前已评审 supported/refuted experience，证据必须在该 Analyst review 中。
+  保存来源 review、可用 Reflect 请求/回复和递归引用证据；新目录发布，禁止覆盖旧包。
+  receiving run 按 experience_root + input_files.experience_root 显式选包，核对完整证据并固定副本。
+  role_experience 按阶段/模块/工艺和新旧检索；跨 run 一律 reference_only/uncertain，保留 source_status。
+  工艺细节精确匹配；通用方法可迁移但需新任务验证。角色 Markdown 保持受版本管理的简短政策，
+  实验经验通过程序组合到角色上下文，不把每轮日志写回静态文件。私有经验包不进入 Git/ZIP。
+- 增加 MIT LICENSE，打包包含许可证；第三方 PDK、compiler、标准单元和 EDA 不在授权/发布范围。
+
+真实实践（不含工艺 IP 的公开记录）：
+
+独立目录 ~/tsmc22nm-dcim_start/framework-trial-2026-11-06/，包含完整框架副本、run 固定程序、
+原输入副本/指纹、AI 实际方案、执行、失败与评审。源参考是已有 compiler SRAM 和数字 flow 加法器，
+加法器不是新调用 memory compiler 生成；源加法器有 1476 个顶层引用，边界32.2×32.2 μm。
+本次任务是完整已布线宏的构建保真预实验，未冒充内部标准单元放置/布线优化。
+
+1. adder-a01：实际输入从 Reflect₀ 经 Builder 执行，发现只交付 JSON/SVG、无 GDS。
+   gds_roundtrip=not_run、Analyst=incomplete、学习=inconclusive；短记忆及最终 Reflect 保留。
+2. 修正一次 GDS 交付路径：task 显式 export_gds_precision_m，保存 GDS、映射、标签属性及依赖。
+   修正过程 adder-a02 捕获 gdspy 标签锚点整数/字符串 API 不兼容；保留失败代码/日志并修复转换。
+   这是同一交付修正内的调试，不是新的物理优化路线。
+3. adder-a03 与最终 adder-final：构建成功。独立检查器直接读源/输出 GDS，不依赖框架几何读取器：
+   19 层 XOR 面积全为0（源0.5 nm精度），21538个标签及属性一致，全边界不变。
+   Analyst 按保真范围 passed，学习目标支持；短记忆、立即上一轮基线接续、最终 Reflect 关闭。
+4. 最终版本把这条真实经验晋升成私有包，并创建不同节点的 receiver：source_status=supported，
+   本地 status=uncertain，未生成当地 action/学习验收通过。实验真实检验晋升/证据复制/检索。
+
+限度：没有启动 EDA；源版的旧 DRC/LVS/电气状态不继承。未改动 PP/NP/TAP，因此本次保真比较
+不证明这些物理变更合法。没有加法器面积改善或新布线，规则只是已强制纳入 agent 指引，尚无专用
+PP/NP/body 几何检查器。真实自动压缩仍需成熟布局布线适配及独立物理/电气验收；单一 AI 上下文
+完成角色动作，独立性来自单独实现的 GDS 检查程序，不宣称独立 Analyst 智能体。
+
+验证：62 项框架/证据测试，59通过、3可选跳过；5项打包测试通过。真实保真与晋升证据在上述
+试验目录；开发审计在 hby/framework-checks/adder-practice-2026-11-06/。原输入指纹不变。
+另保留检查器一次 NumPy int64 JSON 序列化错误及修正；没有覆盖失败候选或将工具退出码当作验证。
+
+发布：指定 https://github.com/astshby/DCIM-framework.git 在网页侧为空仓库。
+服务器 HTTPS 代理返回403；直连 HTTPS 与 SSH 均无法解析 github.com。发布未成功，不能宣称已推送。
+用户随后明确由其自行提交 GitHub，停止网络尝试。交付本地提交和只含当前框架文件的 ZIP，
+用户可用 ZIP 发布，避免携带旧 Git 内工艺专用历史。未创建或推送远端提交。最终状态见审计 completion.json。
+
 ## 2026-11-06：角色入口、学习闭环与自适应搜索（本轮）
 
 用户确认“逆序参考”为“继续参考”的笔误；架构整体与顺序保持，经验按适用范围从新到旧检索。

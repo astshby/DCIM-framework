@@ -13,7 +13,7 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCUMENTS = ("README.md", "AGENTS.md", "HANDOFF.md", ".gitignore")
+DOCUMENTS = ("README.md", "AGENTS.md", "HANDOFF.md", "LICENSE", ".gitignore")
 TREES = ("dcim-self-improve", "scripts", "tests")
 EXCLUDED = {".git", "__pycache__", ".venv", ".pytest_cache", ".mypy_cache",
             "runs", "dcim-runs", "learn", "external", "iterations",

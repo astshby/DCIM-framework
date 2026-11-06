@@ -46,3 +46,14 @@ hypothesis under test. Pass/fail is local to the recorded scope and conditions.
 
 These methods draw on improve 2 and the legacy experiment sources catalogued in
 [sources.md](sources.md); old exemptions and process outcomes are not inherited.
+
+
+Check actual PP/NP seams, remaining real body ties and final assembled checks against SKILL.md. A high DRC count alone is not a route-rejection argument; require rule-specific causal evidence.
+
+
+The program may add role_experience from explicitly configured, pinned experience
+bundles. These are reviewed source methods, always reference-only in this run;
+inspect source_status, conditions and evidence before a new test. To maintain
+reusable experience after review, publish selected current lessons with
+experience.py; see experience-memory.md. Static role text remains versioned policy,
+not a per-round journal. No automatic write to the installed guide is performed.

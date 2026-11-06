@@ -191,9 +191,8 @@ or revise applicable goals. Closing without a construction needs no new goal.
 
 Context learning_focus returns active goals plus latest learning_checks regardless
 of recent-memory age. Reflect sees all modules; Builder/Analyst see their task
-module. Full old outcomes stay in state and immutable reviews. This is persistent
-within the run; importing conclusions from another run/node still requires explicit
-capture and new validation, not an automatic trust transfer.
+module. Full old outcomes stay in state and immutable reviews. Goals persist within the run. Cross-run methods use explicitly selected reviewed
+experience bundles (described below); receiving tasks must validate them anew.
 
 AI proposals contain the fields above. They may supply a `plan_spec` referencing an
 search artifact from this Reflect and explicit `placements` (the coordinate
@@ -259,3 +258,26 @@ Program enforcement applies to these entry points. Direct shell execution and
 manual state edits are not sandboxed. Independent AI context isolation, live EDA
 submission/recovery, actual routed objectives and broader circuit/topology search
 are not implemented by this geometry protocol.
+
+
+A continuing AI context may use `request --since TOKEN` after consuming that context
+packet. The immutable request retains instruction identities and only changed
+instruction text. Its returned context_token can be used for later deltas. Omit
+--since for a fresh AI context; never reuse another agent's receipt. Missing or
+unknown tokens fall back to full instructions. An already frozen request remains
+immutable on retry. This optimizes delivery, not evidence retention.
+
+
+Tasks may request optional `export_gds_precision_m` (positive and <1e-6 meters)
+from an explicitly checked source/technology resolution. Builder then retains
+layout.gds and gds-map.json as candidate evidence. This requires gdspy. Missing
+export dependencies fail the candidate; export never implies DRC/LVS acceptance.
+Labels retain origin, orientation, reflection, anchor and magnification. Check
+mask and label preservation independently before trusting real-layout roundtrips.
+
+
+External role experience is opt-in through experience_root and explicit
+input_files.experience_root bundle manifests. experience.py publishes selected
+reviewed lessons and evidence into a NEW run-owned directory. Initialization
+pins verified bundles; role_experience returns scoped reference-only methods.
+See experience-memory.md for promotion, version selection and trust boundaries.
