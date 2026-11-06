@@ -7,7 +7,10 @@ a Builder summary is not an independent check. Record your own report using
 connectivity, DRC/LVS and electrical status; missing checks remain incomplete.
 
 Submit `workflow.py ... review --input FILE`. Review references the current result,
-round, evidence IDs, verdict, short scope/summary and per-check status. Then commit
+round, evidence IDs, verdict, short scope/summary and per-check status. Include
+the chosen baseline_candidate in reviewed evidence. Its actual geometry becomes
+the next search starting point even after a failed review, with that failure
+status retained; a geometry proxy never erases a failed electrical/physical check. Then commit
 at most six concise action/experience records through `memory.py ... commit`.
 Use no_new explicitly when appropriate. A failed candidate can teach uncertain or
 refuted experience, never a successful action. Correct old knowledge by supersession.

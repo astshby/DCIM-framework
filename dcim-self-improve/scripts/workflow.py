@@ -5,7 +5,7 @@ import re
 from runtime import atomic, artifact, cli, event, evidence, identity, read, require, status, store, transaction
 import memory
 
-REFLECT_CONTRACT = 'ai-self-proposal-v1'
+REFLECT_CONTRACT = 'reflect-search-v2'
 
 
 def short(value, label, maximum=500):
@@ -16,10 +16,20 @@ def short(value, label, maximum=500):
 def context_data(root, state, role):
     task = state['task'] or {}
     instructions = ['AGENTS.md', 'SKILL.md', role + '.md']
+    if role == 'reflect':
+        instructions.append('reflect-SKILL.md')
     return {
         'instructions': {n: (root/'instructions'/n).read_text(encoding='utf-8')
                          for n in instructions if (root/'instructions'/n).exists()},
+        'instruction_scope': instructions,
         'task': task, 'phase': state['phase'], 'round': state['round'],
+        'baseline': state.get('last_result',{}).get('baseline_candidate'),
+        'search_capabilities': __import__('search').catalog() if role == 'reflect' else None,
+        'searches': [e['payload'] for e in state['events']
+                     if e['round']==state['round'] and e['operation']=='heuristic_plan'] if role=='reflect' else [],
+        'prior_routes': [{k:r[k] for k in ('id','mechanism','status','lifecycle','round')}
+                         for r in list(state['routes'].values())[::-1] if r['round']<state['round']][:8]
+                         if role=='reflect' else [],
         'project': state['project'],
         'learning': state['learning'] if state['round'] == 0 else [
             x for x in state['learning'] if x['context']['module'] == task.get('module')],
@@ -29,7 +39,8 @@ def context_data(root, state, role):
         'routes': [dict({k:v for k,v in r.items() if k != 'plan'},
                         measurements={k:r['plan'][k] for k in ('area_um2','hpwl_proxy_um','width_um','height_um','feasible')}
                         if 'plan' in r else {}) for r in state['routes'].values()
-                   if r['lifecycle'] == 'active' and r['source'] in ('ai', 'algorithm')],
+                   if r['lifecycle'] == 'active' and r['source'] in ('ai', 'algorithm')
+                   and r['round']==state['round']],
     }
 
 
@@ -40,11 +51,16 @@ def context(run, role, since=None):
                     'awaiting_memory': 'analyst', 'closed': 'reflect'}
         require(role == expected[state['phase']], 'Role cannot act at this stage')
         data = context_data(root, state, role)
-        signatures = {k: identity(v) for k,v in data.items()}
+        signatures = {k: identity(v) for k,v in data.items() if k!='instructions'}
+        signatures.update({'instruction:'+k:identity(v) for k,v in data['instructions'].items()})
         token = identity(signatures)
         old = state['context_receipts'].get(since, {})
         state['context_receipts'][token] = signatures
-        changed = {k:v for k,v in data.items() if old.get(k) != signatures[k]}
+        changed = {k:v for k,v in data.items() if k!='instructions' and old.get(k) != signatures[k]}
+        changed_instructions={k:v for k,v in data['instructions'].items()
+                              if old.get('instruction:'+k)!=signatures['instruction:'+k]}
+        if changed_instructions:
+            changed['instructions']=changed_instructions
         event(state, 'context', {'role': role, 'token': token, 'sections': list(changed)})
         return {'token': token, 'changed': changed}
 
@@ -116,6 +132,8 @@ def reflect(run, payload, response_path):
                 'Self-proposal repeats an existing mechanism verbatim')
         for original_proposal in new_routes:
             proposal = dict(original_proposal)
+            require(not set(proposal)-{'id','source','mechanism','difference','expected','minimal_test','stop','evidence','plan_spec'},
+                    'Unknown proposal field; executable plans require plan_spec')
             rid = proposal['id']
             require(re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,80}', rid) and rid not in state['routes'], 'Unique route ID required')
             require(proposal['source'] == 'ai',
@@ -124,18 +142,20 @@ def reflect(run, payload, response_path):
                 short(proposal[field], field)
             evidence(root, state, proposal['evidence'])
             if 'plan_spec' in proposal:
-                from planner import evaluate
-                spec = proposal['plan_spec']
-                evidence(root, state, [spec['search']])
-                require(state['artifacts'][spec['search']]['kind'] == 'search', 'Plan must bind a search problem')
-                base = read(root/state['artifacts'][spec['search']]['object'])['problem']
-                n = len(base['blocks'])
-                order, cuts, rotations = spec['order'], spec['cuts'], spec['rotations']
-                require(sorted(order) == list(range(n)), 'Plan order must be a permutation')
-                require(len(set(cuts)) == len(cuts) and all(type(c) is int and 0 < c < n for c in cuts), 'Invalid row cuts')
-                require(len(rotations) == n and all(r in b.get('orientations',[0]) for r,b in zip(rotations,base['blocks'])), 'Invalid rotations')
-                proposal['plan'] = evaluate(base,(tuple(order),tuple(sorted(cuts)),tuple(rotations)))
-                require(proposal['plan']['feasible'], 'Proposed placement exceeds geometry contract')
+                from search.model import evaluate, from_shelf, state_from_placements
+                spec=proposal['plan_spec']
+                evidence(root,state,[spec['search']])
+                entry=state['artifacts'][spec['search']]
+                require(entry['kind']=='search' and entry['round']==state['round'], 'Plan must bind this Reflect search')
+                result=read(root/entry['object'])
+                base=result['problem']
+                if 'placements' in spec:
+                    coordinates=state_from_placements(base,spec['placements'])
+                else:
+                    coordinates=from_shelf(base,(spec['order'],spec['cuts'],spec['rotations']))
+                proposal['plan']=evaluate(base,coordinates,result['baseline_evaluation']['state'])
+                require(proposal['plan']['feasible'],'Proposed placement violates geometry contract')
+                proposal.update(search=spec['search'],baseline=result['baseline'])
             state['routes'][rid] = dict(proposal, lifecycle='active', round=state['round'], status='hypothesis')
         for rid, lifecycle in payload.get('route_updates', {}).items():
             require(rid in state['routes'] and lifecycle in ('active','deferred','refuted-in-scope','superseded'), 'Invalid route update')
@@ -149,6 +169,13 @@ def reflect(run, payload, response_path):
             task = dict(payload['task'])
             require(task['route'] in state['routes'] and state['routes'][task['route']]['lifecycle'] == 'active'
                     and state['routes'][task['route']]['source'] in ('ai', 'algorithm'), 'Select an active AI/algorithm route')
+            selected=state['routes'][task['route']]
+            require(selected['round']==state['round'] and 'plan' in selected,
+                    'Build must select a measured plan from this Reflect, not an old route')
+            if state['round']:
+                from search.baseline import previous
+                _,origin=previous(root,state,selected['baseline']['candidate'])
+                require(origin==selected['baseline'],'Selected plan baseline changed')
             for field in ('module', 'stage', 'goal', 'stop'):
                 short(task[field], field)
             require(task['module'] in {m['id'] for m in state['project']['modules'] if m['enabled']} | {'dcim'}, 'Unknown module')
@@ -185,6 +212,20 @@ def result(run, payload, path):
         evidence(root, state, payload['evidence'])
         require(any(state['artifacts'][k]['kind'] == 'candidate' and state['artifacts'][k]['round'] == state['round']
                     for k in payload['evidence']) or payload['outcome'] == 'incomplete', 'Retain actual candidate before review')
+        candidates=[k for k in payload['evidence'] if state['artifacts'][k]['kind']=='candidate'
+                    and state['artifacts'][k]['round']==state['round']]
+        baseline=payload.get('baseline_candidate')
+        if baseline is None and len(candidates)==1:
+            baseline=candidates[0]
+        require(baseline in candidates if candidates else baseline is None,
+                'Choose baseline_candidate from this round result evidence; multiple candidates need an explicit choice')
+        if baseline:
+            manifest=read(root/state['artifacts'][baseline]['object'])
+            usable='placement_state.json' in manifest['files']
+            require(usable or payload['outcome']!='passed','Passed result needs actual placement output')
+            if not usable:
+                baseline=None
+        state['last_result']=dict(payload,baseline_candidate=baseline)
         artifact(root, state, token, path, 'builder_result')
         state['submissions'][token] = fingerprint
         state['phase'] = 'awaiting_analyst'
@@ -210,6 +251,8 @@ def review(run, payload, path):
         require(all(v in ('passed','failed','incomplete','not_run') for v in payload['checks'].values()), 'Invalid check status')
         if payload['verdict'] == 'passed':
             require(all(payload['checks'][k] == 'passed' for k in state['task']['checks']), 'Cannot pass missing checks')
+        baseline=state.get('last_result',{}).get('baseline_candidate')
+        require(not baseline or baseline in payload['evidence'],'Review must inspect the chosen previous-round baseline')
         artifact(root, state, token, path, 'analyst_review')
         state['reviews'][str(state['round'])] = dict(payload, id=token)
         state['submissions'][token] = signature

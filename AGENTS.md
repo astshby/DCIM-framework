@@ -86,6 +86,23 @@ bounds; document serial or single-route reasons. This is not blanket permission
 for parallel macro implementation or PEX. Ordinary fixes do not require artificial
 competitors. No separate planner, curator, compression or retrieval AI role is needed.
 
+Search is part of Reflect, not an additional phase. Reflect reads reviewed memory,
+originates an AI idea, selects an algorithm/operations and budget, executes proxy
+searches, then chooses the next Builder plan. Read the role-specific
+`dcim-self-improve/roles/reflect/SKILL.md` once per version. Preserve the main
+SKILL.md as the general experience guide.
+
+After Reflect0, every search baseline must be actual geometry from the immediately
+preceding Builder round, cited by its result and Analyst review. The default is
+that result's selected baseline candidate; another candidate requires the same
+round's evidence. Never reset to a shelf arrangement or silently use an older
+accepted design. Missing output is an explicit recovery requirement. Failed
+reviews remain visible when their geometry is used for repair. Compare baseline
+and candidates with the same fixed evaluator; proxy gains are not qualification.
+Builder retains measured placement state, and Analyst records applicable results
+in the existing bounded memory format. New operations are implemented and checked
+within the ordinary loop; no operator-development stage is added.
+
 Framework validation must use synthetic inputs without launching EDA. Preserve
 role isolation limitations and actual execution provenance in the validation record.
 

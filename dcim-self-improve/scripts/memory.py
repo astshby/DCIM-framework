@@ -41,6 +41,9 @@ def validate(root, state, entries, reflection=False):
             revised.add(previous)
         review = state['reviews'].get(str(state['round']))
         entry.update(round=state['round'], review=review['id'] if review else None)
+        route=state['routes'].get(entry['route'],{})
+        if route.get('search'):
+            entry['search_context']={'artifact':route['search'],'baseline':route.get('baseline')}
         if entry['type'] == 'action':
             require(review and review['verdict'] == 'passed',
                     'Successful actions require a passed Analyst review')

@@ -8,6 +8,8 @@ import sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'assets/tools'))
 from geometry import capture_closure, read_gds
 from runtime import atomic, artifact, cli, event, evidence, identity, read, require, transaction
+from search.baseline import measured_placements
+from search.model import state_from_placements, states_match
 
 TOOLS = Path(__file__).resolve().parents[1]/'assets/tools'
 DRAW = '''"""Generated Builder program. Modify only in a new candidate revision."""
@@ -28,6 +30,10 @@ def build(run, name):
         require(used < task['max_candidates'], 'Candidate budget exhausted')
         route=state['routes'][task['route']]
         require('plan' in route, 'This route needs a measured placement plan before drawing')
+        require(route['round']==state['round']-1, 'Builder needs the current Reflect route')
+        evidence(root,state,[route['search']])
+        search=read(root/state['artifacts'][route['search']]['object'])
+        problem=search['problem']
         directory=root/'candidates'/name
         require(not directory.exists(), 'Candidate already exists; inspect it or use a new revision ID')
         sources={}
@@ -60,6 +66,16 @@ def build(run, name):
             (directory/'stdout.log').write_bytes(error.stdout or b'')
             (directory/'stderr.log').write_bytes(error.stderr or b'')
             outcome={'state':'timeout','returncode':None}
+        if outcome['returncode']==0:
+            try:
+                placements=measured_placements(problem,read(directory/'layout.json'))
+                require(states_match(state_from_placements(problem,placements),state_from_placements(problem,route['plan']['placements'])),
+                        'Generated coordinates differ from selected plan')
+                atomic(directory/'placement_state.json',{'schema':'coordinate-placement-v1',
+                    'round':state['round'],'candidate':name,'problem':problem,'placements':placements,
+                    'parent_baseline':route['baseline'],'search':route['search']})
+            except (OSError,ValueError,KeyError,TypeError) as error:
+                outcome.update(state='invalid_output',error=str(error))
         atomic(directory/'outcome.json',outcome)
         files={}
         for path in sorted(directory.iterdir()):

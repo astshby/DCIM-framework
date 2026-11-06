@@ -21,7 +21,7 @@ def compose(spec):
         corners = [transform(p, block['rotation_deg']) for p in
                    ((box[0],box[1]), (box[0],box[3]), (box[2],box[1]), (box[2],box[3]))]
         origin = [block['x_um']-min(x for x,y in corners), block['y_um']-min(y for x,y in corners)]
-        references.append({'child': child, 'origin_um': origin,
+        references.append({'instance_id': block['id'], 'child': child, 'origin_um': origin,
                            'rotation_deg': block['rotation_deg'], 'x_reflection': False,
                            'columns': 1, 'rows': 1, 'spacing_um': None})
     cells['candidate_top'] = {'polygons': [], 'labels': [], 'references': references}

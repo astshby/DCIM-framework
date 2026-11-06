@@ -5,10 +5,13 @@ learning IDs, selected route, allowed geometry execution, checks and candidate
 budget. Use `builder.py --run RUN --candidate ID` to create and execute a new
 `draw.py` with its exact inputs and helper versions. Each candidate retains actual
 hierarchical geometry and an SVG, execution logs and immutable evidence copies.
-The drawing is a physical composition study; it does not invent inter-block nets.
+Actual instance transforms are read back into placement_state.json and bound to
+the selected search/baseline. The drawing is a physical composition study; it does not invent inter-block nets.
 
 For a new route supply a new explicit plan through Reflect; don't silently change
 the task. Local implementation failures stay within this bounded task. Preserve
 failed programs and results. Submit `workflow.py ... result --input FILE` with
-round, task_id, outcome, summary and evidence IDs. Propose short action/experience
+round, task_id, outcome, summary and evidence IDs. When retaining multiple
+candidates, set baseline_candidate to the primary output for the next Reflect.
+It must belong to this round and be included in result evidence. Propose short action/experience
 records for Analyst. Do not write accepted memory or assign the next task.

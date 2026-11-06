@@ -55,7 +55,16 @@ class RuntimeTests(unittest.TestCase):
                 'operation':'Compose explicit reference blocks', 'observation':'Geometry proxy observed',
                 'next_test':'Check overlap and envelope independently', 'evidence':[self.search]}
 
+    def refresh_search(self):
+        result=planner.plan(self.run,budget={'algorithm':'anneal','evaluations':64,'seed':4})
+        self.route=result['routes'][0]['id']
+        self.search=result['artifact']
+        return result
+
     def reply_payload(self,decision='build'):
+        state=read(self.run/'state.json')
+        if decision=='build' and state['round'] and state['routes'][self.route]['round']!=state['round']:
+            self.refresh_search()
         req=workflow.request(self.run)
         round_number=read(self.run/'state.json')['round']
         proposal_id='ai-point-'+str(round_number)
@@ -125,6 +134,7 @@ class RuntimeTests(unittest.TestCase):
         payload={'round':1,'disposition':'new','entries':[self.record('action','supported')]}
         memory.commit(self.run,payload)
         memory.commit(self.run,payload)
+        self.refresh_search()
         req=workflow.request(self.run)
         self.assertTrue(any(m['type']=='action' for m in read(req['path'])['memory']))
         self.dispatch()
@@ -165,6 +175,10 @@ class RuntimeTests(unittest.TestCase):
         self.dispatch()
         third=workflow.context(self.run,'builder',first['token'])
         self.assertIn('task',third['changed'])
+        self.assertNotIn('AGENTS.md',third['changed']['instructions'])
+        self.assertNotIn('SKILL.md',third['changed']['instructions'])
+        self.assertIn('builder.md',third['changed']['instructions'])
+        self.assertNotIn('reflect-SKILL.md',third['changed']['instruction_scope'])
 
     def test_immutable_source_and_geometry_script_reproduction(self):
         self.prepare(); self.dispatch()
@@ -176,8 +190,8 @@ class RuntimeTests(unittest.TestCase):
         cells=read(directory/'layout.json')['cells']
         measured=bbox(cells,'candidate_top')
         selected=read(self.run/'state.json')['routes'][self.route]['plan']
-        self.assertAlmostEqual(measured[2]-measured[0],selected['width_um'])
-        self.assertAlmostEqual(measured[3]-measured[1],selected['height_um'])
+        self.assertAlmostEqual(measured[2],selected['width_um'])
+        self.assertAlmostEqual(measured[3],selected['height_um'])
         self.assertTrue((directory/'draw.py').is_file())
         self.assertTrue((directory/'layout.svg').is_file())
         with self.assertRaises(ValueError): builder.build(self.run,'retained')
@@ -311,6 +325,162 @@ class RuntimeTests(unittest.TestCase):
                                '--run',str(self.run),'status'],capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout)['phase'],'learning')
+
+    def test_previous_round_actual_layout_is_first_trial_even_after_failed_review(self):
+        self.prepare(); self.dispatch(); generated=self.complete('failed')
+        memory.commit(self.run,{'round':1,'disposition':'no_new','entries':[]})
+        snapshot=read(Path(generated['directory'])/'placement_state.json')
+        result=self.refresh_search()
+        state=read(self.run/'state.json')
+        raw=read(self.run/state['artifacts'][result['artifact']]['object'])
+        self.assertEqual(raw['baseline']['candidate'],'candidate1')
+        self.assertEqual(raw['baseline']['verdict'],'failed')
+        ctx=workflow.context(self.run,'reflect')
+        self.assertTrue(ctx['changed']['prior_routes'])
+        self.assertLessEqual(len(ctx['changed']['prior_routes']),8)
+        self.assertEqual(raw['trials'][0]['placements'],snapshot['placements'])
+        self.assertEqual(raw['trials'][0]['operation'],'initial')
+        self.dispatch(); self.complete()
+        memory.commit(self.run,{'round':2,'disposition':'no_new','entries':[]})
+        with self.assertRaises(ValueError):
+            planner.plan(self.run,baseline='candidate1')
+        latest=self.refresh_search()
+        self.assertEqual(latest['baseline']['candidate'],'candidate2')
+
+    def test_new_search_requires_memory_and_preserves_instance_set(self):
+        problem,_=self.prepare(); self.dispatch(); self.complete()
+        with self.assertRaises(ValueError): planner.plan(self.run)
+        memory.commit(self.run,{'round':1,'disposition':'no_new','entries':[]})
+        changed=copy.deepcopy(problem)
+        changed['blocks'][0]['id']='replacement'
+        with self.assertRaisesRegex(ValueError,'preserve'):
+            planner.plan(self.run,changed)
+
+    def test_missing_previous_layout_does_not_fall_back(self):
+        self.prepare(); self.dispatch()
+        payload={'round':1,'task_id':'task-1','outcome':'incomplete','summary':'No produced layout','evidence':[self.search]}
+        path=self.root/'result.json'; atomic(path,payload)
+        workflow.result(self.run,payload,path)
+        review={'round':1,'result_id':'result-1','verdict':'incomplete','scope':'no geometry',
+                'summary':'Interrupted construction','checks':{'geometry':'not_run'},'evidence':[self.search]}
+        atomic(path,review); workflow.review(self.run,review,path)
+        memory.commit(self.run,{'round':1,'disposition':'no_new','entries':[]})
+        with self.assertRaisesRegex(ValueError,'no layout baseline'):
+            planner.plan(self.run)
+
+    def test_baseline_tampering_rejected(self):
+        self.prepare(); self.dispatch(); generated=self.complete()
+        memory.commit(self.run,{'round':1,'disposition':'no_new','entries':[]})
+        state=read(self.run/'state.json')
+        manifest=read(self.run/state['artifacts'][generated['candidate']]['object'])
+        key=manifest['files']['placement_state.json']
+        (self.run/state['artifacts'][key]['object']).write_text('{}')
+        with self.assertRaisesRegex(ValueError,'Changed evidence'):
+            planner.plan(self.run)
+
+    def test_unmeasured_plan_cannot_be_smuggled_into_ai_proposal(self):
+        self.prepare()
+        payload=self.reply_payload('close')
+        payload['proposals'][0]['plan']={'feasible':True}
+        path=self.root/'bad-plan.json'; atomic(path,payload)
+        with self.assertRaisesRegex(ValueError,'plan_spec'):
+            workflow.reflect(self.run,payload,path)
+
+    def test_multiple_candidates_require_explicit_baseline_and_review_binding(self):
+        self.prepare(); self.dispatch()
+        a=builder.build(self.run,'one'); b=builder.build(self.run,'two')
+        payload={'round':1,'task_id':'task-1','outcome':'passed','summary':'Two retained candidates',
+                 'evidence':a['evidence']+b['evidence']}
+        path=self.root/'result.json'; atomic(path,payload)
+        with self.assertRaisesRegex(ValueError,'baseline_candidate'):
+            workflow.result(self.run,payload,path)
+        payload['baseline_candidate']='two'; atomic(path,payload)
+        workflow.result(self.run,payload,path)
+        review={'round':1,'result_id':'result-1','verdict':'passed','scope':'geometry',
+                'summary':'Check both candidates','checks':{'geometry':'passed'},'evidence':a['evidence']}
+        atomic(path,review)
+        with self.assertRaisesRegex(ValueError,'baseline'):
+            workflow.review(self.run,review,path)
+        review['evidence']+=b['evidence']; atomic(path,review)
+        workflow.review(self.run,review,path)
+        memory.commit(self.run,{'round':1,'disposition':'no_new','entries':[]})
+        self.assertEqual(planner.plan(self.run,budget={'evaluations':1})['baseline']['candidate'],'two')
+        self.assertEqual(planner.plan(self.run,budget={'evaluations':1,'seed':1},baseline='one')['baseline']['candidate'],'one')
+
+    def test_ai_coordinate_plan_obeys_same_frozen_geometry_contract(self):
+        problem,_=self.prepare(); self.dispatch(); generated=self.complete()
+        memory.commit(self.run,{'round':1,'disposition':'no_new','entries':[]})
+        problem['movable_ids']=[]
+        result=planner.plan(self.run,problem,{'evaluations':1})
+        self.search=result['artifact']; self.route=result['routes'][0]['id']
+        payload=self.reply_payload('close')
+        placements=read(Path(generated['directory'])/'placement_state.json')['placements']
+        payload['proposals'][0]['plan_spec']={'search':self.search,'placements':placements}
+        path=self.root/'reply-coordinates.json'
+        placements[0]['x_um']+=1
+        atomic(path,payload)
+        with self.assertRaisesRegex(ValueError,'Frozen'):
+            workflow.reflect(self.run,payload,path)
+        placements[0]['x_um']-=1; atomic(path,payload)
+        workflow.reflect(self.run,payload,path)
+
+    def test_identical_search_reuses_evidence_without_reexecution(self):
+        problem,first=self.prepare()
+        with patch('planner.search',side_effect=AssertionError('must not rerun')):
+            second=planner.plan(self.run,problem,{'evaluations':96,'beam':8,'seconds':2,'seed':4})
+        self.assertTrue(second['already_recorded'])
+        self.assertEqual(first['artifact'],second['artifact'])
+
+    def test_different_initial_coordinates_do_not_hit_the_same_search_cache(self):
+        problem,first=self.prepare()
+        state=read(self.run/'state.json')
+        positions=copy.deepcopy(state['routes'][self.route]['plan']['placements'])
+        problem['initial_placements']=positions
+        second=planner.plan(self.run,problem,{'evaluations':96,'beam':8,'seconds':2,'seed':4})
+        self.assertNotEqual(first['artifact'],second['artifact'])
+        state=read(self.run/'state.json')
+        raw=read(self.run/state['artifacts'][second['artifact']]['object'])
+        self.assertEqual(raw['trials'][0]['placements'],positions)
+
+    def test_actual_transform_roundoff_does_not_invalidate_generated_state(self):
+        ids=[]
+        for kind,module in [('compiler','sram'),('digital_flow','adder')]:
+            source=layout(4,6)
+            for point in source['cells']['leaf']['polygons'][0]['points_um']:
+                point[0]+=1.1; point[1]+=2.2
+            path=self.root/(kind+'-offset.json'); atomic(path,source)
+            ids.append(learn.learn(self.run,kind,path,'leaf',{'module':module,'process':'TEST','release':'r1',
+                                                          'stack':'m1','source_run':'offset-fixture'})['id'])
+        problem={'blocks':[{'id':'offset','cell':'leaf','source':ids[0],'width_um':4,'height_um':6,'orientations':[0,90]}],
+                 'gap_um':0,'max_width_um':20,'max_height_um':20,'nets':[],'movable_ids':[]}
+        problem['initial_placements']=[dict(problem['blocks'][0],x_um=.2,y_um=.3,rotation_deg=90,width_um=6,height_um=4)]
+        result=planner.plan(self.run,problem,{'evaluations':1})
+        self.ids=ids; self.route=result['routes'][0]['id']; self.search=result['artifact']
+        self.dispatch(); generated=self.complete()
+        snapshot=read(Path(generated['directory'])/'placement_state.json')
+        self.assertAlmostEqual(snapshot['placements'][0]['x_um'],.2)
+        memory.commit(self.run,{'round':1,'disposition':'no_new','entries':[]})
+        next_result=planner.plan(self.run,budget={'evaluations':1})
+        self.assertEqual(next_result['baseline']['candidate'],'candidate1')
+
+    def test_round_search_limits_do_not_create_extra_phases(self):
+        problem,_=self.prepare()
+        phase=read(self.run/'state.json')['phase']
+        for i in range(7):
+            planner.plan(self.run,problem,{'evaluations':1,'seed':i})
+        with self.assertRaisesRegex(ValueError,'call budget'):
+            planner.plan(self.run,problem,{'evaluations':1,'seed':99})
+        self.assertEqual(read(self.run/'state.json')['phase'],phase)
+
+    def test_reflect_guide_pinned_and_role_scoped(self):
+        first=workflow.context(self.run,'reflect')
+        self.assertIn('reflect-SKILL.md',first['changed']['instructions'])
+        self.assertEqual(workflow.context(self.run,'reflect',first['token'])['changed'],{})
+        self.prepare(); self.dispatch()
+        packet=workflow.context(self.run,'builder')
+        self.assertNotIn('reflect-SKILL.md',packet['changed']['instructions'])
+        self.assertTrue((self.run/'scripts/search/algorithms.py').is_file())
+        self.assertFalse((self.run/'design').exists())
 
     def test_config_relative_paths_and_input_keys(self):
         settings=load_config(self.config)

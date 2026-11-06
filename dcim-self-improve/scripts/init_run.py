@@ -31,13 +31,14 @@ def initialize(config, name):
                         ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
         shutil.copytree(SKILL_ROOT / 'assets/tools', staged / 'assets/tools',
                         ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
-        shutil.copytree(SKILL_ROOT / 'assets/tools', staged / 'design',
-                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
         instructions = {}
         for path in [SKILL_ROOT / 'SKILL.md', SKILL_ROOT.parent / 'AGENTS.md',
                      SKILL_ROOT.parent / 'HANDOFF.md', *sorted((SKILL_ROOT / 'references').glob('*.md'))]:
             shutil.copyfile(path, staged / 'instructions' / path.name)
             instructions[path.name] = identity(path.read_text(encoding='utf-8'))
+        reflect_skill = SKILL_ROOT / 'roles/reflect/SKILL.md'
+        shutil.copyfile(reflect_skill, staged / 'instructions/reflect-SKILL.md')
+        instructions['reflect-SKILL.md'] = identity(reflect_skill.read_text(encoding='utf-8'))
         for name in ('AGENTS.md', 'HANDOFF.md'):
             path = SKILL_ROOT.parent.parent / name
             if path.is_file():
@@ -48,7 +49,7 @@ def initialize(config, name):
         local['work_root'] = '.'
         atomic(staged / 'config.json', local)
         atomic(staged / 'state.json', {
-            'schema_version': 2, 'phase': 'learning', 'round': 0, 'revision': 0,
+            'schema_version': 3, 'phase': 'learning', 'round': 0, 'revision': 0,
             'project': settings.project, 'config_identity': identity(local),
             'task': None, 'artifacts': {}, 'learning': [], 'memory': [],
             'routes': {}, 'requests': {}, 'submissions': {}, 'events': [],

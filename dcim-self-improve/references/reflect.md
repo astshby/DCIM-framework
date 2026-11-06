@@ -1,5 +1,10 @@
 # Reflect
 
+Use the [Reflect experience guide](../roles/reflect/SKILL.md) for algorithm and
+operation selection. It is pinned as instructions/reflect-SKILL.md in new runs.
+Search is an internal Reflect tool call, with no added workflow stage. After
+Reflect0, use the immediately preceding reviewed candidate as the baseline.
+
 Reflect0 learns from compiler AND digital-flow layouts. Compare hierarchy, block
 sizes, pins, repeated structure and packing; distinguish observed geometry from
 hypothesized mechanisms. Derive a bounded next construction with learning IDs,
@@ -30,4 +35,6 @@ self_proposal (ID of the new AI proposal in proposals), proposals, optional
 route_updates, decision build/close and a task if building. workflow.py rejects
 missing ideas, whitespace-only fields, wrong sources and verbatim mechanism reuse.
 Those checks enforce observable submissions; they do not prove semantic novelty.
-Use plan_spec for a new explicit placement in the implemented search domain.
+Use plan_spec.placements for a new explicit coordinate placement evaluated under
+the same objective and frozen-instance constraints. The shelf input adapter
+remains available for explicit proposals; it never reconstructs a saved baseline.

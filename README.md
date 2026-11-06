@@ -28,9 +28,11 @@ package. The private configuration remains agent-managed.
 ## Implemented loop
 
 Reflect0 imports compiler and digital-flow layouts with `learn.py`, extracts
-geometry/hierarchy observations and specifies the next construction. `planner.py`
-performs bounded diverse beam search over measured blocks: order, row splitting,
-merging and allowed rotation. AI self-reflection and actual algorithm outputs share route records. Every
+geometry/hierarchy observations and specifies the next construction. Inside Reflect,
+`planner.py` runs simulated annealing, local improvement, sampled large-neighborhood
+rearrangement or coordinate beam search. Every later search starts at actual output
+from the immediately preceding reviewed round, preserving its coordinates. The
+Reflect-specific guide is `dcim-self-improve/roles/reflect/SKILL.md`. AI self-reflection and actual algorithm outputs share route records. Every
 Reflect, including closure, must submit one new testable AI proposal with a
 difference from existing routes. Human proposals/feedback are not Reflect inputs.
 
@@ -40,18 +42,40 @@ it does not supply a canned AI answer. `context --since TOKEN` returns only chan
 sections. `memory.py` provides bounded same-format reads/writes and supersession.
 `builder.py` creates and executes a new drawing Python script, retaining actual
 inputs, helper code, hierarchical geometry JSON, SVG, stdout/stderr and evidence.
+It recovers a `placement_state.json` from actual generated instance geometry; the
+next search verifies that state against retained layout evidence. Multiple Builder
+candidates require an explicit primary baseline; missing output cannot silently
+fall back to an older round.
 The original evidence checker and compatible history helper remain available.
 
 The research target is eight input/output channels and storage/compute ratio eight.
 Its accounting, precision, process and electrical conditions must be explicit.
 No fixed SRAM grouping, bitcell, topology, node or decoder proportion is inherited.
 
+## Repository and execution structure
+
+- `scripts/planner.py`: stable Reflect entry, baseline provenance, budgets and persistence.
+- `scripts/search/model.py`: coordinate state, constraints and common proxy objective.
+- `scripts/search/operators.py`: reusable placement modifications.
+- `scripts/search/algorithms.py`: strategy registry and bounded exploration.
+- `scripts/search/baseline.py`: recover and verify actual previous-round placements.
+- `roles/reflect/SKILL.md`: task-dependent algorithm/operation selection and interpretation.
+
+These paths are relative to `dcim-self-improve/`. Programs and guidance are pinned
+at initialization; ordinary calls use those copies and context deltas. Search caches
+identical states, and identical calls return retained results. Per-call limits and
+aggregate Reflect limits bound CPU exploration. Raw traces stay in immutable
+artifacts; default context contains summaries. The unused duplicate `run/design`
+helper tree has been removed. No EDA is launched by these entry points.
+
 ## Scope and validation
 
 Current search optimizes geometry and center-HPWL proxies. It does not synthesize
 transistor topology, route inter-block nets, establish electrical performance or
 submit EDA jobs. AI explicit plans can be evaluated in the same geometry
-representation. New operator families require separate validated extensions.
+representation. New operations use the shared state/evaluator interface and are
+implemented and checked within the existing role loop. No new planning stage is
+introduced. External standard-cell engines and routing adapters remain unsupported.
 Protocol gates cover the fixed entry points, not arbitrary shell actions.
 
 ```sh
