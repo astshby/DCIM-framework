@@ -1,0 +1,91 @@
+{
+  "macro": {
+    "input_channels": 8,
+    "output_channels": 8,
+    "storage_compute_ratio": 8,
+    "ratio_definition": "stored words per lane",
+    "storage_bits": 512,
+    "compute_lanes": null,
+    "input_bits": 1,
+    "weight_bits": 1,
+    "output_bits": 8,
+    "accumulator_bits": null,
+    "input_signed": null,
+    "weight_signed": null,
+    "cycles_per_result": 1,
+    "overflow_policy": null,
+    "objective": "minimize routed macro area subject to correctness and timing",
+    "max_width_um": 40,
+    "max_height_um": 130,
+    "target_frequency_hz": null,
+    "supply_v": null,
+    "temperature_c": null,
+    "output_load_ff": null
+  },
+  "technology": {
+    "process": "SYNTHETIC",
+    "release": "r1",
+    "stack": "test"
+  },
+  "modules": [
+    {
+      "id": "sram",
+      "purpose": "Storage, read/write and local memory access",
+      "enabled": true,
+      "omission_reason": null,
+      "reference_scope": "compiler",
+      "interface_contract": "TEST sram interface v1",
+      "geometry_contract": "TEST aligned device rows v1",
+      "closure_suite": null
+    },
+    {
+      "id": "multiplier",
+      "purpose": "Input/weight product with declared arithmetic",
+      "enabled": true,
+      "omission_reason": null,
+      "reference_scope": "digital_flow",
+      "interface_contract": "TEST multiplier interface v1",
+      "geometry_contract": "TEST aligned device rows v1",
+      "closure_suite": null
+    },
+    {
+      "id": "adder",
+      "purpose": "Addition/reduction with declared carry and width",
+      "enabled": true,
+      "omission_reason": null,
+      "reference_scope": "digital_flow",
+      "interface_contract": "TEST adder interface v1",
+      "geometry_contract": "TEST aligned device rows v1",
+      "closure_suite": null
+    },
+    {
+      "id": "selector_control",
+      "purpose": "Selection, decode and local control",
+      "enabled": true,
+      "omission_reason": null,
+      "reference_scope": "digital_flow",
+      "interface_contract": "TEST selector_control interface v1",
+      "geometry_contract": "TEST aligned device rows v1",
+      "closure_suite": null
+    },
+    {
+      "id": "accumulator",
+      "purpose": "State, accumulation, reset and output timing",
+      "enabled": true,
+      "omission_reason": null,
+      "reference_scope": "digital_flow",
+      "interface_contract": "TEST accumulator interface v1",
+      "geometry_contract": "TEST aligned device rows v1",
+      "closure_suite": null
+    }
+  ],
+  "verification": {
+    "profile": "staged",
+    "full_simulation_policy": "selected_revision_per_round",
+    "smoke_max_seconds": null,
+    "full_max_seconds": null,
+    "module_corners": [],
+    "macro_corners": [],
+    "macro_closure_suite": "frozen TEST macro suite"
+  }
+}

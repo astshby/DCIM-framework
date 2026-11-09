@@ -126,3 +126,17 @@ experimental history in the enclosing workspace.
 
 Framework code and documentation are [MIT licensed](LICENSE). External PDK, compiler,
 standard-cell IP, EDA tools and private experiment artifacts are not covered or distributed.
+
+## Device-granularity search and campaign planning
+
+New runs use schema 5 and the reflect-device-v4 contract. `planner.py` also accepts
+`transistor-placement-v1`: named-device row permutations, explicitly allowed
+source/drain flips, declared sharing predicates and nominal terminal HPWL.
+Builder produces a replayable abstract device layout; `device_audit.py` provides
+an independent checker. This is not foundry mask generation or physical signoff.
+
+`campaign.py` records the full module/tile/repeat/macro plan, fixed parent versions
+and stage acceptance. It admits only reviewed, memory-committed, Reflect-closed
+runs; unavailable physical/routing stages remain explicitly blocked. Existing
+pinned runs remain unchanged. See `dcim-self-improve/references/transistor-planning.md`
+for schemas, commands, qualification boundaries and the implementation roadmap.

@@ -54,3 +54,12 @@ copied into this package. General methods must be revalidated for new conditions
 
 Search remains cheap module geometry/center-wire estimation. External standard-cell
 placement/routing engines require explicit adapters and authorized validation.
+
+## Device-granularity planning sources (2026-11-09)
+
+- H. H. L. Van Cleeff, J. Humpola, B. Korte, D. Muller, P. Schulze, U. Schorr, J. Silvanus, C. Werner, C. Wessel, S. Wimmel. *BonnCell: Automatic Cell Layout in the 7-nm Era* (2017 technical report): https://www.or.uni-bonn.de/~hougardy/paper/7nmBonnCell_OR_Report.pdf . Detailed transistor placement and cell routing motivate separating legal construction from route quality. No BonnCell source/PDK or claimed reproduction is included.
+- Haoxing Ren, Matthew Fojtik. *NVCell: Standard Cell Layout in Advanced Technology Nodes with Reinforcement Learning* (2021): https://arxiv.org/abs/2107.07044 ; author preprint https://d1qx31qr3h6wln.cloudfront.net/publications/NVCell_preprint.pdf . SA placement and routing feedback motivate the device neighborhood; its RL/router and performance claims are not reproduced.
+- D. Lee, D. Park, C.-T. Ho, I. Kang, H. Kim, S. Gao, B. Lin, C.-K. Cheng. *SP&R: SMT-based Simultaneous Place-and-Route for Standard Cell Synthesis of Advanced Nodes*, ICCAD 2020, DOI 10.1145/3400302.3415692. Author project https://github.com/ckchengucsd/SMTCell . Constraint-centric joint placement/routing is a future comparator; no SMT/Z3 solver is integrated.
+- OpenROAD detailed placement and global routing documentation: https://openroad.readthedocs.io/en/latest/main/src/dpl/README.html and https://openroad.readthedocs.io/en/latest/main/src/grt/README.html . Placement padding and routing-resource derating show why required access/resource regions must survive compaction. No OpenROAD adapter is installed by this change.
+
+The new transistor_search.py is an original standard-library implementation of bounded simulated annealing and local search with declared-net diffusion-break predicates. It implements neither a published complete tool nor a process-qualified layout algorithm. Results from synthetic fixtures cannot be compared with paper PPA numbers.

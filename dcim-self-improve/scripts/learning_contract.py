@@ -79,10 +79,15 @@ def bind_task(state, task):
         reference_ids={r['id'] for r in state['learning']}
         require(set(g['evidence']) & reference_ids <= set(task['learning_ids']),'Task must carry its learning references')
         require(set(g['checks'])<=set(task['checks']),'Task must require its learning checks')
-    if state['round']==0:
-        sources={r['id']:r['kind'] for r in state['learning']}
-        require({sources[e] for i in ids for e in goals[i]['evidence'] if e in sources}=={'compiler','digital_flow'},
-                'Reflect0 task must bind learning from compiler and digital flow')
+    sources={r['id']:r['kind'] for r in state['learning']}
+    bound={sources[e] for i in ids for e in goals[i]['evidence'] if e in sources}
+    modules={m['id']:m for m in state['project']['modules']}
+    required=({'compiler','digital_flow'} if task['module']=='dcim' else
+              {modules[task['module']]['reference_scope']})
+    if required=={'circuit'}:
+        require(bool(bound),'Circuit learning needs a captured applicable observation')
+    else:
+        require(required<=bound,'Task must bind its module-specific reference sources')
     return [goals[i] for i in ids]
 
 

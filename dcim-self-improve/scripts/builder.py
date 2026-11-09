@@ -27,6 +27,9 @@ def build(run, name):
     with transaction(run) as (root,state):
         require(state['phase']=='awaiting_builder', 'Builder requires a committed Reflect task')
         task=state['task']
+        if task.get('execution')=='transistor_proxy':
+            from device_flow import build_devices
+            return build_devices(root,state,name)
         used=sum(a['kind']=='candidate' and a['round']==state['round'] for a in state['artifacts'].values())
         require(used < task['max_candidates'], 'Candidate budget exhausted')
         route=state['routes'][task['route']]

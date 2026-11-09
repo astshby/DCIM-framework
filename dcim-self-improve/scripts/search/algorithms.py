@@ -13,7 +13,9 @@ VERSIONS = {'anneal':'anneal-v1','local':'local-v1','lns':'lns-v1','beam':'coord
 def catalog():
     return {'implemented':VERSIONS,'operators':list(OPERATORS),
             'state':'coordinate-placement-v1','objective':'geometry_and_center_hpwl_proxy',
-            'unsupported':['standard_cell_engine','routing','transistor_topology'],
+            'device_search':{'schema':'transistor-placement-v1','algorithms':['anneal','local'],
+                             'state':'row permutations and explicit source/drain flips','qualification':'transistor_proxy'},
+            'unsupported':['foundry_device_generation','routing','transistor_topology_synthesis'],
             'selection':'Reflect chooses from task, reviewed memory and budget; default anneal',
             'qualification':'proxy_only'}
 

@@ -117,7 +117,7 @@ within the ordinary loop; no operator-development stage is added.
 
 Reflect0 learning hypotheses use the same four short text fields as memory, plus
 scope, source evidence and required checks. Each Builder task binds active goals;
-the first task binds compiler AND digital-flow observations. Candidate output
+each task binds its module-specific reference sources; dcim integration binds both. Candidate output
 retains exact goal versions. Analyst reports every bound goal with current evidence
 and explicit supported/refuted/inconclusive status before committing short memory.
 Active goals remain retrievable independently of recent-memory limits; corrections

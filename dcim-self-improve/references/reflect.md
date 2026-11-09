@@ -1,6 +1,7 @@
 # Reflect: responsibility and reusable experience
 
-Reflect0 learns from compiler AND digital-flow layouts. Compare hierarchy, block
+Reflect0 learns from the applicable module references: compiler for SRAM, digital-flow
+for compute; dcim integration binds both. Compare hierarchy, block
 sizes, pins, repeated structure and packing; distinguish observed geometry from
 hypothesized mechanisms. Derive a bounded next construction with learning IDs,
 module/interface, checks and a stop condition.
@@ -132,8 +133,8 @@ module, stage, general/process scope, captured reference evidence and required
 check names. General means a transferable method, not a process-independent
 signoff result. Process hypotheses bind process/release/stack exactly.
 
-The first Builder task must bind compiler AND digital-flow observations through
-its `learning_goals`. Later tasks may reuse active goals or correct them with a
+Each Builder task must bind the reference kinds required by its module through
+its `learning_goals`; dcim integration binds both compiler and digital-flow. Later tasks may reuse active goals or correct them with a
 new ID and `supersedes`; retain the original and its checks. Task checks must
 include each bound goal's checks. Each candidate saves learning_contract.json.
 Analyst returns supported/refuted/inconclusive with current-round evidence for
@@ -168,3 +169,5 @@ inspect source_status, conditions and evidence before a new test. To maintain
 reusable experience after review, publish selected current lessons with
 experience.py; see experience-memory.md. Static role text remains versioned policy,
 not a per-round journal. No automatic write to the installed guide is performed.
+
+For transistor_proxy tasks or campaign stage bindings, read [transistor-planning.md](transistor-planning.md). Preserve the existing role order and explicit physical verification limits.

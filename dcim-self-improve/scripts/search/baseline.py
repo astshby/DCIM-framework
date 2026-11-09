@@ -48,6 +48,9 @@ def previous(root, state, requested=None):
     require(item['kind']=='candidate' and item['round']==state['round'], 'Baseline must come from the immediately previous round')
     manifest=read(root/item['object'])
     files=manifest['files']
+    if 'transistor-layout.json' in files:
+        from device_flow import previous_devices
+        return previous_devices(root,state,candidate,files,review)
     require('placement_state.json' in files and 'layout.json' in files, 'Previous candidate has no usable placement output')
     evidence(root,state,[files['placement_state.json'],files['layout.json']])
     snapshot=read(root/state['artifacts'][files['placement_state.json']]['object'])

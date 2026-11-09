@@ -8,7 +8,7 @@ import roles
 import learning_contract
 import experience
 
-REFLECT_CONTRACT = 'reflect-learning-v3'
+REFLECT_CONTRACT = 'reflect-device-v4'
 
 
 def short(value, label, maximum=500):
@@ -86,8 +86,7 @@ def request(run, since=None):
     with transaction(run) as (root, state):
         require(state['phase'] in ('learning', 'awaiting_reflect'), 'Reflect follows learning or memory commit')
         if state['round'] == 0:
-            require({x['kind'] for x in state['learning']} == {'compiler', 'digital_flow'},
-                    'Reflect0 needs compiler and digital-flow layout observations')
+            require(bool(state['learning']), 'Reflect0 needs captured layout observations; task binding checks module-specific sources')
         key = 'reflect-' + str(state['round'])
         # Open request is immutable. New evidence requires an explicit new round, not silent prompt replacement.
         if key in state['requests']:
@@ -177,11 +176,17 @@ def reflect(run, payload, response_path):
                 require(entry['kind']=='search' and entry['round']==state['round'], 'Plan must bind this Reflect search')
                 result=read(root/entry['object'])
                 base=result['problem']
-                if 'placements' in spec:
-                    coordinates=state_from_placements(base,spec['placements'])
+                if base.get('schema')=='transistor-placement-v1':
+                    from transistor_search import evaluate as evaluate_devices
+                    require(set(spec)=={'search','device_state'},'Device proposal needs explicit device_state')
+                    proposal['plan']=evaluate_devices(base,spec['device_state'])
+                    proposal['representation']='transistor'
                 else:
-                    coordinates=from_shelf(base,(spec['order'],spec['cuts'],spec['rotations']))
-                proposal['plan']=evaluate(base,coordinates,result['baseline_evaluation']['state'])
+                    if 'placements' in spec:
+                        coordinates=state_from_placements(base,spec['placements'])
+                    else:
+                        coordinates=from_shelf(base,(spec['order'],spec['cuts'],spec['rotations']))
+                    proposal['plan']=evaluate(base,coordinates,result['baseline_evaluation']['state'])
                 require(proposal['plan']['feasible'],'Proposed placement violates geometry contract')
                 proposal.update(search=spec['search'],baseline=result['baseline'])
             state['routes'][rid] = dict(proposal, lifecycle='active', round=state['round'], status='hypothesis')
@@ -208,7 +213,12 @@ def reflect(run, payload, response_path):
             for field in ('module', 'stage', 'goal', 'stop'):
                 short(task[field], field)
             require(task['module'] in {m['id'] for m in state['project']['modules'] if m['enabled']} | {'dcim'}, 'Unknown module')
-            require(task.get('execution') == 'geometry_only', 'This runner supports geometry-only tasks; EDA adapter not installed')
+            expected_execution='transistor_proxy' if selected.get('representation')=='transistor' else 'geometry_only'
+            require(task.get('execution')==expected_execution,'Execution must match the measured representation; physical EDA adapter not installed')
+            if expected_execution=='transistor_proxy':
+                require({'device_identity','terminal_mapping','abstract_geometry'}<=set(task.get('checks',[])),
+                        'Device tasks require identity, terminal mapping and abstract geometry checks')
+                require('export_gds_precision_m' not in task,'Abstract transistor plans cannot export foundry GDS')
             require(isinstance(task['checks'], list) and task['checks'], 'Task checks required')
             require(isinstance(task['learning_ids'], list) and task['learning_ids'], 'Builder must receive specific learned observations')
             require(set(task['learning_ids']) <= {x['id'] for x in state['learning']}, 'Unknown learning reference')
@@ -285,6 +295,10 @@ def review(run, payload, path):
         require(all(v in ('passed','failed','incomplete','not_run') for v in payload['checks'].values()), 'Invalid check status')
         if payload['verdict'] == 'passed':
             require(all(payload['checks'][k] == 'passed' for k in state['task']['checks']), 'Cannot pass missing checks')
+        if state['task'].get('execution')=='transistor_proxy':
+            require(payload['scope']=='transistor_proxy','Device proxy review must declare its exact scope')
+            require(all(v!='passed' or k in {'device_identity','terminal_mapping','abstract_geometry'}
+                        for k,v in payload['checks'].items()),'Proxy evidence cannot pass physical or electrical checks')
         baseline=state.get('last_result',{}).get('baseline_candidate')
         require(not baseline or baseline in payload['evidence'],'Review must inspect the chosen previous-round baseline')
         learning_contract.review(root,state,payload)

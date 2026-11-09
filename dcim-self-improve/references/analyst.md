@@ -57,3 +57,5 @@ inspect source_status, conditions and evidence before a new test. To maintain
 reusable experience after review, publish selected current lessons with
 experience.py; see experience-memory.md. Static role text remains versioned policy,
 not a per-round journal. No automatic write to the installed guide is performed.
+
+For transistor_proxy tasks or campaign stage bindings, read [transistor-planning.md](transistor-planning.md). Preserve the existing role order and explicit physical verification limits.

@@ -3,6 +3,24 @@
 本文件供用户与框架开发者追踪优化，不再作为设计运行输入。运行契约在 AGENTS.md、
 README.md 和 references；历史描述仅用于追溯，后文旧版本不覆盖当前契约。
 
+## 2026-11-09：器件级搜索与全流程规划
+
+用户要求查阅 EDA 论文，将启发式从块推进到更细粒度，并修改、评定框架、交付本地说明；每轮保留 Builder -> Analyst -> memory -> Reflect。开发代码只在本仓库，既有实验和 pinned run 未升级。
+
+新增 transistor_search.py：声明行内的晶体管排序、允许的 S/D 翻转、双行交换与插入；SA/local 两种有预算搜索，端点网络保持、同类共享谓词、网格、严格尺寸及障碍/接入预留检查。端口仍是名义锚点，器件大小和行高固定；不生成真实扩散/implant、body 接触或互连。
+
+新增 device_flow.py 接入原 planner/Builder/workflow，Builder 保存可重放的独立程序与抽象产物；device_audit.py 独立复算端点、几何与代理目标。新 run schema 5 / reflect-device-v4，学习来源按模块绑定，dcim 集成绑定 compiler 与 digital-flow。原有角色阶段顺序、立即上一轮实际基线与最终 Reflect 保持。
+
+新增 campaign.py：SRAM、四类计算模块、tile、repeat、macro 的依赖与验收计划；冻结父候选和合同声明，接收前检查当前 Builder/Analyst/记忆/Reflect 已闭环，保存不可变证据，父版更新使下游失效。abstract 可接收器件抽象模块；真实物理及完整连接阶段明确 awaiting_capability。接口身份当前是声明文本与宏参数的哈希，未验证外部合同文件内容或语义。
+
+文献参考 BonnCell (2017)、NVCell (2021)、SP&R/SMTCell (2020) 与 OpenROAD 文档。此实现只借鉴器件邻域、共享条件、约束与布线反馈思想，未复现论文完整流程或 PPA。新参考说明见 references/transistor-planning.md 和 sources.md。
+
+评定有两轮：Builder1 后独立 Analyst1 发现输出资源元数据和目标数字未被独立审核的两项 P2；Reflect1 决定做单字段篡改检验；Builder2 修复；独立 Analyst2 通过；Reflect2 收尾并提出固定布局下用实测引脚形状检验代理排名的下一实验。全部原件位于 hby/framework-checks/transistor-planning-2026-11-09/，history.py 保存提示版本、i1/i2 与各轮反思。
+
+最终回归 95 项：92 通过、3 可选跳过；打包测试 5 通过；skill quick_validate 通过。三组合成拓扑 × 两算法 × 三种子共 18 次，1508 次唯一候选评价；只支持模型内搜索效果，不支持真实工艺收益。独立实际角色示例为 synthetic 6T：Reflect0 -> Builder1 -> Analyst1 -> 两条短经验 -> Reflect1(close)。抽象 W/H 11x5 -> 8x5，HPWL 65 -> 47，但 BL 单网跨度 4 -> 9；保留该反例并未给出物理/电气通过结论。新示例已关闭；完整 campaign 未完成。
+
+待续：目标工艺器件提取/生成、真实 pin/access 与 PP/NP/body/TAP 检查、可布线的最小连接 tile、重复边界与完整宏。拓扑变更/折叠/尺寸选择及 EDA 调度恢复尚未实现。PEX 和版图后仿真没有加入本轮范围。未启动 EDA；网络发布仍走用户后续本地同步流程。
+
 ## 2026-11-06：迁入 DCIM-framework、恢复路径修复与目录整理
 
 按用户最新要求将 DCIM-framework/ 作为后续唯一仓库，保留根与仓库两份 HANDOFF。

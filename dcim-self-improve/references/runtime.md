@@ -1,4 +1,4 @@
-# Runtime contract (v4 / reflect-learning-v3)
+# Runtime contract (v5 / reflect-device-v4)
 
 Initialize with the repository scripts. Use the initialized run's pinned
 `scripts/` thereafter: the run copies programs, geometry helpers and instructions
@@ -154,7 +154,7 @@ Each proposal needs source=ai, mechanism, expected, minimal_test, stop and evide
 the self-proposal additionally needs difference. Exact normalized mechanism reuse
 is rejected; semantic novelty remains an AI/evidence responsibility. The reply
 cannot supply human feedback or human-source proposals. Requests carry
-reflect_contract=reflect-learning-v3 and allowed_sources=[ai, algorithm]. Existing
+reflect_contract=reflect-device-v4 and allowed_sources=[ai, algorithm]. Existing
 requests from an older contract must not be silently reinterpreted.
 A close reply still requires reflection and a new idea. Task fields:
 
@@ -185,9 +185,8 @@ process scope requires exact technology. General methods carry no technology
 claim. Evidence must include captured learning observations; Analyst review IDs
 may additionally justify a correction. A correction supplies supersedes and a
 new ID, retaining the old goal and all outcomes. Task learning_ids must carry its
-goals' reference sources and task checks must include their checks. Reflect0's
-first task must bind BOTH compiler and digital-flow learning; later tasks reuse
-or revise applicable goals. Closing without a construction needs no new goal.
+goals' reference sources and task checks must include their checks. Every task binds its module-specific reference kinds; dcim integration binds
+both compiler and digital-flow. Later tasks reuse or revise applicable goals. Closing without a construction needs no new goal.
 
 Context learning_focus returns active goals plus latest learning_checks regardless
 of recent-memory age. Reflect sees all modules; Builder/Analyst see their task
@@ -299,3 +298,10 @@ input_files.experience_root bundle manifests. experience.py publishes selected
 reviewed lessons and evidence into a NEW run-owned directory. Initialization
 pins verified bundles; role_experience returns scoped reference-only methods.
 See experience-memory.md for promotion, version selection and trust boundaries.
+
+## Device mode and campaign coordination
+
+For transistor-placement-v1, execution=transistor_proxy, independent device audit,
+and closed-run campaign acceptance, read [transistor-planning.md](transistor-planning.md).
+The coordinate examples above retain their legacy rectangle representation; device
+plans cannot be reinterpreted as routed or foundry-qualified layouts.

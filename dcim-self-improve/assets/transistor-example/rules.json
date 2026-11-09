@@ -1,0 +1,31 @@
+{
+  "technology": {
+    "process": "SYNTHETIC",
+    "release": "r1",
+    "stack": "test"
+  },
+  "rows": [
+    {
+      "id": "P",
+      "kind": "pmos",
+      "y_um": 3,
+      "height_um": 2,
+      "body_net": "VDD"
+    },
+    {
+      "id": "N",
+      "kind": "nmos",
+      "y_um": 0,
+      "height_um": 2,
+      "body_net": "VSS"
+    }
+  ],
+  "rules": {
+    "diffusion_gap_um": 1,
+    "allow_diffusion_sharing": true,
+    "grid_um": 1
+  },
+  "obstacles": [],
+  "reserved_access": [],
+  "schema": "transistor-rules-v1"
+}

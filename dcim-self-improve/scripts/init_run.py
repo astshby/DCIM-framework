@@ -48,7 +48,7 @@ def initialize(config, name):
         local['work_root'] = '.'
         atomic(staged / 'config.json', local)
         atomic(staged / 'state.json', {
-            'schema_version': 4, 'phase': 'learning', 'round': 0, 'revision': 0,
+            'schema_version': 5, 'phase': 'learning', 'round': 0, 'revision': 0,
             'project': settings.project, 'config_identity': identity(local),
             'task': None, 'artifacts': {}, 'learning': [], 'memory': [],
             'learning_goals': [], 'learning_outcomes': [], 'experience_bundles':bundles,

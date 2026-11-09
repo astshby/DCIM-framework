@@ -185,6 +185,10 @@ Tool-change positive/negative regressions run when the tool/readers change,
 not as newly authored fixtures every round. New artifacts and changed circuit
 semantics still require their affected checks and independent oracles.
 
+For transistor-granularity search and campaign planning, read
+[transistor-planning.md](references/transistor-planning.md). Its abstract device
+checks do not implement physical mask generation, body contacts or routing.
+
 ## Search and self-improvement
 
 - At structural decisions, default to two mechanism-distinct candidates and
