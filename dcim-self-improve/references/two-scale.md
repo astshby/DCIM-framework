@@ -64,3 +64,5 @@ a searched rectangle state automatically controlled APR.
 - Unsupported checks remain incomplete, and rejected candidates remain available
   for diagnosis. None of these methods transfers process-specific dimensions,
   rule exceptions or qualification passes.
+
+When most sampled coarse states violate constraints, inspect the decoder/action domain before increasing evaluations. A finite local endpoint optimum is not a global or routed optimum. Preserve no-improvement results and separate solver/domain tests from a physical design round.

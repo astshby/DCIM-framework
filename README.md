@@ -129,7 +129,7 @@ standard-cell IP, EDA tools and private experiment artifacts are not covered or 
 
 ## Device-granularity search and campaign planning
 
-New runs use schema 5 and the reflect-device-v4 contract. `planner.py` also accepts
+New runs use schema 5 and the reflect-multiscale-v5 contract. `planner.py` also accepts
 `transistor-placement-v1`: named-device row permutations, explicitly allowed
 source/drain flips, declared sharing predicates and nominal terminal HPWL.
 Builder produces a replayable abstract device layout; `device_audit.py` provides
