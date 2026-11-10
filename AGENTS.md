@@ -152,3 +152,18 @@ This atomically replaces the sibling `dcim-framework.zip`. Git retains framework
 revisions; there is one current ZIP. Check Git status and the package result
 before reporting completion. Keep the enclosing workspace's `AGENTS.md` and
 `HANDOFF.md` current at requested handoff boundaries, including this closeout.
+
+## Two-scale and physical-adapter contracts
+
+Analyst owns both independent review and concise experience submission; there is
+no extra memory role. Reflect may jointly choose fine/coarse actions in one bounded
+task, using implemented operations and fixed MUST constraints. Complete module
+requirements cannot be replaced by a smaller diagnostic deliverable. Read
+references/two-scale.md and algorithm-portfolio.md for current interfaces.
+
+Unknown geometry contract fields are rejected. Full masks, placement boundaries
+and native repeat transforms are distinct. Exact seam exceptions require immutable
+source/report bindings at all runtime entries; those bindings do not certify raw
+foundry reports. Existing upstream solver calls are explicit; unavailable EDA
+adapters cannot silently fall back to a different algorithm. Private physical
+recipes and node experience remain outside this reusable repository.

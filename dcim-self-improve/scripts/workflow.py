@@ -8,7 +8,7 @@ import roles
 import learning_contract
 import experience
 
-REFLECT_CONTRACT = 'reflect-device-v4'
+REFLECT_CONTRACT = 'reflect-multiscale-v5'
 
 
 def short(value, label, maximum=500):
@@ -26,7 +26,7 @@ def context_data(root, state, role):
         'instruction_scope': instructions,
         'task': task, 'phase': state['phase'], 'round': state['round'],
         'baseline': state.get('last_result',{}).get('baseline_candidate'),
-        'search_capabilities': __import__('search').catalog() if role == 'reflect' else None,
+        'search_capabilities': {'legacy':__import__('search').catalog(),'portfolio':__import__('algorithm_portfolio').catalog()} if role == 'reflect' else None,
         'searches': [e['payload'] for e in state['events']
                      if e['round']==state['round'] and e['operation']=='heuristic_plan'] if role=='reflect' else [],
         'prior_routes': [{k:r[k] for k in ('id','mechanism','status','lifecycle','round')}
@@ -182,6 +182,8 @@ def reflect(run, payload, response_path):
                     proposal['plan']=evaluate_devices(base,spec['device_state'])
                     proposal['representation']='transistor'
                 else:
+                    from physical_contract import verify_contract_evidence
+                    verify_contract_evidence(root,state,base)
                     if 'placements' in spec:
                         coordinates=state_from_placements(base,spec['placements'])
                     else:
@@ -214,7 +216,12 @@ def reflect(run, payload, response_path):
                 short(task[field], field)
             require(task['module'] in {m['id'] for m in state['project']['modules'] if m['enabled']} | {'dcim'}, 'Unknown module')
             expected_execution='transistor_proxy' if selected.get('representation')=='transistor' else 'geometry_only'
-            require(task.get('execution')==expected_execution,'Execution must match the measured representation; physical EDA adapter not installed')
+            if task.get('execution')=='physical_adapter':
+                require(expected_execution=='geometry_only','Physical adapter must bind a captured reference geometry plan')
+                from physical_builder import contract as physical_contract
+                physical_contract(root,state,task)
+            else:
+                require(task.get('execution')==expected_execution,'Execution must match measured representation')
             if expected_execution=='transistor_proxy':
                 require({'device_identity','terminal_mapping','abstract_geometry'}<=set(task.get('checks',[])),
                         'Device tasks require identity, terminal mapping and abstract geometry checks')
@@ -265,7 +272,7 @@ def result(run, payload, path):
                 'Choose baseline_candidate from this round result evidence; multiple candidates need an explicit choice')
         if baseline:
             manifest=read(root/state['artifacts'][baseline]['object'])
-            usable='placement_state.json' in manifest['files']
+            usable='placement_state.json' in manifest['files'] or bool(manifest.get('physical_outputs'))
             require(usable or payload['outcome']!='passed','Passed result needs actual placement output')
             if not usable:
                 baseline=None

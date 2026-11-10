@@ -23,6 +23,11 @@ print(json.dumps(generate(json.loads((root/'input.json').read_text()),root)))
 
 
 def build(run, name):
+    from runtime import run_root
+    preview=read(run_root(run)/'state.json')
+    if (preview.get('task') or {}).get('execution')=='physical_adapter':
+        from physical_builder import action
+        return action(run,name,'prepare')
     require(name and all(c.isalnum() or c in '_-' for c in name), 'Simple candidate ID required')
     with transaction(run) as (root,state):
         require(state['phase']=='awaiting_builder', 'Builder requires a committed Reflect task')
@@ -38,6 +43,8 @@ def build(run, name):
         evidence(root,state,[route['search']])
         search=read(root/state['artifacts'][route['search']]['object'])
         problem=search['problem']
+        from physical_contract import verify_contract_evidence
+        verify_contract_evidence(root,state,problem)
         directory=root/'candidates'/name
         require(not directory.exists(), 'Candidate already exists; inspect it or use a new revision ID')
         sources={}
@@ -79,6 +86,8 @@ def build(run, name):
                 placements=measured_placements(problem,read(directory/'layout.json'))
                 require(states_match(state_from_placements(problem,placements),state_from_placements(problem,route['plan']['placements'])),
                         'Generated coordinates differ from selected plan')
+                from search.model import evaluate as evaluate_actual
+                require(evaluate_actual(problem,state_from_placements(problem,placements))['feasible'], 'Generated output violates its physical placement contract')
                 atomic(directory/'placement_state.json',{'schema':'coordinate-placement-v1',
                     'round':state['round'],'candidate':name,'problem':problem,'placements':placements,
                     'parent_baseline':route['baseline'],'search':route['search']})

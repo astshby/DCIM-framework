@@ -245,3 +245,5 @@ Inspect imported paths before copying a generator: `ROOT` relocation alone
 does not fix sibling references, generated shared libraries or PDK dependencies.
 Read actual EDA skills and runner APIs before operations. Never weaken decks,
 independent LVS references, electrical tests or success criteria to pass a run.
+
+Read [two-scale.md](references/two-scale.md) when selecting fine/coarse actions or using private physical recipes. The complete module contract and MUST conditions persist across scale changes; unsupported constraints cannot be silently ignored.

@@ -140,3 +140,12 @@ and stage acceptance. It admits only reviewed, memory-committed, Reflect-closed
 runs; unavailable physical/routing stages remain explicitly blocked. Existing
 pinned runs remain unchanged. See `dcim-self-improve/references/transistor-planning.md`
 for schemas, commands, qualification boundaries and the implementation roadmap.
+
+## Two-scale constraints and upstream solver portfolio
+
+See dcim-self-improve/references/two-scale.md. Five SciPy implementations can
+operate through shared fine/coarse decoders and hard checks; optional EDA engines
+are catalogued separately with their actual unavailable state. Native repeat
+relations are evidence-bound and distinct from retained full-mask dimensions.
+Private physical Builder recipes are captured at runtime, never distributed with
+PDK/IP or node-specific assumptions. New requests use reflect-multiscale-v5.

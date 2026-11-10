@@ -1,4 +1,4 @@
-# Runtime contract (v5 / reflect-device-v4)
+# Runtime contract (v5 / reflect-multiscale-v5)
 
 Initialize with the repository scripts. Use the initialized run's pinned
 `scripts/` thereafter: the run copies programs, geometry helpers and instructions
@@ -154,7 +154,7 @@ Each proposal needs source=ai, mechanism, expected, minimal_test, stop and evide
 the self-proposal additionally needs difference. Exact normalized mechanism reuse
 is rejected; semantic novelty remains an AI/evidence responsibility. The reply
 cannot supply human feedback or human-source proposals. Requests carry
-reflect_contract=reflect-device-v4 and allowed_sources=[ai, algorithm]. Existing
+reflect_contract=reflect-multiscale-v5 and allowed_sources=[ai, algorithm]. Existing
 requests from an older contract must not be silently reinterpreted.
 A close reply still requires reflection and a new idea. Task fields:
 
@@ -305,3 +305,5 @@ For transistor-placement-v1, execution=transistor_proxy, independent device audi
 and closed-run campaign acceptance, read [transistor-planning.md](transistor-planning.md).
 The coordinate examples above retain their legacy rectangle representation; device
 plans cannot be reinterpreted as routed or foundry-qualified layouts.
+
+Existing solver and private physical Builder contracts: [two-scale.md](two-scale.md).

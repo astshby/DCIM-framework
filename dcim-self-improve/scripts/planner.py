@@ -42,6 +42,9 @@ def plan(run, problem=None, budget=None, baseline=None):
             # Objective/bounds/movable scope may change explicitly, instance/net identity may not.
             require(problem['blocks']==base['blocks'] and problem.get('nets',[])==base.get('nets',[]),
                     'Search must preserve previous-round instances and nets; structural redesign belongs to Builder')
+            require(problem.get('physical_contract')==base.get('physical_contract'), 'Physical contract cannot change inside an existing run')
+            for flag in ('width_strict','height_strict'):
+                require(not base.get(flag,False) or problem.get(flag,False), 'Cannot relax strict dimension contract')
             initial=state_from_placements(problem,snapshot['placements'])
         else:
             require(baseline is None,'Reflect0 cannot name a prior candidate')
@@ -52,6 +55,8 @@ def plan(run, problem=None, budget=None, baseline=None):
             origin={'kind':'reference_initialization','round':0}
         validate_problem(problem)
         validate_references(state,problem)
+        from physical_contract import verify_contract_evidence
+        verify_contract_evidence(root,state,problem)
         evidence(root,state,list(dict.fromkeys(b['source'] for b in problem['blocks'])))
         name='search-'+identity({'problem':problem,'budget':budget,'baseline':origin,'initial':initial,'round':state['round']})[:16]
         if name in state['artifacts']:
@@ -76,7 +81,11 @@ def plan(run, problem=None, budget=None, baseline=None):
                 require(type(value) is int,'Integer '+k+' required')
             require(value <= {'evaluations':10000,'steps':100000,'seconds':60}[k], 'Search budget too large: '+k)
             effective[k]=min(value,remaining)
-        result=search(problem,effective,initial)
+        if str(effective.get('algorithm','')).startswith('scipy_'):
+            from solver_adapter import search as external_search
+            result=external_search(problem,effective,initial)
+        else:
+            result=search(problem,effective,initial)
         result.update(problem=problem,baseline=origin,objective_identity=identity(problem))
         path=root/'requests'/(name+'.json')
         atomic(path,result)
@@ -105,7 +114,8 @@ def main():
     p.add_argument('--catalog',action='store_true')
     a=p.parse_args()
     if a.catalog:
-        return catalog()
+        from algorithm_portfolio import catalog as portfolio
+        return {'legacy':catalog(),'portfolio':portfolio()}
     return plan(a.run,read(a.problem) if a.problem else None,read(a.budget) if a.budget else {},a.baseline)
 
 

@@ -48,6 +48,7 @@ def previous(root, state, requested=None):
     require(item['kind']=='candidate' and item['round']==state['round'], 'Baseline must come from the immediately previous round')
     manifest=read(root/item['object'])
     files=manifest['files']
+    require(not manifest.get('physical_outputs'), 'Physical construction has no declared search decoder; close/review it and initialize an explicitly linked physical task, never fall back to reference boxes')
     if 'transistor-layout.json' in files:
         from device_flow import previous_devices
         return previous_devices(root,state,candidate,files,review)
@@ -55,6 +56,8 @@ def previous(root, state, requested=None):
     evidence(root,state,[files['placement_state.json'],files['layout.json']])
     snapshot=read(root/state['artifacts'][files['placement_state.json']]['object'])
     require(snapshot['round']==state['round'] and snapshot['candidate']==candidate, 'Baseline snapshot round/identity differs')
+    from physical_contract import verify_contract_evidence
+    verify_contract_evidence(root,state,snapshot['problem'])
     actual=measured_placements(snapshot['problem'],read(root/state['artifacts'][files['layout.json']]['object']))
     actual_state=state_from_placements(snapshot['problem'],actual)
     saved_state=state_from_placements(snapshot['problem'],snapshot['placements'])

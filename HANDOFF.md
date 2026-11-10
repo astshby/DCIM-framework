@@ -3,6 +3,16 @@
 本文件供用户与框架开发者追踪优化，不再作为设计运行输入。运行契约在 AGENTS.md、
 README.md 和 references；历史描述仅用于追溯，后文旧版本不覆盖当前契约。
 
+## 2026-11-09：两粒度约束、现有求解器与私有物理入口
+
+修复块级未知字段静默忽略及严格宽高等号接受；增加完整mask包络与placement boundary分离、对齐、轨道、区域、精确原生重复和不可变证据绑定。AI直接方案、算法、Builder和恢复共用检查。物理合同不得在普通续轮中被静默更换。
+
+接入五个SciPy现有实现：differential_evolution、dual_annealing、basinhopping、SHGO、Powell。采用粗粒度坐标/朝向和细粒度行序/源漏朝向解码，共同硬检查、实际基线、预算和轨迹；它们是通用优化器的EDA适配，不是五篇完整EDA工具复现。十项目录另列五项尚未接入的CP-SAT/SMTCell/OpenROAD能力。
+
+新增physical_builder.py私有物理适配：冻结执行依赖，prepare/submit/collect/finalize，成功提交与终态必须同jobID，完整APR/DRC/LVS/function收集后才能冻结。过程退出成功不等于验收通过。节点生成器和经验只在实验副本；当前支持显式固定配方完整模块重建，尚未实现物理细粗自动往返或搜索坐标自动控制APR。物理结果不得回退参考盒作为下一搜索基线。
+
+独立Analyst1发现作业身份绑定P2，Reflect1选择有界修复，Builder2修复并新增反例，Analyst2与最终结果见hby/framework-checks/two-scale-2026-11-09。新framework-test采用独立副本，复用稳定a06完整8x4双口目标；所有22nm经验/数据独立私有。正在运行的newarch不改。
+
 ## 2026-11-09：器件级搜索与全流程规划
 
 用户要求查阅 EDA 论文，将启发式从块推进到更细粒度，并修改、评定框架、交付本地说明；每轮保留 Builder -> Analyst -> memory -> Reflect。开发代码只在本仓库，既有实验和 pinned run 未升级。

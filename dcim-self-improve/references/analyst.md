@@ -59,3 +59,5 @@ experience.py; see experience-memory.md. Static role text remains versioned poli
 not a per-round journal. No automatic write to the installed guide is performed.
 
 For transistor_proxy tasks or campaign stage bindings, read [transistor-planning.md](transistor-planning.md). Preserve the existing role order and explicit physical verification limits.
+
+For two-scale scope selection, native-seam contracts or a private physical Builder, read [two-scale.md](two-scale.md). Analyst includes reviewed experience submission.

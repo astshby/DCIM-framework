@@ -1,6 +1,7 @@
 """Coordinate-preserving placement state and a fixed, inexpensive proxy evaluator."""
 import math
 from runtime import require
+from physical_contract import fields, text, validate_contract, evaluate_contract
 
 
 def number(value, name, positive=False):
@@ -10,15 +11,22 @@ def number(value, name, positive=False):
 
 
 def validate_problem(problem):
+    fields(problem, ('blocks','gap_um','max_width_um','max_height_um'), 'block problem',
+           ('nets','movable_ids','grid_um','step_um','wire_weight','initial_placements',
+            'width_strict','height_strict','physical_contract'))
     blocks = problem['blocks']
     require(isinstance(blocks, list) and 1 <= len(blocks) <= 64, 'Need 1..64 explicit block instances')
-    ids = [b['id'] for b in blocks]
-    require(all(isinstance(i, str) and i for i in ids) and len(set(ids)) == len(ids), 'Unique block IDs required')
+    for b in blocks:
+        fields(b, ('id','source','cell','width_um','height_um'), 'block', ('orientations',))
+    ids = [text(b['id'],'block ID') for b in blocks]
+    require(len(set(ids)) == len(ids), 'Unique block IDs required')
     for b in blocks:
         number(b['width_um'], 'width', True)
         number(b['height_um'], 'height', True)
-        require(b.get('orientations', [0]) in ([0], [0, 90]), 'Explicit orientations: [0] or [0,90]')
-        require(isinstance(b['source'], str) and isinstance(b['cell'], str), 'Explicit block source/cell')
+        orientations=b.get('orientations',[0])
+        require(isinstance(orientations,list) and all(type(a) is int for a in orientations) and
+                orientations in ([0],[0,90]), 'Explicit orientations: [0] or [0,90]')
+        text(b['source'],'block source'); text(b['cell'],'block cell')
     number(problem['gap_um'], 'gap')
     for k in ('max_width_um', 'max_height_um'):
         number(problem[k], k, True)
@@ -29,9 +37,13 @@ def validate_problem(problem):
     movable = problem.get('movable_ids', ids)
     require(isinstance(movable, list) and len(set(movable)) == len(movable) and
             all(i in ids for i in movable), 'Invalid movable_ids')
+    for key in ('width_strict','height_strict'):
+        require(type(problem.get(key,False)) is bool,'Strict dimension flags must be booleans')
+    require(isinstance(problem.get('nets',[]),list),'Nets must be a list')
     for net in problem.get('nets', []):
         require(isinstance(net, list) and len(net) >= 2 and all(n in ids for n in net),
                 'Net refers to unknown block')
+    validate_contract(problem)
 
 
 def dimensions(block, angle):
@@ -87,6 +99,7 @@ def rank(item):
 
 
 def evaluate(problem, state, fixed_reference=None):
+    validate_problem(problem)
     require(len(state) == len(problem['blocks']), 'Wrong state size')
     placed = []
     movable = set(problem.get('movable_ids', [b['id'] for b in problem['blocks']]))
@@ -107,6 +120,11 @@ def evaluate(problem, state, fixed_reference=None):
     width = max(p['x_um']+p['width_um'] for p in placed)
     height = max(p['y_um']+p['height_um'] for p in placed)
     excess = max(0,width/problem['max_width_um']-1)+max(0,height/problem['max_height_um']-1)
+    for axis,value in (('width',width),('height',height)):
+        if problem.get(axis+'_strict',False) and value>=problem['max_'+axis+'_um']:
+            violations.append(axis+'_strict_bound')
+    contract=evaluate_contract(problem,placed)
+    violations.extend(contract['violations'])
     gap = problem['gap_um']
     for i,a in enumerate(placed):
         for b in placed[i+1:]:
@@ -114,7 +132,7 @@ def evaluate(problem, state, fixed_reference=None):
                          b['x_um']+b['width_um']+gap <= a['x_um']+1e-9 or
                          a['y_um']+a['height_um']+gap <= b['y_um']+1e-9 or
                          b['y_um']+b['height_um']+gap <= a['y_um']+1e-9)
-            if not separated:
+            if not separated and frozenset((a['id'],b['id'])) not in contract['seam_pairs']:
                 violations.append('spacing:'+a['id']+':'+b['id'])
     centers = {p['id']:(p['x_um']+p['width_um']/2,p['y_um']+p['height_um']/2) for p in placed}
     hpwl = 0
@@ -128,4 +146,6 @@ def evaluate(problem, state, fixed_reference=None):
     return dict(placements=placed,width_um=width,height_um=height,area_um2=area,
                 hpwl_proxy_um=hpwl,score=score,feasible=not violations and excess <= 1e-9,
                 violation=excess+len(violations),violations=violations,
-                qualification='proxy_only',routing='not_generated')
+                qualification='proxy_only',routing='not_generated',
+                physical_contract='conditional_geometry_screen' if problem.get('physical_contract') else 'not_declared',
+                constraint_evidence='requires_runtime_binding' if contract['evidence'] else 'no_seam_exception')

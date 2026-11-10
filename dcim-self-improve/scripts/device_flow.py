@@ -102,7 +102,11 @@ def plan_devices(root,state,problem,budget,baseline):
                 {'evaluations':10000,'steps':100000,'seconds':60}[key],'Invalid search budget '+key)
         require(remaining[key]>0,'Aggregate Reflect search budget exhausted')
         effective[key]=min(value,remaining[key])
-    result=search(problem,effective,initial)
+    if str(effective.get('algorithm','')).startswith('scipy_'):
+        from solver_adapter import search as external_search
+        result=external_search(problem,effective,initial)
+    else:
+        result=search(problem,effective,initial)
     result.update(problem=problem,baseline=origin,objective_identity=identity(problem))
     path=root/'requests'/(name+'.json');atomic(path,result)
     artifact(root,state,name,path,'search')
