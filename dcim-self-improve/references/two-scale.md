@@ -66,3 +66,18 @@ a searched rectangle state automatically controlled APR.
   rule exceptions or qualification passes.
 
 When most sampled coarse states violate constraints, inspect the decoder/action domain before increasing evaluations. A finite local endpoint optimum is not a global or routed optimum. Preserve no-improvement results and separate solver/domain tests from a physical design round.
+
+## Captured construction plans and declared verification stages
+
+A private physical adapter may declare required_stages explicitly instead of the
+legacy APR/DRC/LVS/function sequence. The complete task and independently scoped
+checks remain mandatory. A local postroute materializer is named honestly; inherited
+DEF placement is provenance and is not a fresh APR result. Unknown stages reject.
+
+construction_plan binds the task to an immutable evidence artifact. The Builder
+copies it to construction-plan.json and verifies the actual consumed file bytes
+before every action, including finalization. {PLAN} passes that copy to the private
+generator. Finalization requires a construction_witness whose plan hash matches
+the captured artifact and whose output hash matches the generated GDS. This binds
+execution identity; the private materializer and independent Analyst must still
+check the actual allowed changes, preserved circuit and fresh physical reports.

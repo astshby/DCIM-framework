@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -19,7 +20,15 @@ def contract(root,state,task):
     require(state['artifacts'][key]['kind']=='evidence','Physical adapter must be captured evidence')
     spec=read(root/state['artifacts'][key]['object'])
     required={'schema','commands','dependencies','required_checks','deliverables','scope','timeout_seconds'}
-    require(isinstance(spec,dict) and set(spec)==required and spec['schema']=='private-physical-adapter-v1','Unsupported physical adapter')
+    require(isinstance(spec,dict) and required<=set(spec) and not set(spec)-required-{'required_stages','construction_plan'} and spec['schema']=='private-physical-adapter-v1','Unsupported physical adapter')
+    stages=spec.get('required_stages',['apr','drc','lvs','function'])
+    require(isinstance(stages,list) and 1<=len(stages)<=8 and len(set(stages))==len(stages) and all(isinstance(x,str) and re.fullmatch(r'[a-z][a-z0-9_]{0,63}',x) for x in stages),'Invalid physical stage contract')
+    if 'construction_plan' in spec:
+        plan=spec['construction_plan']
+        require(isinstance(plan,dict) and set(plan)=={'artifact','sha256'} and plan['artifact']==task.get('construction_plan'),'Physical task must bind construction plan')
+        evidence(root,state,[plan['artifact']])
+        require(state['artifacts'][plan['artifact']]['sha256']==plan['sha256'],'Construction plan identity differs')
+        require('construction_witness' in spec['deliverables'],'Plan-driven build requires a consumption witness')
     require(set(spec['commands'])=={'prepare','submit','collect'},'Explicit physical actions required')
     require(type(spec['timeout_seconds']) is int and 1<=spec['timeout_seconds']<=60,'Adapter action must return within 60 seconds')
     require(isinstance(spec['required_checks'],list) and set(spec['required_checks'])<=set(task['checks']), 'Task cannot omit adapter-required complete-module checks')
@@ -38,10 +47,11 @@ def contract(root,state,task):
 def action(run,name,operation,stage='apr'):
     require(name and all(c.isalnum() or c in '_-' for c in name),'Simple candidate name required')
     require(operation in ('prepare','submit','collect','finalize'),'Unknown physical action')
-    require(stage in ('apr','drc','lvs','function'),'Unknown physical stage')
     with transaction(run) as (root,state):
         require(state['phase']=='awaiting_builder' and state['task'].get('execution')=='physical_adapter','Physical actions belong to active Builder')
         task=state['task'];spec=contract(root,state,task);directory=root/'candidates'/name
+        stages=spec.get('required_stages',['apr','drc','lvs','function'])
+        require(operation in ('prepare','finalize') or stage in stages,'Unknown physical stage')
         if operation=='prepare':
             require(not directory.exists(),'Candidate already prepared; collect or use a new revision')
             used=sum(1 for p in (root/'candidates').glob('*/physical-execution.json') if read(p).get('round')==state['round'])
@@ -49,26 +59,36 @@ def action(run,name,operation,stage='apr'):
             directory.mkdir();(directory/'physical').mkdir();(directory/'dependencies').mkdir()
             for index,dep in enumerate(spec['dependencies']):
                 shutil.copyfile(dep['path'],directory/'dependencies'/('%04d-%s'%(index,Path(dep['path']).name)))
+            if 'construction_plan' in spec:
+                key=spec['construction_plan']['artifact']
+                shutil.copyfile(root/state['artifacts'][key]['object'],directory/'construction-plan.json')
             atomic(directory/'adapter.json',spec)
             atomic(directory/'physical-execution.json',{'round':state['round'],'task':task,'adapter_identity':identity(spec),'actions':[]})
         require(directory.is_dir(),'Prepare physical candidate first')
+        if 'construction_plan' in spec:
+            consumed=directory/'construction-plan.json'
+            require(consumed.is_file() and not consumed.is_symlink() and digest(consumed)==spec['construction_plan']['sha256'],
+                    'Consumed construction plan differs from captured plan')
         journal=read(directory/'physical-execution.json')
         require(journal['round']==state['round'] and journal['task']==task and journal['adapter_identity']==identity(spec),'Physical task changed during execution')
         if operation=='finalize':
             require(name not in state['artifacts'],'Candidate already finalized')
             # Adapter owns its asynchronous job ledger. Reject known live or uncollected work.
-            for required_stage in ('apr','drc','lvs','function'):
+            for required_stage in stages:
                 submitted=[x for x in journal['actions'] if x['action']=='submit' and x['stage']==required_stage]
                 collected=[x for x in journal['actions'] if x['action']=='collect' and x['stage']==required_stage]
                 require(len(submitted)==1 and submitted[0].get('returncode')==0 and submitted[0].get('receipt',{}).get('state')=='submitted' and collected and collected[-1]['returncode']==0 and
                         collected[-1].get('receipt',{}).get('state')=='terminal' and collected[-1]['receipt'].get('job_id')==submitted[0]['receipt'].get('job_id'),
                         'Collect every required physical stage before freezing: '+required_stage)
-            bindings={'OUT':str(directory/'physical'),'CANDIDATE':name,'STAGE':stage}
+            bindings={'OUT':str(directory/'physical'),'CANDIDATE':name,'STAGE':stage,'PLAN':str(directory/'construction-plan.json')}
             actual={}
             for label,template in spec['deliverables'].items():
                 path=Path(template.format(**bindings)).resolve()
                 require(directory.resolve() in path.parents and path.is_file() and not path.is_symlink(),'Missing or escaped physical output '+label)
                 actual[label]=path
+            if 'construction_plan' in spec:
+                witness=read(actual['construction_witness'])
+                require(witness.get('plan_sha256')==spec['construction_plan']['sha256'] and witness.get('output_sha256')==digest(actual['layout.gds']), 'Physical output does not witness the captured construction plan')
             files={}
             for path in sorted(directory.rglob('*')):
                 if path.is_file() and not path.is_symlink():
@@ -80,7 +100,7 @@ def action(run,name,operation,stage='apr'):
             artifact(root,state,name,directory/'manifest.json','candidate')
             event(state,'builder_execute',{'candidate':name,'execution':'physical_adapter','qualification':'not_run'})
             return {'candidate':name,'evidence':[name,*files.values()],'directory':str(directory),'qualification':'not_run'}
-        values={'OUT':str(directory/'physical'),'CANDIDATE':name,'STAGE':stage}
+        values={'OUT':str(directory/'physical'),'CANDIDATE':name,'STAGE':stage,'PLAN':str(directory/'construction-plan.json')}
         argv=[s.format(**values) for s in spec['commands'][operation]]
         # Submit is never automatically retried, including after ambiguous failure.
         if operation=='submit':
@@ -115,7 +135,7 @@ def action(run,name,operation,stage='apr'):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--run',required=True);p.add_argument('--candidate',required=True)
-    p.add_argument('--action',required=True,choices=('prepare','submit','collect','finalize'));p.add_argument('--stage',default='apr',choices=('apr','drc','lvs','function'))
+    p.add_argument('--action',required=True,choices=('prepare','submit','collect','finalize'));p.add_argument('--stage',default='apr')
     a=p.parse_args();return action(a.run,a.candidate,a.action,a.stage)
 
 
