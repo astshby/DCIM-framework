@@ -81,3 +81,5 @@ generator. Finalization requires a construction_witness whose plan hash matches
 the captured artifact and whose output hash matches the generated GDS. This binds
 execution identity; the private materializer and independent Analyst must still
 check the actual allowed changes, preserved circuit and fresh physical reports.
+
+Private stage launch manifests must bind immutable construction inputs and the current stage's rule/input files. Keep incrementally updated result indexes and prior stages' outputs separate from launch dependencies. Validate the captured input identities immediately before launching the tool, retain job ownership and terminal evidence, and report any historical dependency drift without rewriting old manifests. A software-only repair of this bookkeeping does not retroactively validate a previous run.
