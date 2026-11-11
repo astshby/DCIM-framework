@@ -53,3 +53,13 @@ not a per-round journal. No automatic write to the installed guide is performed.
 For transistor_proxy tasks or campaign stage bindings, read [transistor-planning.md](transistor-planning.md). Preserve the existing role order and explicit physical verification limits.
 
 For two-scale scope selection, native-seam contracts or a private physical Builder, read [two-scale.md](two-scale.md). Analyst includes reviewed experience submission.
+
+
+## Relative scope construction
+Consume the exact scope_decision recorded by Reflect. Execute only the declared
+ordered operations through the supported decoder; retain hierarchy_state.json,
+scope-transition.json, actual leaf placements and hierarchy-interfaces.json.
+Check child-relative transforms and immutable source/endpoint identity before
+and after group moves. Inherited MUST checks are task obligations, never a
+best-effort memory lookup. Treat physical-only rows/wells/TAPs as explicit
+construction owners; connected rails alone do not establish body closure.

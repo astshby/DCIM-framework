@@ -173,3 +173,16 @@ not a per-round journal. No automatic write to the installed guide is performed.
 For transistor_proxy tasks or campaign stage bindings, read [transistor-planning.md](transistor-planning.md). Preserve the existing role order and explicit physical verification limits.
 
 For two-scale scope selection, native-seam contracts or a private physical Builder, read [two-scale.md](two-scale.md). Analyst includes reviewed experience submission.
+
+
+## Executable scope decision
+Keep the complete SRAM/DCIM goal and retrieval stage stable. Select fine, coarse
+or joint using current reviewed bottlenecks. Supply editable region, exact
+refine/compose/translate actions, frozen objects, algorithm/method, action budget
+and decisive checks to planner.py --scope-decision with a captured hierarchy.
+This decoder executes before the ordinary Reflect request; select its measured
+route and copy scope_decision exactly into the Builder task. Source changes,
+device synthesis, rotation and physical adapters without consumers are unsupported.
+A failed aggregate connection can justify refining only its related objects.
+Use reviewed methods from applicable role_experience; absence of a recent record
+does not remove MUST checks. No fixed pair of expensive searches is required.

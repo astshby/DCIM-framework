@@ -19,7 +19,7 @@ class DeviceFlowTests(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name);self.config=self.root/'config.json'
         self.project=project();self.camp=self.root/'campaign'
-        campaign.create(self.camp,self.project,'abstract')
+        campaign.create(self.camp,self.project,'abstract',schema_version=1)
         atomic(self.config,{'work_root':'runs','project':self.project,'input_files':{}})
         self.run=initialize(self.config,'test')
         self.p=problem();self.p['technology']=self.project['technology']

@@ -25,7 +25,12 @@ def validate_references(state, problem):
     require(len(technologies)==1,'Do not compose unmatched process/release/stack references')
 
 
-def plan(run, problem=None, budget=None, baseline=None):
+def plan(run, problem=None, budget=None, baseline=None, scope_decision=None, hierarchy_artifact=None):
+    if scope_decision is not None:
+        require(problem is None and budget is None and baseline is None and hierarchy_artifact, "Scope decoder needs only its hierarchy and decision")
+        from hierarchy import plan as plan_scope
+        return plan_scope(run,hierarchy_artifact,scope_decision)
+    require(hierarchy_artifact is None, "Hierarchy requires an executable scope decision")
     budget=budget or {}
     with transaction(run) as (root,state):
         require(state.get('schema_version') in (4,5),'Use a compatible pinned runtime')
@@ -37,6 +42,7 @@ def plan(run, problem=None, budget=None, baseline=None):
         require(state['phase'] in ('learning','awaiting_reflect'),'Search belongs inside Reflect after memory commit')
         if state['round']:
             snapshot,origin=previous(root,state,baseline)
+            require('hierarchy' not in snapshot, 'Hierarchy baseline requires an executable scope decision')
             base=snapshot['problem']
             problem=copy.deepcopy(problem if problem is not None else base)
             # Objective/bounds/movable scope may change explicitly, instance/net identity may not.
@@ -112,7 +118,19 @@ def main():
     p.add_argument('--budget')
     p.add_argument('--baseline',help='Explicit candidate from the immediately preceding reviewed round')
     p.add_argument('--catalog',action='store_true')
+    p.add_argument('--scope-decision')
+    p.add_argument('--hierarchy')
+    p.add_argument('--bind-hierarchy-search')
     a=p.parse_args()
+    if a.bind_hierarchy_search:
+        require(not any((a.scope_decision,a.hierarchy,a.problem,a.budget,a.baseline,a.catalog)), 'Initial hierarchy binding is a separate command')
+        from hierarchy import bind_initial
+        bind_initial(a.run,a.bind_hierarchy_search)
+        return {'hierarchy_reference':a.bind_hierarchy_search}
+    if a.scope_decision:
+        require(not any((a.problem,a.budget,a.baseline,a.catalog)), 'Scope decision cannot silently override other search inputs')
+        return plan(a.run,scope_decision=read(a.scope_decision),hierarchy_artifact=a.hierarchy)
+    require(a.hierarchy is None, 'Hierarchy needs scope-decision')
     if a.catalog:
         from algorithm_portfolio import catalog as portfolio
         return {'legacy':catalog(),'portfolio':portfolio()}

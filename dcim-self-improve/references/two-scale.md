@@ -115,3 +115,66 @@ materializer, source synthesis, an APR action decoder, scheduler permission,
 routing or qualification. Selecting an existing pin point is a read-only geometry
 choice until the parent routing contract is checked. New mask edits require the
 implemented reconstruction and the complete module's required physical checks.
+
+## Executable hierarchy v1 (software geometry backend)
+
+hierarchy.py separates a complete goal (sram/dcim) from a scope (fine/coarse/joint).
+Nodes retain stable IDs. Leaf source/cell/dimensions and explicit net/pin anchors
+are fixed. Group ports map to immediate child ports; local translations flatten
+recursively into the existing block placement state. The frontier partitions all
+leaves. refine/compose change this view only; translate moves a leaf or every leaf
+of a group. Ancestor/descendant overlapping moves in one decision reject; refine
+then move then compose is an explicit ordered action list. Rotation, topology
+change, device mask synthesis and physical_adapter dispatch are unsupported.
+
+Every tree contains must obligations and claims with owners, dependencies, checks,
+status and evidence. Scope changes preserve their immutable definitions. Actual
+movement stales dependent evidence and ancestor interfaces, conservatively including
+routing/physical checks when their influence is unknown. Pure view changes preserve
+evidence. These are revalidation requirements, not automatic proof of compliance.
+All inherited MUST checks enter the Builder task and independent review.
+
+planner.bind_initial captures a round0 reference search once. Capture the initial
+hierarchical-placement-v1 JSON as ordinary evidence, then call planner.plan with
+scope_decision and hierarchy_artifact (or CLI options). Later decisions must bind
+the immediately preceding reviewed candidate's hierarchy_state.json, reconstructed
+against layout.json by the baseline reader. The existing identity/physical guards
+remain. Scope planning creates a measured AI route; Reflect still originates its
+own new proposal and commits the task in the ordinary role sequence.
+
+New campaigns default to dcim-campaign-v2: SRAM goal -> integrated DCIM goal.
+Compute role descriptions do not become mandatory standalone macro prerequisites.
+Each goal keeps stage=module; relative scope changes do not alter memory retrieval.
+Version1 plans remain readable and can be explicitly created with --schema-version 1.
+The campaign is an acceptance ledger; physical capability remains unavailable
+until a supported physical hierarchy decoder is implemented and tested.
+
+Software geometry roundtrips test execution/identity/invalidation only.
+Physical roundtrips require a supported physical decoder and separately scoped
+independent validation.
+
+
+Analyst may submit hierarchy_checks keyed by retained obligation/claim ID, each
+with status passed/failed/incomplete and current-round evidence IDs also reviewed.
+Passed records require every corresponding task check to pass. The immutable
+candidate remains unchanged; next scope planning applies the immediately previous
+review as an explicit evidence overlay. Stale records without reviewed replacement
+stay stale. No old pass is silently revived. Scope algorithm must be
+explicit_actions; other names reject instead of claiming an unexecuted optimizer.
+
+
+The hierarchy geometry backend may pass only geometry, hierarchy_identity,
+interface (declared endpoint mapping), pin_anchor_mapping, leaf_identity,
+constraint_inheritance, scope_consumption, evidence_invalidation and
+relative_transforms. It rejects passed status for DRC/source LVS/ERC, body/TAP,
+physical pin access, real implant seams, routed dimensions or electrical/function
+verification. Such checks remain incomplete/not_run/failed as evidence warrants.
+This restriction covers the whole hierarchy review and its record overlays;
+legacy execution modes retain their existing review contracts.
+
+
+Changed leaf net incidence expands invalidation to remote endpoints and their
+ancestors. Custom/unknown check semantics conservatively stale on any pose change;
+only geometry, leaf_identity, relative_transforms and pin_anchor_mapping use
+bounded declared local dependencies. Group-port aliases to an identical immediate
+child terminal reject; distinct terminal names on the same net remain distinct.

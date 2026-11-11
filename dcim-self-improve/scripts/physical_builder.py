@@ -17,6 +17,7 @@ def digest(path):
 
 
 def contract(root,state,task):
+    require('scope_decision' not in task, 'Physical hierarchy scope consumer is unavailable')
     key=task.get('physical_adapter');evidence(root,state,[key])
     require(state['artifacts'][key]['kind']=='evidence','Physical adapter must be captured evidence')
     spec=read(root/state['artifacts'][key]['object'])

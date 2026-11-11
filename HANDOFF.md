@@ -533,3 +533,30 @@ M_t=\operatorname{CommitBounded}(M_{t-1},\Delta M_t,\mathrm{review}_t),
 独立Analyst实跑57项反例/正例并核真实输入7例；原全回归131项128通过3可选跳过，打包测试5项通过。私有完整8×4只读诊断独立复算202instances/1642formals、136nets/434endpoints、32native/192WL-BL与70局部pin点一致，9控制保留。没有新EDA、掩膜改动或PPA收益。节点配方/原始数据只在实验private与框架外audit目录。
 
 守卫只执行被审核适配器显式列出的条件，不自动推断遗漏影响域，不证明观测科学真实性或配方遵守动作，更不是物理签核。当前仍缺通用物理decoder、重构及全PN/body/父级接入/MOS验证。最终Reflect提出从source-owner邻接图派生必查条件并诊断故意漏条件的下一假设，deferred。审计hby/framework-checks/action-guard-2026-11-10/；选定接口plan.json，未选域集方案及并发现场亦保留，未升级旧run。
+
+
+## 2026-11-11 Relative-scope core implementation (isolated copy)
+
+Based on cf0c065. This isolated framework implements software steps1-4:
+SRAM/DCIM goals independent of scope; stable hierarchy/port/translation mappings;
+Reflect-to-Builder executable refine/compose/translate decisions; inherited MUST,
+network/ancestor invalidation and current-review evidence overlays. New campaigns
+default to v2 SRAM -> integrated DCIM while retaining v1 readers/explicit creation.
+Ordinary planner/AI-plan/direct Builder/physical-adapter downgrade paths reject.
+SKILL and the three existing role guides were updated without adding a new role.
+
+Builder full regression:144 tests,141 passed,3 optional skips. Independent Analyst:
+41 self-authored positive/negative checks passed;16 changed source files unchanged
+during test. Root package tests5 passed. Prior failure and v1 source snapshots are
+retained outside the repository. Source pin anchors and net incidence are declared
+inputs checked for consistency; no extracted physical/electrical truth is implied.
+
+User deferred step5 (real DCIM physical roundtrip). No EDA was launched. The current
+hierarchy backend rejects physical-adapter execution and physical passed verdicts.
+Node recipes/PDK and reviewed experience bundles stay private. Two prior reviewed
+counterexamples were published and imported reference-only without changing the
+old design-run state. Shared upstream remains separately maintained.
+
+Audit: ../evidence/two-scale-core-2026-11-11, including Builder source manifests,
+independent-analyst review/experience, root checks and development-history.
+Current implementation limits and deferred work are in the final audit report.

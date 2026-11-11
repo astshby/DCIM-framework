@@ -61,3 +61,31 @@ not a per-round journal. No automatic write to the installed guide is performed.
 For transistor_proxy tasks or campaign stage bindings, read [transistor-planning.md](transistor-planning.md). Preserve the existing role order and explicit physical verification limits.
 
 For two-scale scope selection, native-seam contracts or a private physical Builder, read [two-scale.md](two-scale.md). Analyst includes reviewed experience submission.
+
+
+## Relative scope review and reusable experience
+Independently reconstruct actual leaves and parent/child port anchors. Verify
+pure refine/compose preserves geometry and evidence, group translation preserves
+relative poses, and changed leaves stale dependent parent/interface claims.
+Review every inherited MUST check with actual evidence; missing body/seam/route
+evidence remains incomplete. Report software scope consumption independently
+from physical qualification. Commit concise experience, then publish selected
+reviewed lessons with experience.py when useful; receiving runs pin evidence
+bundles as reference-only. Do not turn process-specific repair into universal policy.
+
+
+The hierarchy geometry backend may pass only geometry, hierarchy_identity,
+interface (declared endpoint mapping), pin_anchor_mapping, leaf_identity,
+constraint_inheritance, scope_consumption, evidence_invalidation and
+relative_transforms. It rejects passed status for DRC/source LVS/ERC, body/TAP,
+physical pin access, real implant seams, routed dimensions or electrical/function
+verification. Such checks remain incomplete/not_run/failed as evidence warrants.
+This restriction covers the whole hierarchy review and its record overlays;
+legacy execution modes retain their existing review contracts.
+
+
+Changed leaf net incidence expands invalidation to remote endpoints and their
+ancestors. Custom/unknown check semantics conservatively stale on any pose change;
+only geometry, leaf_identity, relative_transforms and pin_anchor_mapping use
+bounded declared local dependencies. Group-port aliases to an identical immediate
+child terminal reject; distinct terminal names on the same net remain distinct.

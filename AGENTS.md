@@ -178,3 +178,23 @@ Unknown affected conditions block execution. Every action entry revalidates
 original evidence and consumed copies. This validates identity and declared scope,
 not automatic impact discovery, scientific truth or EDA permission. Independent
 Analyst review of the complete module and private recipe remains mandatory.
+
+
+## Executable hierarchy scope
+
+New campaigns default to version2 SRAM and integrated DCIM goals; version1 remains
+readable and explicitly creatable. Fine/coarse/joint are relative editable scopes,
+not mandatory design stages. The geometry hierarchy decoder preserves leaf,
+endpoint, obligation and current baseline identity through the existing role loop.
+Reflect commits the exact supported scope decision; Builder consumes and records
+actual geometry. Changed objects, network peers and ancestor interfaces invalidate
+affected evidence. Only a current independent review may replace stale records;
+old candidates remain immutable. Scope changes retain module/stage for memory
+retrieval. SKILL.md owns the uniform MUST policy and three role guides own their
+execution/review/decision responsibilities.
+
+The current hierarchy backend is geometry-only. It rejects physical-adapter scope
+dispatch and physical qualification claims; support requires an implemented
+consumer and independent physical verification. Software tests cannot replace
+DRC, source LVS, ERC, implant/body/TAP, routed access or electrical validation.
+See references/two-scale.md and runtime.md for supported operations and schemas.

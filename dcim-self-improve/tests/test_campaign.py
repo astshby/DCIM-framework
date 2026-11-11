@@ -30,7 +30,7 @@ class CampaignTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name); self.camp=self.root/'campaign'; self.project=project()
-        campaign.create(self.camp,self.project,'abstract')
+        campaign.create(self.camp,self.project,'abstract',schema_version=1)
         self.count=0
 
     def closed_run(self,stage='sram',change=None):

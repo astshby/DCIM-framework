@@ -38,6 +38,8 @@ def build(run, name):
         used=sum(a['kind']=='candidate' and a['round']==state['round'] for a in state['artifacts'].values())
         require(used < task['max_candidates'], 'Candidate budget exhausted')
         route=state['routes'][task['route']]
+        from hierarchy import admit as admit_scope
+        admit_scope(root,state,task,route)
         require('plan' in route, 'This route needs a measured placement plan before drawing')
         require(route['round']==state['round']-1, 'Builder needs the current Reflect route')
         evidence(root,state,[route['search']])
@@ -88,6 +90,8 @@ def build(run, name):
                         'Generated coordinates differ from selected plan')
                 from search.model import evaluate as evaluate_actual
                 require(evaluate_actual(problem,state_from_placements(problem,placements))['feasible'], 'Generated output violates its physical placement contract')
+                from hierarchy import retain as retain_hierarchy
+                retain_hierarchy(root,state,task,route,directory,problem,placements)
                 atomic(directory/'placement_state.json',{'schema':'coordinate-placement-v1',
                     'round':state['round'],'candidate':name,'problem':problem,'placements':placements,
                     'parent_baseline':route['baseline'],'search':route['search']})

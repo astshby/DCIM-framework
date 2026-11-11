@@ -62,6 +62,12 @@ def previous(root, state, requested=None):
     actual_state=state_from_placements(snapshot['problem'],actual)
     saved_state=state_from_placements(snapshot['problem'],snapshot['placements'])
     require(actual_state==saved_state,'Saved placement state differs from actual layout')
+    if 'hierarchy_state.json' in files:
+        evidence(root,state,[files['hierarchy_state.json']])
+        from hierarchy import flatten
+        tree=read(root/state['artifacts'][files['hierarchy_state.json']]['object'])
+        require(state_from_placements(snapshot['problem'],flatten(tree,snapshot['problem']))==actual_state, 'Retained hierarchy differs from actual leaf geometry')
+        snapshot=dict(snapshot,hierarchy=tree,hierarchy_artifact=files['hierarchy_state.json'])
     return snapshot,{'candidate':candidate,'round':state['round'],'artifact':files['placement_state.json'],
                      'layout':files['layout.json'],'sha256':state['artifacts'][files['placement_state.json']]['sha256'],
                      'review':review['id'],'verdict':review['verdict'],'qualification':review['scope']}

@@ -26,6 +26,7 @@ def context_data(root, state, role):
         'instruction_scope': instructions,
         'task': task, 'phase': state['phase'], 'round': state['round'],
         'baseline': state.get('last_result',{}).get('baseline_candidate'),
+        'scope_capabilities': {'operations':['refine','compose','translate'],'backend':'geometry_only','physical_roundtrip':'not_run'},
         'search_capabilities': {'legacy':__import__('search').catalog(),'portfolio':__import__('algorithm_portfolio').catalog()} if role == 'reflect' else None,
         'searches': [e['payload'] for e in state['events']
                      if e['round']==state['round'] and e['operation']=='heuristic_plan'] if role=='reflect' else [],
@@ -175,6 +176,7 @@ def reflect(run, payload, response_path):
                 entry=state['artifacts'][spec['search']]
                 require(entry['kind']=='search' and entry['round']==state['round'], 'Plan must bind this Reflect search')
                 result=read(root/entry['object'])
+                require('hierarchy' not in result, 'Select the executable scope route; coordinate plans cannot discard hierarchy')
                 base=result['problem']
                 if base.get('schema')=='transistor-placement-v1':
                     from transistor_search import evaluate as evaluate_devices
@@ -229,6 +231,8 @@ def reflect(run, payload, response_path):
             require(isinstance(task['checks'], list) and task['checks'], 'Task checks required')
             require(isinstance(task['learning_ids'], list) and task['learning_ids'], 'Builder must receive specific learned observations')
             require(set(task['learning_ids']) <= {x['id'] for x in state['learning']}, 'Unknown learning reference')
+            from hierarchy import admit as admit_scope
+            admit_scope(root,state,task,selected)
             learning_contract.bind_task(state,task)
             require(type(task['max_candidates']) is int and 1 <= task['max_candidates'] <= 20, 'Bound candidate budget')
             if 'export_gds_precision_m' in task:
@@ -308,6 +312,8 @@ def review(run, payload, path):
                         for k,v in payload['checks'].items()),'Proxy evidence cannot pass physical or electrical checks')
         baseline=state.get('last_result',{}).get('baseline_candidate')
         require(not baseline or baseline in payload['evidence'],'Review must inspect the chosen previous-round baseline')
+        from hierarchy import review_records
+        review_records(root,state,payload)
         learning_contract.review(root,state,payload)
         artifact(root, state, token, path, 'analyst_review')
         state['reviews'][str(state['round'])] = dict(payload, id=token)

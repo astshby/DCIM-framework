@@ -247,3 +247,23 @@ Read actual EDA skills and runner APIs before operations. Never weaken decks,
 independent LVS references, electrical tests or success criteria to pass a run.
 
 Read [two-scale.md](references/two-scale.md) when selecting fine/coarse actions or using private physical recipes. The complete module contract and MUST conditions persist across scale changes; unsupported constraints cannot be silently ignored.
+
+
+## Executable relative granularity
+
+SRAM and DCIM are complete module goals. Fine, coarse and joint are relative
+editable scopes within that goal, not mandatory construction stages. Reflect MUST
+bind every scope decision to retained actual leaf identity, parent/child endpoint
+maps, translations, fixed obligations and a supported decoder. Scope changes MUST
+preserve the module goal, source population, net endpoints and applicable MUST
+checks. Granularity MUST NOT rewrite the stage used to retrieve scoped experience.
+View refinement/composition does not qualify physical geometry or erase evidence.
+
+Every inherited obligation MUST remain in the task check set regardless of recent
+memory selection. Moving a group MUST move all its descendants together. Changed
+geometry MUST stale dependent claims and affected ancestor/interface checks;
+unknown routing/physical influence expands revalidation conservatively. A physical
+adapter without a corresponding consumer MUST reject the scope decision.
+Read references/two-scale.md for the geometry-only supported operations. The
+physical hierarchy backend requires an implemented consumer and independent
+physical validation; no physical passes follow from software scope switching.

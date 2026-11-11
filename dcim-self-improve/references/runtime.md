@@ -338,3 +338,35 @@ and complete-module checks still apply; witness validity does not qualify design
 See two-scale.md for limits: fixed declared action scope, no automatic discovery
 of impacted conditions, no physical solver or topology reconstruction, and no
 inherited validation from an identity match.
+
+
+## Relative scopes (new geometry-only runs)
+Use planner.py --bind-hierarchy-search SEARCH_ID once before Reflect0 to bind the
+reference baseline. Capture hierarchical-placement-v1 JSON with workflow evidence.
+Call planner.py --run RUN --hierarchy ARTIFACT_ID --scope-decision DECISION.json
+before request. The decision contains goal, scope, region, actions, frozen,
+algorithm, budget.actions and decisive_checks. Pick the returned route in the
+ordinary Reflect build reply and include the exact scope_decision in task.
+Use goal sram or dcim and keep stage fixed. New candidates retain actual hierarchy
+and interface anchors. Later scope searches use the previous candidate's hierarchy
+artifact; reference initialization cannot replace it. Required inherited MUST
+checks cannot be removed. Physical hierarchy execution is not implemented.
+
+
+Analyst may submit hierarchy_checks keyed by retained obligation/claim ID, each
+with status passed/failed/incomplete and current-round evidence IDs also reviewed.
+Passed records require every corresponding task check to pass. The immutable
+candidate remains unchanged; next scope planning applies the immediately previous
+review as an explicit evidence overlay. Stale records without reviewed replacement
+stay stale. No old pass is silently revived. Scope algorithm must be
+explicit_actions; other names reject instead of claiming an unexecuted optimizer.
+
+
+The hierarchy geometry backend may pass only geometry, hierarchy_identity,
+interface (declared endpoint mapping), pin_anchor_mapping, leaf_identity,
+constraint_inheritance, scope_consumption, evidence_invalidation and
+relative_transforms. It rejects passed status for DRC/source LVS/ERC, body/TAP,
+physical pin access, real implant seams, routed dimensions or electrical/function
+verification. Such checks remain incomplete/not_run/failed as evidence warrants.
+This restriction covers the whole hierarchy review and its record overlays;
+legacy execution modes retain their existing review contracts.
