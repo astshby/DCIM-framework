@@ -370,3 +370,11 @@ physical pin access, real implant seams, routed dimensions or electrical/functio
 verification. Such checks remain incomplete/not_run/failed as evidence warrants.
 This restriction covers the whole hierarchy review and its record overlays;
 legacy execution modes retain their existing review contracts.
+
+## Actual physical hierarchy binding
+
+Capture the descriptor and source artifacts, then invoke pinned planner.py with
+--run RUN --bind-physical-hierarchy INITIAL_ID. Plan scope with --hierarchy ID and
+--scope-decision DECISION.json. The physical adapter hierarchy_consumer must equal
+the initial consumer; prepare consumes {SCOPE}/{HIERARCHY} and finalization needs
+physical_scope_witness. See two-scale.md and physical_scope.py for strict schemas.

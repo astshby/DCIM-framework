@@ -178,3 +178,39 @@ ancestors. Custom/unknown check semantics conservatively stale on any pose chang
 only geometry, leaf_identity, relative_transforms and pin_anchor_mapping use
 bounded declared local dependencies. Group-port aliases to an identical immediate
 child terminal reject; distinct terminal names on the same net remain distinct.
+
+## Opted-in actual physical hierarchy consumer
+
+The default geometry-only mode retains its physical-pass prohibition. An adapter
+may opt in using physical-hierarchy-consumer-v1: exact initial GDS/CDL/DEF,
+canonical source SHA, frozen decoder argv/dependencies, source-bound action_guard
+and construction_plan, complete module checks and physical scope consumption witness.
+
+Capture physical-hierarchy-initial-v1 with problem, hierarchy, outputs mapping
+the three output labels to captured artifact IDs, and consumer. Invoke the pinned
+planner --bind-physical-hierarchy INITIAL_ID. Decoder input contains actual paths,
+block identities and private source/transform binding, never selected target poses.
+The core hashes outputs before/after invocation, retains request/stdout/stderr,
+checks canonical source bytes and compares measured poses with selected hierarchy.
+The private decoder still requires independent review against actual GDS/DEF/source.
+
+Prepare must consume standalone {SCOPE} and {HIERARCHY} tokens. Immutable copies
+are rechecked at every action. Finalization reruns measurement, verifies
+physical_scope_witness against scope/hierarchy bytes and all three output hashes,
+then stores actual placement/hierarchy. Next baseline recovery reruns the same
+frozen decoder on the immediately preceding candidate; geometry fallback rejects.
+
+Optional physical_contract.seam_options lists finite exact pair transforms.
+Unused options impose no adjacency. An overlap exception activates only at a
+listed exact transform with touching native placement boundaries. Full-mask
+envelopes remain in area and containment. Each option binds source identities,
+transforms and immutable observations in native-seam-construction-v1 with scope
+exact_pair_construction. checks must be seam_geometry/source_connectivity passed
+and body_supply unknown. required_postchecks must include drc/source_lvs/erc/
+power_body/pp_np_seams. Ordinary geometry rejects conditional certificates.
+They authorize bounded construction to obtain evidence, not accepted native
+qualification. Legacy repetitions retain their all-passed certificate semantics.
+
+Opted-in physical review may report physical outcomes only after consumer
+finalization. Identity/provenance checks do not manufacture DRC/body/electrical
+passes; raw reports and independent review remain required.

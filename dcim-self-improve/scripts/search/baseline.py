@@ -48,7 +48,11 @@ def previous(root, state, requested=None):
     require(item['kind']=='candidate' and item['round']==state['round'], 'Baseline must come from the immediately previous round')
     manifest=read(root/item['object'])
     files=manifest['files']
-    require(not manifest.get('physical_outputs'), 'Physical construction has no declared search decoder; close/review it and initialize an explicitly linked physical task, never fall back to reference boxes')
+    if manifest.get('physical_outputs'):
+        require(manifest.get('physical_hierarchy')=='physical-hierarchy-consumer-v1',
+                'Physical construction has no declared search decoder; close/review it and initialize an explicitly linked physical task, never fall back to reference boxes')
+        from physical_scope import previous as previous_physical
+        return previous_physical(root,state,candidate,manifest,review)
     if 'transistor-layout.json' in files:
         from device_flow import previous_devices
         return previous_devices(root,state,candidate,files,review)

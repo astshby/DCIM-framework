@@ -121,7 +121,12 @@ def main():
     p.add_argument('--scope-decision')
     p.add_argument('--hierarchy')
     p.add_argument('--bind-hierarchy-search')
+    p.add_argument('--bind-physical-hierarchy')
     a=p.parse_args()
+    if a.bind_physical_hierarchy:
+        require(not any((a.scope_decision,a.hierarchy,a.problem,a.budget,a.baseline,a.catalog,a.bind_hierarchy_search)), 'Physical initial binding is a separate command')
+        from physical_scope import bind_initial
+        return bind_initial(a.run,a.bind_physical_hierarchy)
     if a.bind_hierarchy_search:
         require(not any((a.scope_decision,a.hierarchy,a.problem,a.budget,a.baseline,a.catalog)), 'Initial hierarchy binding is a separate command')
         from hierarchy import bind_initial

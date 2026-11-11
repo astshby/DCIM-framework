@@ -560,3 +560,50 @@ old design-run state. Shared upstream remains separately maintained.
 Audit: ../evidence/two-scale-core-2026-11-11, including Builder source manifests,
 independent-analyst review/experience, root checks and development-history.
 Current implementation limits and deferred work are in the final audit report.
+
+
+## 2026-11-11 Physical hierarchy consumer, one actual DCIM round
+
+This isolated copy extends b9de62f with an opt-in physical hierarchy consumer.
+Initial binding measures captured actual GDS/CDL/DEF through a frozen read-only
+private decoder. Scope/hierarchy consumed copies are identity checked at each
+physical action; finalization requires actual output hashes and measured leaf
+poses and retains hierarchy/placement state. The next-baseline reader remeasures
+the immediately previous candidate. Legacy geometry adapters remain unchanged;
+an unavailable consumer still rejects physical scope execution.
+
+Native placement boundaries remain distinct from complete mask dimensions.
+Finite source/transform-bound construction seam alternatives may retain body
+unknown only for the opted-in physical construction path with mandatory fresh
+postchecks. They do not qualify a reusable native seam or waive a process rule.
+
+Core regression:152 tests,149 passed,3 optional skips;5 packaging tests passed.
+Independent preflight:32 generic controls,10 source controls,13 actual-data v3
+controls. Private decoder v1/v2 defects were retained and corrected in v3:
+extra functional GDS/DEF instances and unparsed component statuses/arrays reject.
+Node-specific parsers, libraries, dimensions and row recipes remain private.
+
+Actual complete8x4 SRAM plus3AND+1XOR DCIM candidate coarse-r1 used group x+0.28um
+and fixed lower-row context reconstruction. Actual DEF/GDS match all four moves,
+canonical source and memory39 masks remain,34 ports retained. APR35763 completed;
+defaultDRC35764=3556/2, conservative35765=3555/1 OD.DN.3; sourceLVS35766 CORRECT,
+ERC16/0; function35767=20compute+142memory abstract/vendor checks passed.
+Full physical qualification remains failed because OD density. No native MOS/PVT,
+positive timing margin or strict globalPN coverage is claimed.
+
+The user requested closure after this current physical round. Fine and return-
+coarse physical rounds were not started; no new heuristic search was performed.
+Whole output dimensions remain28x28.7um; no PPA improvement or isolated causality
+for the simultaneous group move and row-context change is claimed.
+
+Evidence: ../evidence/two-scale-physical-2026-11-11 and
+../docs/TWO_SCALE_PHYSICAL_R1_REPORT.md. Formal role reviews, concise experience,
+final AI Reflect and exact prompt/iteration snapshots remain outside the repo.
+Shared hby/DCIM-framework and its ZIP are maintained by another chat and are not
+changed by this isolated experiment.
+
+Final actual run closed/round1/revision35 after fresh independent failedreview,
+three concise experiences and actual AI Reflect. Coarse consumption hypothesis
+supported; row/body hypothesis inconclusive. R1 remeasurement recovered the same
+registered actual outputs without starting another plan. OD density raw data has
+20failed20x20um windows at18.9677%-22.9087% versus23%. All5owned jobs terminal.

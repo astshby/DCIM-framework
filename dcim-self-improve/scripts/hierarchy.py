@@ -215,7 +215,15 @@ def apply_review(tree, review):
 
 def review_records(root,state,payload):
     route=state['routes'].get((state.get('task') or {}).get('route'),{})
-    if route.get('hierarchy'):
+    physical=(state.get('task') or {}).get('execution')=='physical_adapter' and bool(route.get('hierarchy',{}).get('physical'))
+    if physical:
+        from physical_builder import contract as physical_contract
+        physical_contract(root,state,state['task'])
+        candidate=state.get('last_result',{}).get('baseline_candidate')
+        require(candidate,'Physical hierarchy review needs actual candidate')
+        evidence(root,state,[candidate]);manifest=read(root/state['artifacts'][candidate]['object'])
+        require(manifest.get('physical_hierarchy')=='physical-hierarchy-consumer-v1','Physical hierarchy output not finalized')
+    if route.get('hierarchy') and not physical:
         # This materializer draws retained geometry only. Reviewer testimony cannot
         # convert its output into physical/electrical verification.
         allowed={'geometry','hierarchy_identity','interface','pin_anchor_mapping',
@@ -252,13 +260,23 @@ def plan(run, hierarchy_artifact, decision):
     from search.baseline import previous
     with transaction(run) as (root,state):
         require(state['phase'] in ('learning','awaiting_reflect') and 'reflect-'+str(state['round']) not in state['requests'], 'Scope planning belongs before Reflect request')
-        evidence(root,state,[hierarchy_artifact]);tree=read(root/state['artifacts'][hierarchy_artifact]['object'])
+        evidence(root,state,[hierarchy_artifact]);tree=read(root/state['artifacts'][hierarchy_artifact]['object']);physical=None
         if state['round']:
             snapshot,origin=previous(root,state)
             require('hierarchy' in snapshot, 'Previous actual candidate has no hierarchy decoder state')
             require(hierarchy_artifact==snapshot['hierarchy_artifact'], 'Hierarchy artifact must be from immediately previous candidate')
             require(tree==snapshot['hierarchy'], 'Scope must use immediately previous actual hierarchy')
-            problem=snapshot['problem'];before=snapshot['placements']
+            problem=snapshot['problem'];before=snapshot['placements'];physical=snapshot.get('physical')
+        elif 'physical_initial' in state:
+            binding=state['physical_initial'];evidence(root,state,[binding['descriptor'],binding['measurement']])
+            descriptor=read(root/state['artifacts'][binding['descriptor']]['object'])
+            require(tree==descriptor['hierarchy'],'Initial physical hierarchy differs from measured source')
+            from physical_scope import measure
+            outputs={k:root/state['artifacts'][v]['object'] for k,v in descriptor['outputs'].items()}
+            measured,_=measure(root,descriptor['consumer'],descriptor['problem'],tree,outputs)
+            problem=descriptor['problem'];before=measured['placements'];physical=descriptor
+            origin={'kind':'actual_physical_initialization','round':0,'artifact':binding['descriptor'],
+                    'measurement':binding['measurement'],'output_sha256':measured['output_sha256']}
         else:
             # Initial hierarchy explicitly binds the reference search snapshot.
             require('initial_search' in state, 'Capture initial flat reference plan first with bind_initial')
@@ -284,7 +302,8 @@ def plan(run, hierarchy_artifact, decision):
         result={'problem':problem,'baseline':origin,'baseline_evaluation':evaluate(problem,state_from_placements(problem,before)),
             'selected':[dict(measurement,id='scope',operation='hierarchy-decode')],'hierarchy_before':tree,'hierarchy_input':original,'hierarchy_review':review_id,
             'hierarchy':after,'scope_decision':decision,'transition':transition,'hierarchy_artifact':hierarchy_artifact,
-            'qualification':'geometry_only'}
+            'qualification':'physical_construction_pending' if physical else 'geometry_only'}
+        if physical:result['physical']=physical
         path=root/'requests'/(key+'.json');atomic(path,result);artifact(root,state,key,path,'search')
         rid=key+'-scope';state['routes'][rid]=dict(id=rid,source='ai',lifecycle='active',evidence=[key,hierarchy_artifact],
             plan=measurement,search=key,baseline=origin,mechanism='hierarchy scoped decoder',
@@ -309,7 +328,12 @@ def admit(root,state,task,route):
     require(task['module']==data['hierarchy']['goal'], 'Task cannot replace complete hierarchy goal')
     if state['round'] and state.get('task') and state['phase']=='awaiting_reflect':
         require(task['stage']==state['task']['stage'], 'Scope change cannot rewrite retrieval stage')
-    require(task.get('execution')=='geometry_only', 'Hierarchy backend currently supports geometry_only; physical decoder unavailable')
+    if data.get('physical'):
+        require(task.get('execution')=='physical_adapter','Actual physical hierarchy cannot downgrade to a geometry-only backend')
+        from physical_builder import contract as physical_contract
+        physical_contract(root,state,task)
+    else:
+        require(task.get('execution')=='geometry_only', 'Hierarchy backend currently supports geometry_only; physical decoder unavailable')
     require(set(data['transition']['required_checks'])<=set(task['checks']), 'Task dropped inherited MUST checks')
     evidence(root,state,[data['hierarchy_artifact'],route['search']])
     require(read(root/state['artifacts'][data['hierarchy_artifact']]['object'])==data['hierarchy_input'],'Hierarchy input changed')

@@ -198,3 +198,12 @@ dispatch and physical qualification claims; support requires an implemented
 consumer and independent physical verification. Software tests cannot replace
 DRC, source LVS, ERC, implant/body/TAP, routed access or electrical validation.
 See references/two-scale.md and runtime.md for supported operations and schemas.
+
+## Opted-in physical hierarchy construction
+
+physical_scope.py adds a dependency-frozen actual-output decoder. Only an opted-in
+physical-hierarchy-consumer-v1 adapter with measured actual initial sources, scope
+copies, full postchecks and current-candidate recovery supports physical scope.
+Default geometry and legacy nonconsumer physical outputs keep existing guards.
+Finite conditional seam options retain full masks and body unknown. They permit
+bounded construction for evidence, never native qualification. See two-scale.md.
