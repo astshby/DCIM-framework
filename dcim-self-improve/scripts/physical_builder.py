@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import time
+import action_guard
 from runtime import atomic,artifact,cli,event,evidence,identity,read,require,transaction
 
 
@@ -20,7 +21,7 @@ def contract(root,state,task):
     require(state['artifacts'][key]['kind']=='evidence','Physical adapter must be captured evidence')
     spec=read(root/state['artifacts'][key]['object'])
     required={'schema','commands','dependencies','required_checks','deliverables','scope','timeout_seconds'}
-    require(isinstance(spec,dict) and required<=set(spec) and not set(spec)-required-{'required_stages','construction_plan'} and spec['schema']=='private-physical-adapter-v1','Unsupported physical adapter')
+    require(isinstance(spec,dict) and required<=set(spec) and not set(spec)-required-{'required_stages','construction_plan','action_guard'} and spec['schema']=='private-physical-adapter-v1','Unsupported physical adapter')
     stages=spec.get('required_stages',['apr','drc','lvs','function'])
     require(isinstance(stages,list) and 1<=len(stages)<=8 and len(set(stages))==len(stages) and all(isinstance(x,str) and re.fullmatch(r'[a-z][a-z0-9_]{0,63}',x) for x in stages),'Invalid physical stage contract')
     if 'construction_plan' in spec:
@@ -41,6 +42,8 @@ def contract(root,state,task):
     require(isinstance(spec['deliverables'],dict) and {'layout.gds','source.cdl','routed.def'}<=set(spec['deliverables']),'Complete physical deliverables required')
     for action,argv in spec['commands'].items():
         require(isinstance(argv,list) and argv and all(isinstance(x,str) and x for x in argv),'Use explicit argv, never a shell command')
+    if 'action_guard' in spec:
+        action_guard.admit(root,state,task,spec)
     return spec
 
 
@@ -50,6 +53,7 @@ def action(run,name,operation,stage='apr'):
     with transaction(run) as (root,state):
         require(state['phase']=='awaiting_builder' and state['task'].get('execution')=='physical_adapter','Physical actions belong to active Builder')
         task=state['task'];spec=contract(root,state,task);directory=root/'candidates'/name
+        admission=action_guard.admit(root,state,task,spec) if 'action_guard' in spec else None
         stages=spec.get('required_stages',['apr','drc','lvs','function'])
         require(operation in ('prepare','finalize') or stage in stages,'Unknown physical stage')
         if operation=='prepare':
@@ -63,12 +67,16 @@ def action(run,name,operation,stage='apr'):
                 key=spec['construction_plan']['artifact']
                 shutil.copyfile(root/state['artifacts'][key]['object'],directory/'construction-plan.json')
             atomic(directory/'adapter.json',spec)
+            if admission is not None:
+                action_guard.capture(root,state,directory,admission)
             atomic(directory/'physical-execution.json',{'round':state['round'],'task':task,'adapter_identity':identity(spec),'actions':[]})
         require(directory.is_dir(),'Prepare physical candidate first')
         if 'construction_plan' in spec:
             consumed=directory/'construction-plan.json'
             require(consumed.is_file() and not consumed.is_symlink() and digest(consumed)==spec['construction_plan']['sha256'],
                     'Consumed construction plan differs from captured plan')
+        if admission is not None:
+            action_guard.verify_copies(directory,spec,admission)
         journal=read(directory/'physical-execution.json')
         require(journal['round']==state['round'] and journal['task']==task and journal['adapter_identity']==identity(spec),'Physical task changed during execution')
         if operation=='finalize':
@@ -80,13 +88,15 @@ def action(run,name,operation,stage='apr'):
                 require(len(submitted)==1 and submitted[0].get('returncode')==0 and submitted[0].get('receipt',{}).get('state')=='submitted' and collected and collected[-1]['returncode']==0 and
                         collected[-1].get('receipt',{}).get('state')=='terminal' and collected[-1]['receipt'].get('job_id')==submitted[0]['receipt'].get('job_id'),
                         'Collect every required physical stage before freezing: '+required_stage)
-            bindings={'OUT':str(directory/'physical'),'CANDIDATE':name,'STAGE':stage,'PLAN':str(directory/'construction-plan.json')}
+            bindings={'OUT':str(directory/'physical'),'CANDIDATE':name,'STAGE':stage,'PLAN':str(directory/'construction-plan.json'),'ADMISSION':str(directory/'action-admission.json')}
             actual={}
             for label,template in spec['deliverables'].items():
                 path=Path(template.format(**bindings)).resolve()
                 require(directory.resolve() in path.parents and path.is_file() and not path.is_symlink(),'Missing or escaped physical output '+label)
                 actual[label]=path
-            if 'construction_plan' in spec:
+            if admission is not None:
+                action_guard.witness(actual,spec,admission)
+            elif 'construction_plan' in spec:
                 witness=read(actual['construction_witness'])
                 require(witness.get('plan_sha256')==spec['construction_plan']['sha256'] and witness.get('output_sha256')==digest(actual['layout.gds']), 'Physical output does not witness the captured construction plan')
             files={}
@@ -100,7 +110,9 @@ def action(run,name,operation,stage='apr'):
             artifact(root,state,name,directory/'manifest.json','candidate')
             event(state,'builder_execute',{'candidate':name,'execution':'physical_adapter','qualification':'not_run'})
             return {'candidate':name,'evidence':[name,*files.values()],'directory':str(directory),'qualification':'not_run'}
-        values={'OUT':str(directory/'physical'),'CANDIDATE':name,'STAGE':stage,'PLAN':str(directory/'construction-plan.json')}
+        values={'OUT':str(directory/'physical'),'CANDIDATE':name,'STAGE':stage,'PLAN':str(directory/'construction-plan.json'),'ADMISSION':str(directory/'action-admission.json')}
+        if admission is not None:
+            values.update(action_guard.values(directory))
         argv=[s.format(**values) for s in spec['commands'][operation]]
         # Submit is never automatically retried, including after ambiguous failure.
         if operation=='submit':

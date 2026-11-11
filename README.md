@@ -149,3 +149,13 @@ are catalogued separately with their actual unavailable state. Native repeat
 relations are evidence-bound and distinct from retained full-mask dimensions.
 Private physical Builder recipes are captured at runtime, never distributed with
 PDK/IP or node-specific assumptions. New requests use reflect-multiscale-v5.
+
+## Source-bound physical actions
+
+Private adapters can opt into physical-action-guard-v1 to bind parent GDS/CDL/DEF,
+exact actions, fixed affected/frozen conditions, raw observations, consumed copies
+and final output witnesses. Unknown affected conditions block prepare; unrelated
+frozen unknowns remain explicit. See references/two-scale.md and runtime.md under
+dcim-self-improve/. This validates declared execution identity and coverage. It
+does not infer impact domains, prove physical rules, provide mask reconstruction
+or grant EDA permission. Existing pinned runs and legacy adapters are unchanged.

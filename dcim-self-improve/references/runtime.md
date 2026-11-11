@@ -307,3 +307,34 @@ The coordinate examples above retain their legacy rectangle representation; devi
 plans cannot be reinterpreted as routed or foundry-qualified layouts.
 
 Existing solver and private physical Builder contracts: [two-scale.md](two-scale.md).
+
+## Optional physical action guard
+
+The existing private-physical-adapter-v1 contract accepts action_guard. Its shape
+is {schema: physical-action-guard-v1, baseline: BASELINE, required: REQUIRED}.
+BASELINE maps exactly layout.gds, source.cdl and routed.def to {artifact, sha256}.
+REQUIRED maps action IDs to operation, object, parameters, conditions (nonempty
+affected names) and optional frozen_conditions (unaffected names). Each condition
+is unique; affected/frozen sets must be disjoint. The captured adapter fixes these
+values before a plan is accepted.
+
+A guarded construction_plan is physical-action-plan-v1 with baseline, actions and
+checks. Every action has exactly id, operation, object and parameters and equals
+the adapter's action. Every check has exactly action_id, condition, artifact,
+sha256 and record. Its artifact is a physical-action-checks-v1 object containing
+records. Each selected record has action, condition, baseline, scope (affected or
+frozen_unaffected), status (passed or unknown), and observation. observation has
+artifact, sha256 and pointer; it must resolve into nonempty structured data in a
+separate captured raw JSON artifact. Unknown affected checks reject.
+
+Guarded prepare argv must include the standalone PLAN, ADMISSION, PARENT_GDS,
+PARENT_CDL and PARENT_DEF placeholders with braces, so the consumed copies are
+reviewable. The Builder writes action-admission.json and baseline/ copies; these
+are rechecked on subsequent actions. A physical-action-witness-v1 consumption
+record has exactly schema, plan_sha256, admission_sha256 and outputs. outputs maps
+the three baseline labels to the actual deliverable hashes. All stage receipts
+and complete-module checks still apply; witness validity does not qualify design.
+
+See two-scale.md for limits: fixed declared action scope, no automatic discovery
+of impacted conditions, no physical solver or topology reconstruction, and no
+inherited validation from an identity match.

@@ -167,3 +167,14 @@ source/report bindings at all runtime entries; those bindings do not certify raw
 foundry reports. Existing upstream solver calls are explicit; unavailable EDA
 adapters cannot silently fall back to a different algorithm. Private physical
 recipes and node experience remain outside this reusable repository.
+
+
+## Optional physical action admission
+
+New adapters may bind physical-action-guard-v1: exact parent GDS/CDL/DEF, actions,
+affected/frozen conditions, raw observations and final consumption witnesses.
+The captured adapter fixes the condition set; plans cannot silently weaken it.
+Unknown affected conditions block execution. Every action entry revalidates
+original evidence and consumed copies. This validates identity and declared scope,
+not automatic impact discovery, scientific truth or EDA permission. Independent
+Analyst review of the complete module and private recipe remains mandatory.

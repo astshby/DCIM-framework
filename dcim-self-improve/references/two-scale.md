@@ -83,3 +83,35 @@ execution identity; the private materializer and independent Analyst must still
 check the actual allowed changes, preserved circuit and fresh physical reports.
 
 Private stage launch manifests must bind immutable construction inputs and the current stage's rule/input files. Keep incrementally updated result indexes and prior stages' outputs separate from launch dependencies. Validate the captured input identities immediately before launching the tool, retain job ownership and terminal evidence, and report any historical dependency drift without rewriting old manifests. A software-only repair of this bookkeeping does not retroactively validate a previous run.
+
+## Source-bound physical action admission
+
+A new private adapter may opt into action_guard (physical-action-guard-v1). The
+captured adapter fixes the exact parent GDS/CDL/DEF artifact hashes, each action's
+operation/object/parameters, affected condition names, and explicitly frozen
+unaffected condition names. A proposal cannot remove a required condition, change
+the target, or demote an affected condition to frozen. The construction plan must
+carry exactly those actions and checks. An affected unknown or failed check blocks
+execution before prepare; an unaffected frozen unknown stays visible.
+
+Each check binds the same action and baseline to an immutable check record, plus a
+separately captured raw JSON observation selected by a JSON pointer. A bare pass
+boolean or free-form report sentence is not a structured observation. Hash and
+reference validation establishes identity, not the physical truth of that record.
+The private checker and independent Analyst must examine source endpoints, actual
+conductors, rule applicability and the completeness of the declared affected set.
+The adapter declares that set; this capability does not infer it from masks.
+
+The physical Builder revalidates original artifacts at every prepare, submit,
+collect and finalize entry. It copies the admitted parent GDS/CDL/DEF and admission
+record into the candidate, checks their bytes along with the plan/adapter/dependency
+copies on later entries, and passes standalone {PLAN}, {ADMISSION}, {PARENT_GDS},
+{PARENT_CDL}, {PARENT_DEF} argv tokens to prepare. Finalization requires a witness
+covering the plan/admission and all three actual output hashes. The recipe's code
+and its claimed consumption still require independent review.
+
+This opt-in preserves legacy adapters and pinned runs. It does not supply a mask
+materializer, source synthesis, an APR action decoder, scheduler permission,
+routing or qualification. Selecting an existing pin point is a read-only geometry
+choice until the parent routing contract is checked. New mask edits require the
+implemented reconstruction and the complete module's required physical checks.

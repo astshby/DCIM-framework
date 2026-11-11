@@ -524,3 +524,12 @@ M_t=\operatorname{CommitBounded}(M_{t-1},\Delta M_t,\mathrm{review}_t),
 上游回归127项，124通过、3可选跳过，打包测试5通过。私有原始9项及后续6项回归共15项通过，独立Analyst另行执行6项新增mock测试。实验完整过程Builder→Analyst（审核＋记忆）→Reflect，整体incomplete限制及失败保留。两个提示版本与一个设计迭代共3条history完整性通过，哈希仅证明保存字节和引用。具体实验报告和原始证据位于framework-test，未进入Git/ZIP。
 
 最终Reflect提出从已审核实际产物提取source-anchored seam/body/pin/track约束覆盖图的后续假设，暂缓执行。后续先补充约束覆盖与真实操作域，再选算法及预算，不从旧几何模板重启或跨节点继承通过。
+
+
+## 2026-11-10：真实父输入与动作准入的软件验证
+
+新增可选physical-action-guard-v1，与固定construction plan并用。适配器预先固定父GDS/CDL/DEF、精确动作/参数和affected/frozen条件；计划不能少查、降级或换动作。每个check绑定对应动作、父输入和独立捕获的结构化JSON观测；prepare/submit/collect/finalize重验原对象及消费副本，最终witness覆盖三输出。保持旧配方与旧run固定版本。
+
+独立Analyst实跑57项反例/正例并核真实输入7例；原全回归131项128通过3可选跳过，打包测试5项通过。私有完整8×4只读诊断独立复算202instances/1642formals、136nets/434endpoints、32native/192WL-BL与70局部pin点一致，9控制保留。没有新EDA、掩膜改动或PPA收益。节点配方/原始数据只在实验private与框架外audit目录。
+
+守卫只执行被审核适配器显式列出的条件，不自动推断遗漏影响域，不证明观测科学真实性或配方遵守动作，更不是物理签核。当前仍缺通用物理decoder、重构及全PN/body/父级接入/MOS验证。最终Reflect提出从source-owner邻接图派生必查条件并诊断故意漏条件的下一假设，deferred。审计hby/framework-checks/action-guard-2026-11-10/；选定接口plan.json，未选域集方案及并发现场亦保留，未升级旧run。
