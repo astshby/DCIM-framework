@@ -97,9 +97,16 @@ Measure the complete connected routed/PG/context envelope against hard W/H
 and interface constraints before claiming area improvement. Retain meaningful
 compact trials and failures, with their verification scope. A macro-area account
 separates measured implementation, projections, sharing hypotheses and unknowns.
-Use bounded parent observations when full expansion is unsupported. Structural
-alternatives are AI-selected when they can resolve a real uncertainty. Ordinary
-repair has no mandatory paired-candidate or parallel-agent gate.
+Use bounded parent observations when full expansion is unsupported. At structural
+choices default to two mechanism-distinct cheap screens from the same frozen
+baseline and matched function/load/H/W/interface boundary. Dispatch the screens
+to independent fresh Builders with disjoint output/job namespaces when authorized
+resources and inputs support parallel execution. Collect both terminal results
+before Analyst selects costly implementation. Record an evidence-based single-
+route or serial exception when the alternative is inadmissible, redundant,
+unavailable or its cost/resources/dependencies do not support that screen.
+Ordinary diagnosed repair stays with one bounded Builder and can reuse its
+mechanism. These screens authorize no paired full-macro/PEX/post qualification.
 
 ## Evidence, memory and recovery
 

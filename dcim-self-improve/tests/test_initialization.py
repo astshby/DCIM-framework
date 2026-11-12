@@ -1,5 +1,6 @@
 """Synthetic public entry points, no PDK or EDA."""
 import json
+import os
 from pathlib import Path
 import shutil
 import socket
@@ -47,6 +48,16 @@ class InitializationTests(unittest.TestCase):
         self.assertEqual(self.cli("check_inputs.py", "--run", str(run)).returncode, 0)
         self.assertEqual(self.cli("init_run.py", "--config", str(self.config), "--name", "fresh").returncode, 2)
         self.assertTrue(verify_run(run)["passed"])
+
+    def test_existing_dangling_output_symlink_is_preserved(self):
+        parent = self.root / "runs"
+        parent.mkdir()
+        output = parent / "linked"
+        output.symlink_to(self.root / "missing-target", target_is_directory=True)
+        result = self.cli("init_run.py", "--config", str(self.config), "--name", "linked")
+        self.assertEqual(result.returncode, 2)
+        self.assertTrue(output.is_symlink())
+        self.assertEqual(Path(os.readlink(str(output))), self.root / "missing-target")
 
     def test_two_unrelated_node_configs_and_explicit_file_sets(self):
         for node, names in [("fictional-alpha", ["a.mask", "b.model"]),

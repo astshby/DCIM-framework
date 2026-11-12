@@ -37,7 +37,7 @@ expected digest before editing. Native agent dispatch uses the actual available
 API. Initialization does not produce a canned AI plan or launch EDA.
 
 Python 3.8+ and the standard library support initialization, dispatch and PV/wave
-readers. GDS evidence additionally uses optional `gdspy`. Tested interpreter and
+readers. GDS evidence additionally uses optional `gdspy` and `shapely`. Tested interpreter and
 optional dependency gaps are recorded in `HANDOFF.md`.
 
 ## Main and improve-3
@@ -53,9 +53,11 @@ instructions/initial design and declared external reference identities. Empty
 starts and declared private recipe dependencies are supported. Technology-specific
 generator/router/arithmetic/macro topology, fixed grouping, model/host choices,
 node dimensions and compiler filenames are outside the active package. Private
-recipes keep those details. Main removes mandatory paired structural screens
-and hard model preferences from ordinary tasks. Controlled comparison requirements
-apply only when requested by the task.
+recipes keep those details. Main keeps improve-3's default two mechanism-distinct cheap screens at structural
+choices, with evidence-based single-route/serial exceptions. Ordinary diagnosed
+repair stays one bounded route. Main removes hard model/runner preferences.
+Paper-level comparative evaluation/baseline requirements apply to requested
+comparison experiments and do not gate ordinary initialization.
 
 Earlier generic evidence practices informed init pinning, exact input identity,
 atomic publication and recovery. Their large orchestrator/search/action/hierarchy

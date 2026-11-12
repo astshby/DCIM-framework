@@ -93,6 +93,35 @@ class DispatchTest(unittest.TestCase):
                 self.assertFalse((self.root / "bundle").exists())
                 self.task, self.selection = json.loads(before)
 
+    def test_task_schema_failures_leave_no_output_and_allow_retry(self):
+        for key in ("task_id", "stage", "profile", "host", "execution_hostnames",
+                    "allowed_roots", "required_resource_ids", "max_bundle_bytes", "python", "model"):
+            original = self.task.pop(key)
+            with self.subTest(missing=key):
+                with self.assertRaises(EvidenceError):
+                    self.prepare()
+                self.assertFalse((self.root / "bundle").exists())
+            self.task[key] = original
+        for key, value in (("python", ""), ("model", None), ("model", 12),
+                           ("stage", "2"), ("max_bundle_bytes", 0),
+                           ("allowed_roots", []), ("execution_hostnames", [None])):
+            original = self.task[key]
+            self.task[key] = value
+            with self.subTest(invalid=key):
+                with self.assertRaises(EvidenceError):
+                    self.prepare()
+                self.assertFalse((self.root / "bundle").exists())
+            self.task[key] = original
+        self.assertEqual(self.prepare()["status"], "prepared")
+
+    def test_owned_write_failure_cleans_output_and_allows_retry(self):
+        from unittest.mock import patch
+        with patch("context_dispatch.write_json", side_effect=OSError("synthetic write failure")):
+            with self.assertRaises(OSError):
+                self.prepare()
+        self.assertFalse((self.root / "bundle").exists())
+        self.assertEqual(self.prepare()["status"], "prepared")
+
     def test_dependency_cycle(self):
         self.catalog["entries"][0]["requires"] = ["route.b"]
         self.catalog["entries"][1]["requires"] = ["route.a"]

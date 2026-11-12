@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import shlex
+import shutil
 import socket
 import sys
 
@@ -43,11 +44,33 @@ def overview(catalog, stage):
             "entries": entries}
 
 
+def validate_task(task):
+    required = ("task_id", "stage", "profile", "host", "execution_hostnames",
+                "allowed_roots", "required_resource_ids", "max_bundle_bytes", "python", "model")
+    require(isinstance(task, dict), "Task must be an object")
+    for key in required:
+        require(key in task, "Missing required task field: " + key)
+    for key in ("task_id", "profile", "host", "python", "model"):
+        require(isinstance(task[key], str) and task[key].strip(),
+                "Task field must be a nonempty string: " + key)
+    require(type(task["stage"]) is int, "Task stage must be an integer")
+    require(type(task["max_bundle_bytes"]) is int and task["max_bundle_bytes"] > 0,
+            "Task max_bundle_bytes must be a positive integer")
+    for key in ("execution_hostnames", "allowed_roots", "required_resource_ids"):
+        require(isinstance(task[key], list) and
+                all(isinstance(value, str) and value.strip() for value in task[key]),
+                "Task field must be a list of nonempty strings: " + key)
+        unique(task[key], key)
+    require(task["execution_hostnames"] and task["allowed_roots"],
+            "Task execution hostnames and allowed roots must be nonempty")
+
+
 def prepare(task_path, selection_path, catalog_path, out):
     task_path, selection_path, catalog_path = map(
         absolute, (task_path, selection_path, catalog_path))
     task, selection, catalog = map(
         read_json, (task_path, selection_path, catalog_path))
+    validate_task(task)
     require(socket.gethostname() in task["execution_hostnames"],
             "Execution hostname does not match task")
     require(task["host"] == catalog["host"] == selection["host"],
@@ -138,33 +161,37 @@ def prepare(task_path, selection_path, catalog_path, out):
     # All input validation precedes creating a new, exclusive package.
     out = out.absolute()
     out.mkdir(mode=0o700, parents=True, exist_ok=False)
-    out = out.resolve()
-    write_json(out / "task.json", task)
-    write_json(out / "selection.json", selection)
-    write_json(out / "sources.json", {
-        "host": task["host"], "hostname": socket.gethostname(),
-        "files": list(sources.values()), "resolved_entry_ids": [e["id"] for e in selected]})
-    (out / "context_bundle.md").write_text(text, encoding="utf-8")
-    freeze([out / name for name in
-            ("task.json", "selection.json", "sources.json", "context_bundle.md")],
-           out / "manifest.json")
-    digest = fingerprint(out / "manifest.json")["sha256"]
-    command = shlex.join([task["python"], str(Path(__file__).resolve()),
-                          "open", "--package", str(out),
-                          "--expected-sha256", digest])
-    card = {
-        "status": "prepared", "task_id": task["task_id"],
-        "package": str(out), "manifest_sha256": digest,
-        "bundle_bytes": size, "entry_count": len(selected),
-        "source_count": len(sources), "model": task["model"],
-        "bootstrap": "Continue as Builder. On host " + task["host"]
-        + ", use the task-declared execution runner:\n" + command
-        + "\nRead the emitted task and selected context before editing. "
-          "Follow its scope; do not spawn agents. Return concise result paths.",
-        "native_dispatch": "Main invokes the native tool; this script does not spawn."
-    }
-    write_json(out / "dispatch.json", card)
-    return card
+    try:
+        out = out.resolve()
+        write_json(out / "task.json", task)
+        write_json(out / "selection.json", selection)
+        write_json(out / "sources.json", {
+            "host": task["host"], "hostname": socket.gethostname(),
+            "files": list(sources.values()), "resolved_entry_ids": [e["id"] for e in selected]})
+        (out / "context_bundle.md").write_text(text, encoding="utf-8")
+        freeze([out / name for name in
+                ("task.json", "selection.json", "sources.json", "context_bundle.md")],
+               out / "manifest.json")
+        digest = fingerprint(out / "manifest.json")["sha256"]
+        command = shlex.join([task["python"], str(Path(__file__).resolve()),
+                              "open", "--package", str(out),
+                              "--expected-sha256", digest])
+        card = {
+            "status": "prepared", "task_id": task["task_id"],
+            "package": str(out), "manifest_sha256": digest,
+            "bundle_bytes": size, "entry_count": len(selected),
+            "source_count": len(sources), "model": task["model"],
+            "bootstrap": "Continue as Builder. On host " + task["host"]
+            + ", use the task-declared execution runner:\n" + command
+            + "\nRead the emitted task and selected context before editing. "
+              "Follow its scope; do not spawn agents. Return concise result paths.",
+            "native_dispatch": "Main invokes the native tool; this script does not spawn."
+        }
+        write_json(out / "dispatch.json", card)
+        return card
+    except BaseException:
+        shutil.rmtree(str(out))
+        raise
 
 
 def open_package(package, digest):

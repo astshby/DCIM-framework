@@ -218,3 +218,13 @@ current reusable claim when useful. Keep old files as linked historical inputs.
 Explicit packet references to an old file can be read in bounded excerpts;
 new packets should point to the stage summary and selected effective route.
 This skill revision does not itself migrate a live run or validate its claims.
+
+### Prepare failure recovery
+
+Prepare validates documented required task fields, including nonempty interpreter
+and model, before creating an exclusive package directory. A handled write failure
+removes only that invocation's newly created package and permits a corrected retry.
+An existing output is preserved. Package files are written before the card is
+returned. This is exclusive construction with rollback on handled failure. A
+process kill can leave an incomplete directory, which requires ownership/state
+inspection before explicit recovery. It is separate from init's atomic run publish.

@@ -67,6 +67,9 @@ an explicit blocked/not-read state if the requested history is unavailable.
 - Diagnose the reported bottleneck using the measured evidence, constraints
   and applicable rules. A passing check is not automatically a useful route;
   one failed construction does not refute its entire topology family.
+- At structural choices default to two mechanism-distinct cheap screens with
+  independent outputs and matched frozen baseline, or record an evidence-based
+  single-route/serial exception. Ordinary diagnosed repair stays one route.
 - Compare the actual mechanism-distinct route screens at the same function,
   load, height/width/interface boundary and qualification scope. Do not rank
   deferred or untested routes as if they had measured results.

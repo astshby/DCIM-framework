@@ -1,7 +1,7 @@
 # Initialization and first task
 
 Python 3.8+ and the standard library suffice for initialization, dispatch and
-PV/wave readers. GDS measurements additionally need the optional `gdspy` library.
+PV/wave readers. GDS measurements additionally need optional `gdspy` and `shapely` libraries.
 No dependency installation or EDA execution is performed by setup.
 
 ## Private configuration

@@ -59,7 +59,7 @@ def initialize(config, name, stage="planning", skill_root=SKILL_ROOT):
     os.close(descriptor)
     staging = None
     try:
-        if output.exists():
+        if output.exists() or output.is_symlink():
             raise FileExistsError("Run already exists: " + str(output))
         staging = Path(tempfile.mkdtemp(prefix="." + name + "-", dir=str(settings.output)))
         framework = staging / "framework"
@@ -89,7 +89,7 @@ def initialize(config, name, stage="planning", skill_root=SKILL_ROOT):
             "recipe": settings.data.get("initial_recipe"),
             "scope": "initial programs/instructions/config/declared input identities"})
         verify_run(staging)
-        if output.exists():
+        if output.exists() or output.is_symlink():
             raise FileExistsError("Run appeared before publication: " + str(output))
         os.rename(str(staging), str(output))
         staging = None

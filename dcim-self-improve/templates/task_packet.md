@@ -10,7 +10,7 @@
 - Mandatory architecture contract, if physical (inline): <approved hierarchy and left-to-right order, distinct source/combination identities, mirrors/facing edges and widening-adder positions; common Y/functional rows and PP/NP boundary intervals; continuous straight bands and TAP/body ownership; authoritative source paths/revisions bound as required resources, not optional experience; Main resolves coordinate conflicts before construction/EDA>
 - Admission tier / basis: <repair | screen | compact | parent-observation | expand | qualify; Analyst decision and Main-chat pre-dispatch check>
 - Macro-area account: <current revision; repetition and comparison scope, measured/projected/unknown costs, target gap, recoverable cost and untried high-value freedoms>
-- Structural candidate screens, if applicable: <AI-selected alternatives when useful, matched scope and actual initial results or authorized screen plan>
+- Structural candidate screens, if applicable: <default two mechanism-distinct cheap screens at structural choices, same frozen baseline and matched scope, actual results or authorized plan, evidence-based single/serial exception>
 - Parallel screen ownership, if applicable: <common frozen baseline; this Builder's mechanism, independent output/job/OA namespace and resource share; no peer reads/waits; Analyst compares both terminal results; justified serial exception if needed>
 - Observation scope, if applicable: <specific uncertainty, cheapest witness, cost/resource ceiling, outcome changing the decision and stop point; no automatic full higher-level qualification>
 - Geometry dependencies, if layout: <upstream measured SRAM height/pitch or compute-tile width, evidence, routed envelope, pin/edge ownership; unknowns explicit>

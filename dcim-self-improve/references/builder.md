@@ -159,3 +159,13 @@ subcommand and no Builder keyword-based route selection. Main delivers the
 new bootstrap to the existing Builder for ordinary in-route work; do not
 restart experiments or create a fresh agent merely to read a supplement
 within the same active task. This does not extend a completed task's lifetime.
+
+## Structural screen ownership
+
+At a structural choice Main normally assigns two mechanism-distinct cheap screens
+to independent fresh Builders from the same frozen baseline and matched boundary.
+Each uses disjoint outputs/jobs within authorized aggregate resources and returns
+its terminal result promptly. Do not read or wait for the peer. Analyst compares
+both outcomes. Main records evidence-based single-route/serial exceptions when
+inputs/resources or supported cost justify them. Ordinary diagnosed repair remains
+inside one active bounded task. No paired full-macro or PEX/post is implied.

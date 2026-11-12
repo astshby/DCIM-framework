@@ -1,3 +1,4 @@
 # Initialization, dispatch and PV/wave evidence use the Python standard library.
 # Optional for GDS evidence only, tested when available.
 gdspy>=1.6,<2
+shapely>=1.8,<3

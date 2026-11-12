@@ -28,7 +28,10 @@ Main differs from improve-3 in these executable/content areas.
 - Kept evidence.py's exact frozen-dependency and reader contracts. Dispatch keeps
   explicit selection/overview/prepare/open/record behavior, adds the configuration
   helper to bound dependencies, and uses Python3.8-compatible path containment.
-- Ordinary repair has no mandatory paired-screen or new-mechanism requirement.
+- Ordinary diagnosed repair has no mandatory paired-screen or new-mechanism requirement.
+  Structural choices retain improve-3's default two mechanism-distinct cheap screens
+  with evidence-based single-route/serial exceptions. Paper-level evaluation
+  requirements are outside ordinary initialization.
   Native fresh-context settings are reported according to the actual API.
 
 ## Branch boundaries
@@ -70,3 +73,22 @@ passes. The package runner passes all 5 tests. `git diff --check` passes.
 The skipped cases require optional GDS dependencies or the verified
 virtuoso-bridge, respectively. Python3.8.10 was used. Detailed logs stay in the
 external audit. These are software checks with synthetic inputs.
+
+## Builder policy correction before final review
+
+The first development snapshot overgeneralized removal of comparison-experiment
+requirements into structural search guidance. The revised source restores
+improve-3's two distinct cheap structural screens and evidence-based exceptions,
+while preserving one-route ordinary diagnosed repair and baseline-free fresh
+initialization. Optional GDS dependencies explicitly include gdspy and shapely.
+A pre-existing dangling output symlink now rejects just like an existing run.
+This correction and its focused regression precede the second review snapshot.
+
+## Second Builder review checkpoint
+
+Main32 cases pass with 2 optional skips (30 executed passes), package5/5 and
+diff-check pass. Early required-task validation covers missing/invalid interpreter,
+model and other documented fields. Handled prepare write failure cleans only the
+new owned package for corrected retry. Exclusive package construction and rollback
+are documented separately from atomic run publication. The initial failed
+review control and first source snapshot remain preserved externally.
