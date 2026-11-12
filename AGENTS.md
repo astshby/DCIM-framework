@@ -1,180 +1,98 @@
 # DCIM framework instructions
 
-## Entry and scope
+## Scope and current workflow
 
-This directory is the active framework repository. Start with this file; use
-`README.md` for setup commands. Framework developers also read `HANDOFF.md` as the
-user/developer optimization record; design roles do not load that history. The reusable skill remains in
-`dcim-self-improve/`. Read its `SKILL.md` and only the references needed for the
-current task. The handoff records accepted changes and their implementation
-status; planned features must not be reported as working features.
+This is the active process-neutral framework. Sibling improve versions are
+read-only references. Read README.md, the reusable SKILL.md and the assigned
+role reference. Developer history stays in HANDOFF.md and outside role packets.
+The current workflow incorporates bounded block tasks and integrated Analyst
+decisions from improve-3 while retaining the existing evidence/runtime guards.
 
-The repository was imported from the user's `dcim-self-improve-2` reference.
-Sibling `dcim-self-improve*` and future `improve-n` directories are references.
-Make framework changes here and record their provenance rather than editing or
-automatically synchronizing those reference directories.
+Main establishes initial objectives, architecture, source roles, electrical and
+comparison scope and a bounded Builder task. Builder owns ordinary local repair
+within that task. Independent Analyst assesses the actual result, commits concise
+experience, then records actual concise reflection and a concrete next task or
+closure in the same decision context. Main admits that task against its architecture
+and MUST constraints. Every reviewed round, including failure and closure, retains
+reflection. Ordinary repair may reuse a diagnosed mechanism. No separate Reflect
+agent, artificial competing route or newly invented mechanism is required.
 
-## Framework development
+Use workflow initial-plan and reviewed-decision for this default loop. They reuse
+existing review, memory, search, baseline and task admission in one locked state
+transaction. Real AI-authored input is required. Programs validate and execute
+submitted decisions, and never synthesize a canned AI response. Context isolation
+is performed by the available agent API and must be reported honestly.
 
-Upgrade the framework using evidence from both improve 1 and improve 2. Reuse
-general helpers; remove process-specific defaults from the active execution path.
-Keep accepted runtime contracts in this file and the references, and record
-implementation changes/evidence in `HANDOFF.md`. Current runtime contracts override
-inherited campaign instructions, including discarding rejected design branches.
-Do not silently apply the inherited 12FFC recipes or four-SRAM grouping to a
-different process or project.
+The request/reflect/review/memory commands remain compatible legacy interfaces.
+Their old novelty contract remains applicable when explicitly using those commands.
+Existing runs retain their pinned programs, instructions and capability profile.
+Do not upgrade old runs or restart a completed experiment during framework work.
 
-Reflect0 learns from compiler and digital-flow layouts and assigns specific
-learning-backed construction. Reflect has exactly two method sources: AI
-self-reflection and actual bounded heuristic search. The required loop is
-initialization, initial Reflect, Builder, Analyst,
-committed concise action/experience memory, then Reflect and the next Builder.
-Reflect and a concise reflection record are required every reviewed round,
-including failure, unchanged strategy and final closure. Each Reflect must
-originate one concrete AI proposal with a difference from existing routes and a
-minimal discriminating test. Selecting an algorithm winner alone is insufficient.
-No human feedback or human route enters Reflect. AI selects the method; programs enforce ordering and execute
-bounded searches. A fixed next-task response is not an AI Reflect implementation.
+## Capability and source boundaries
 
-Use stage-scoped route memory with structured action, experience and reflection
-records. Retain general methods and process-bound fine detail with evidence.
-Submit concise records directly; avoid a separate compression pass. Stable
-program entry points should assemble context, validate, execute and persist
-results. Use initialized runs' pinned scripts and instruction snapshots. Load instructions
-once per task/version, use context tokens to read relevant deltas, and
-commit at meaningful boundaries instead of repeatedly reading source or editing
-documents during ordinary calls.
+New main runs are coarse-only. Public planner, task admission, Builder and physical
+adapter admission reject fine/transistor selection. The explicit legacy Python
+initialization option exists for compatibility fixtures and migrations. New pro
+runs preserve fine/coarse/joint relative hierarchy scopes and captured physical
+consumers. Capability data is copied into run state at initialization and is
+independent of later repository branch changes. Generic optimizers alone do not
+supply a transistor-to-foundry-layout decoder or a usable EDA adapter.
 
-Retain every design iteration, its actual circuit/layout, executed code,
-parameters, verification, visible prompts and changed instructions, including
-failed or rejected designs. Automatic observable event recording is distinct
-from short reusable memory. Keep independent review and verification scope.
-Run cheap applicable screens during development, qualify the selected module
-revision with its agreed full batch, and verify the final macro separately.
+Capture compiler, digital-flow, circuit-intent, native-device, composition and
+standard-cell references under their actual roles. Bind exact bytes, top, source
+context, purpose, observations and independent circuit dependencies where required.
+Cross-node sources may inform organization_only hypotheses. They cannot supply
+same-node implementation geometry or process qualification. Do not import private
+seed recipes, PDK paths, node dimensions or a universal SRAM grouping into this repo.
 
-Preserve original path strings as provenance, not recovery dependencies. Resolve
-run evidence through relative object paths and verify hashes. Move complete run
-trees without rewriting state, logs or pinned programs. New standalone evidence
-manifests may opt into a common base root; older manifests and pinned runtimes
-retain their original path contracts. Keep required compatibility links until
-their consumers have an explicitly validated migration.
+After initialization, every search baseline is the immediately preceding actual
+Builder output cited by its independent review. Preserve instance/net identity,
+source population and applicable MUST constraints. Missing output requires explicit
+recovery. Never reset to a shelf arrangement or silently reuse an older candidate.
+Proxy improvements do not establish physical or electrical acceptance.
 
-## Guide boundaries and dispatch
+## Architecture and physical evidence
 
-`dcim-self-improve/SKILL.md` preserves improve 2's general engineering experience;
-change its process-specific assumptions narrowly. Framework rules belong here.
-Role responsibilities and reusable experience stay in references/initialize.md,
-reflect.md, builder.md and analyst.md; roles.py loads the appropriate entry.
-Do not create a parallel role-SKILL hierarchy. Developer history remains only in
-HANDOFF.md and is not copied into new runs.
-Short stage/route memory is maintained separately through memory.py; do not replace
-these three surfaces with one growing runtime guide.
+Integrated tasks carry architecture-task-v1 inline. Bind parent H/W, functional
+row origins/heights/phases, actual instance order/transforms, intended straight
+PP/NP bands, TAP/body/termination/interface ownership, source evidence and affected
+measurement boundaries. A diagnostic screen may retain named unresolved checks.
+Qualification admission requires resolution and review requires all affected checks.
+Numeric/schema/hash checks establish declared consistency and evidence identity.
+Actual extracted masks, bodies and routed access require scoped private checkers.
 
-Initialize through the repository scripts, then call the run's pinned scripts.
-Use workflow status/context at entry, retain context tokens, and request only
-deltas for the same task. Reflect requests/replies and role results are persisted.
-See dcim-self-improve/references/runtime.md for actual commands and schemas.
+Direct intended PP/NP interfaces must abut without artificial gaps or overlaps.
+Retain legal repeat pitch, device context and real powered body access when removing
+redundant TAPs. DRC zero, equal all-mask height or one shared boundary does not prove
+functional row alignment, continuous bands, connectivity or complete qualification.
+Unknown or unsupported physical checks remain incomplete with explicit scope.
 
-Reflect0 studies compiler and digital-flow layouts. In every round Reflect must
-submit self_proposal naming a NEW AI proposal in proposals, with mechanism,
-difference, expected effect, evidence, minimal_test and stop. It may select the
-algorithm route, its own plan, or close, but must retain its independent idea.
-An unselected idea may be deferred; final reflection does not authorize another
-experiment. Programs check the contract and reject verbatim mechanism reuse;
-semantic novelty and scientific value still require AI judgment and evidence.
+Retain existing physical-action guards, exact seam exceptions and captured
+construction plans. Every prepare/submit/collect/finalize validates original and
+consumed evidence. Private adapters declare affected/frozen conditions and must
+preserve the complete module. Identity checks do not discover all omitted impacts,
+prove raw observation truth or grant EDA permission. Pin immutable launch inputs,
+keep mutable result indices as outputs and independently inspect the full module.
 
-Builder owns one bounded block-level task and its ordinary local debugging. Pass
-role/packet/output paths and execution bounds instead of a complete conversation.
-Analyst independently checks frozen inputs, reviews the result and commits short
-memory before Reflect; it no longer owns the mandatory new idea or next-route
-selection. Use isolated role contexts when the available agent API supports them;
-report any lack of isolation. Current scripts enforce stage transitions but do
-not themselves create AI contexts. Match dispatch to actual available APIs.
+## Memory, recovery and delivery
 
-At structural decisions compare mechanism-distinct cheap screens when useful,
-with common frozen inputs and disjoint candidate/evidence/job namespaces. No peer
-output inspection or waiting inside an independent screen. Keep aggregate resource
-bounds; document serial or single-route reasons. This is not blanket permission
-for parallel macro implementation or PEX. Ordinary fixes do not require artificial
-competitors. No separate planner, curator, compression or retrieval AI role is needed.
+Use bounded action/experience/reflection records with exact scope and references.
+Active learning goals remain retrievable beyond recent-memory limits. Corrections
+retain superseded versions. Explicitly selected immutable experience bundles are
+hypotheses for receiving runs. Node-specific passes cannot transfer across nodes.
 
-Search is part of Reflect, not an additional phase. Reflect reads reviewed memory,
-originates an AI idea, selects an algorithm/operations and budget, executes proxy
-searches, then chooses the next Builder plan. Read the role-specific
-`dcim-self-improve/references/reflect.md` once per version. Preserve the main
-SKILL.md as the general experience guide.
+Retain actual circuits/layouts, executed programs and dependencies, parameters,
+prompts/instructions, original observations, failed routes, reviews and reflection.
+Use history.py append-only snapshots. Hash verification proves saved bytes and
+references. It does not establish execution or scientific correctness.
 
-After Reflect0, every search baseline must be actual geometry from the immediately
-preceding Builder round, cited by its result and Analyst review. The default is
-that result's selected baseline candidate; another candidate requires the same
-round's evidence. Never reset to a shelf arrangement or silently use an older
-accepted design. Missing output is an explicit recovery requirement. Failed
-reviews remain visible when their geometry is used for repair. Compare baseline
-and candidates with the same fixed evaluator; proxy gains are not qualification.
-Builder retains measured placement state, and Analyst records applicable results
-in the existing bounded memory format. New operations are implemented and checked
-within the ordinary loop; no operator-development stage is added.
+Initialize once, use pinned scripts and context deltas, inspect state and owned
+jobs before resuming, and avoid duplicate submission. Private PDK/compiler, config,
+run and experiment data stay outside Git/ZIP. No system/dotfile edits or unrelated
+job termination. Framework tests and packaging use synthetic inputs and authorize
+no EDA. Server commits stay local. The user handles GitHub publication.
 
-Reflect0 learning hypotheses use the same four short text fields as memory, plus
-scope, source evidence and required checks. Each Builder task binds active goals;
-each task binds its module-specific reference sources; dcim integration binds both. Candidate output
-retains exact goal versions. Analyst reports every bound goal with current evidence
-and explicit supported/refuted/inconclusive status before committing short memory.
-Active goals remain retrievable independently of recent-memory limits; corrections
-supersede and retain the original. General method hypotheses are not cross-node
-signoff; process details require exact technology and affected conclusions must be
-revalidated. Reviewed experience may be published with experience.py into immutable
-private bundles. Receiving runs pin explicitly selected bundles and retrieve them
-as reference-only hypotheses, never inherited passes. Read roles and recent applicable experience newest first without
-changing the existing stage sequence.
-
-Routine framework regression uses synthetic inputs without launching EDA.
-Explicitly requested real-design trials use independent copies and retain actual
-qualification limits; framework setup alone still does not authorize EDA. Preserve
-role isolation limitations and actual execution provenance in the validation record.
-
-## Ownership and delivery
-
-Keep private configuration, PDK/compiler inputs, runs and experiment evidence
-outside this repository. Resolve configured relative paths against their JSON
-file. Framework setup, tests and packaging do not authorize EDA jobs. Respect
-the enclosing workspace's ownership rules and identify jobs before stopping them.
-
-At each completed framework iteration, update this file if policy changed and
-update `HANDOFF.md` with completed work, evidence, limitations and the next task.
-Run checks appropriate to the change, commit locally, then run:
-
-```sh
-python3 scripts/package_workspace.py
-```
-
-This atomically replaces the sibling `dcim-framework.zip`. Git retains framework
-revisions; there is one current ZIP. Check Git status and the package result
-before reporting completion. Keep the enclosing workspace's `AGENTS.md` and
-`HANDOFF.md` current at requested handoff boundaries, including this closeout.
-
-## Two-scale and physical-adapter contracts
-
-Analyst owns both independent review and concise experience submission; there is
-no extra memory role. Reflect may jointly choose fine/coarse actions in one bounded
-task, using implemented operations and fixed MUST constraints. Complete module
-requirements cannot be replaced by a smaller diagnostic deliverable. Read
-references/two-scale.md and algorithm-portfolio.md for current interfaces.
-
-Unknown geometry contract fields are rejected. Full masks, placement boundaries
-and native repeat transforms are distinct. Exact seam exceptions require immutable
-source/report bindings at all runtime entries; those bindings do not certify raw
-foundry reports. Existing upstream solver calls are explicit; unavailable EDA
-adapters cannot silently fall back to a different algorithm. Private physical
-recipes and node experience remain outside this reusable repository.
-
-
-## Optional physical action admission
-
-New adapters may bind physical-action-guard-v1: exact parent GDS/CDL/DEF, actions,
-affected/frozen conditions, raw observations and final consumption witnesses.
-The captured adapter fixes the condition set; plans cannot silently weaken it.
-Unknown affected conditions block execution. Every action entry revalidates
-original evidence and consumed copies. This validates identity and declared scope,
-not automatic impact discovery, scientific truth or EDA permission. Independent
-Analyst review of the complete module and private recipe remains mandatory.
+At closeout run relevant software/package checks, obtain independent review,
+record concise experience and final reflection, update HANDOFF.md and external
+handoffs, and commit. Run scripts/package_workspace.py from the final main checkout
+to atomically replace the single sibling ZIP. Preserve pro as a separate branch.

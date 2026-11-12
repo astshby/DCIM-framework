@@ -19,7 +19,7 @@ def run_destination(settings, name):
     return output
 
 
-def initialize(config, name):
+def initialize(config, name, legacy=False):
     settings = load_config(config)
     output = run_destination(settings, name)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -44,12 +44,15 @@ def initialize(config, name):
                 shutil.copyfile(path, staged / 'instructions' / saved_name)
                 instructions[saved_name] = identity(path.read_text(encoding='utf-8'))
         bundles=experience.snapshot(settings,staged)
+        capabilities = __import__("runtime").read(SKILL_ROOT / "scripts/capabilities.json")
+        if legacy:
+            capabilities = dict(capabilities, profile="legacy", fine=True, hierarchy=True)
         local = settings.rebased(output)
         local['work_root'] = '.'
         atomic(staged / 'config.json', local)
         atomic(staged / 'state.json', {
             'schema_version': 5, 'phase': 'learning', 'round': 0, 'revision': 0,
-            'project': settings.project, 'config_identity': identity(local),
+            'capabilities': capabilities, 'project': settings.project, 'config_identity': identity(local),
             'task': None, 'artifacts': {}, 'learning': [], 'memory': [],
             'learning_goals': [], 'learning_outcomes': [], 'experience_bundles':bundles,
             'routes': {}, 'requests': {}, 'submissions': {}, 'events': [],

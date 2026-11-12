@@ -1,0 +1,10 @@
+{
+  "schema": "runtime-capabilities-v1",
+  "profile": "coarse",
+  "representations": [
+    "blocks",
+    "parameters"
+  ],
+  "fine": false,
+  "hierarchy": false
+}

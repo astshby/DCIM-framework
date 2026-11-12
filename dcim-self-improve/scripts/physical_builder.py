@@ -17,6 +17,10 @@ def digest(path):
 
 
 def contract(root,state,task):
+    from capabilities import task as check_capability
+    from architecture import admit
+    check_capability(state, task)
+    admit(root, state, task, state['routes'].get(task.get('route'), {}).get('plan'))
     key=task.get('physical_adapter');evidence(root,state,[key])
     require(state['artifacts'][key]['kind']=='evidence','Physical adapter must be captured evidence')
     spec=read(root/state['artifacts'][key]['object'])

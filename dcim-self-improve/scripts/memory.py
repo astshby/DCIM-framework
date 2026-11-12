@@ -77,21 +77,25 @@ def select(state, stage=None, module=None, route=None, limit=8):
 
 def commit(run, payload):
     with transaction(run) as (root, state):
-        token = 'memory:' + str(payload['round'])
-        signature = identity(payload)
-        if token in state['submissions']:
-            require(state['submissions'][token] == signature, 'Conflicting memory retry')
-            return {'already_committed': True}
-        require(state['phase'] == 'awaiting_memory' and payload['round'] == state['round'],
-                'Memory must follow this round Analyst review')
-        require(payload.get('disposition') in ('new', 'revised', 'no_new'), 'Explicit disposition required')
-        entries = validate(root, state, payload['entries'])
-        require(bool(entries) == (payload['disposition'] != 'no_new'), 'Disposition and entries disagree')
-        state['memory'].extend(entries)
-        state['submissions'][token] = signature
-        state['phase'] = 'awaiting_reflect'
-        event(state, 'memory_commit', {'disposition': payload['disposition'], 'ids': [e['id'] for e in entries]})
-        return {'phase': state['phase'], 'ids': [e['id'] for e in entries]}
+        return _commit(root, state, payload)
+
+
+def _commit(root, state, payload):
+    token = 'memory:' + str(payload['round'])
+    signature = identity(payload)
+    if token in state['submissions']:
+        require(state['submissions'][token] == signature, 'Conflicting memory retry')
+        return {'already_committed': True}
+    require(state['phase'] == 'awaiting_memory' and payload['round'] == state['round'],
+            'Memory must follow this round Analyst review')
+    require(payload.get('disposition') in ('new', 'revised', 'no_new'), 'Explicit disposition required')
+    entries = validate(root, state, payload['entries'])
+    require(bool(entries) == (payload['disposition'] != 'no_new'), 'Disposition and entries disagree')
+    state['memory'].extend(entries)
+    state['submissions'][token] = signature
+    state['phase'] = 'awaiting_reflect'
+    event(state, 'memory_commit', {'disposition': payload['disposition'], 'ids': [e['id'] for e in entries]})
+    return {'phase': state['phase'], 'ids': [e['id'] for e in entries]}
 
 
 def main():

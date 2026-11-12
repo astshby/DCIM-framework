@@ -1,3 +1,25 @@
+# Reference intake
+
+learn.py accepts compiler, digital_flow, circuit, native_device, composition
+and standard_cell. Use the actual role. Circuit intent need not masquerade as
+compiler/digital flow. --sources binds an optional JSON map of circuit, metadata
+and rules files. circuit/native_device require independent circuit sources.
+Circuit-only intake omits --layout and retains --top and declared observation.
+It captures source text and never claims circuit parsing or connectivity checks.
+
+Context binds module, process, release, stack, source_run, purpose and observation.
+New source roles require explicit purpose and observation. purpose is
+implementation, circuit_intent or organization_only. Layout observations bind the
+exact bytes and top, hierarchy, placements, pin labels and envelope. Every source
+dependency has a retained artifact and SHA-256. Changed bytes create a new entry.
+Cross-node organization_only sources may inform general organization hypotheses.
+They cannot supply implementation geometry or process-specific learning goals.
+
+Private inputs resolve through configuration and task evidence. No private node
+recipes or author paths are distributed. Independent circuit intent, native device
+geometry and full parent composition play distinct roles. Their availability does
+not establish electrical models, physical qualification or accepted reuse rights.
+
 # Inputs and provenance
 
 The generic configuration, module contract, history and geometry helpers derive

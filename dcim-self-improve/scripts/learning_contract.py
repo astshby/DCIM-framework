@@ -50,6 +50,10 @@ def update(root, state, entries):
         require(len(g['evidence'])<=8 and any(i in learning for i in g['evidence']) and
                 all(i in learning or state['artifacts'][i]['kind']=='analyst_review' for i in g['evidence']),
                 'Learning goals need captured observations; corrections may also cite Analyst reviews')
+        if g['scope'] == 'process':
+            require(all(learning[e]['context'].get('purpose', 'implementation') != 'organization_only'
+                        for e in g['evidence'] if e in learning),
+                    'Organization-only sources cannot establish process implementation goals')
         checks=g.get('checks')
         require(isinstance(checks,list) and checks and len(checks)<=8 and len(set(checks))==len(checks),
                 'Explicit learning checks required')
@@ -84,10 +88,7 @@ def bind_task(state, task):
     modules={m['id']:m for m in state['project']['modules']}
     required=({'compiler','digital_flow'} if task['module']=='dcim' else
               {modules[task['module']]['reference_scope']})
-    if required=={'circuit'}:
-        require(bool(bound),'Circuit learning needs a captured applicable observation')
-    else:
-        require(required<=bound,'Task must bind its module-specific reference sources')
+    require(required<=bound,'Task must bind its module-specific reference sources')
     return [goals[i] for i in ids]
 
 

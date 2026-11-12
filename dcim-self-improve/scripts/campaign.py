@@ -56,7 +56,10 @@ def _stages(project, profile):
     return stages
 
 
-def create(root, project, profile='physical'):
+def create(root, project, profile='physical', legacy=False):
+    if profile == 'abstract' and not legacy:
+        from capabilities import require_fine
+        require_fine({'capabilities':read(Path(__file__).with_name('capabilities.json'))})
     require(profile in ('physical','abstract'), 'Unknown campaign profile')
     root = Path(root).resolve()
     require(not root.exists(), 'Campaign already exists; create a new version')

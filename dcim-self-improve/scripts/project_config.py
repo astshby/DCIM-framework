@@ -113,8 +113,8 @@ def normalize_project(values=None):
             raise ValueError("Each module needs a purpose and boolean enabled")
         if not module["enabled"] and not module["omission_reason"]:
             raise ValueError("A disabled module needs an omission_reason")
-        if module["reference_scope"] not in ("compiler", "digital_flow", "circuit"):
-            raise ValueError("Module reference_scope must be compiler, digital_flow or circuit")
+        if module["reference_scope"] not in ("compiler", "digital_flow", "circuit", "native_device", "composition", "standard_cell"):
+            raise ValueError("Unknown module reference_scope")
         modules.append(module)
     if not any(module["enabled"] for module in modules):
         raise ValueError("Enable at least one learning module")

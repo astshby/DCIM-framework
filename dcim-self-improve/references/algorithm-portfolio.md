@@ -1,3 +1,22 @@
+# Execution and search boundaries
+
+Five existing SciPy solver adapters are executable when SciPy is present.
+CP-SAT, SMTCell/Z3 and OpenROAD entries are research references with unimplemented
+encoders/evaluators/backend consumers. Installing a dependency cannot create those
+interfaces. No algorithms were added by the integrated-workflow refactor.
+
+Select operations and decoder before algorithm. Coarse reference transforms and
+measured composition, pro abstract device rows, hierarchy action plans and private
+physical consumers have distinct scopes. Inspect actual plan consumption and
+routed outputs before attributing physical improvements. Run --catalog for the
+pinned profile and executable boundary fields.
+
+For a tiny finite decoded domain, count distinct legal states, compare a finite
+enumeration oracle or bounded local choice and inspect cache/duplicate rates.
+Several stochastic solver evaluations may decode to the same permutation. Fixed
+outer dimensions cannot yield an area gain from internal permutation alone.
+Search scores and proxy convergence do not imply qualification or global optimality.
+
 # Source-backed algorithm portfolio
 
 Read this when Reflect chooses a search method across fine and coarse scopes.

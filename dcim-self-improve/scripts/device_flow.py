@@ -66,6 +66,8 @@ def previous_devices(root,state,candidate,files,review):
 
 
 def plan_devices(root,state,problem,budget,baseline):
+    from capabilities import require_fine
+    require_fine(state)
     from transistor_search import search, initial_state
     from search.baseline import previous
     require(state.get('schema_version')==5,'Device search needs a newly initialized schema-5 run')
@@ -137,6 +139,8 @@ print(json.dumps({'qualification':'transistor_proxy','routing':'not_generated'})
 
 
 def build_devices(root,state,name):
+    from capabilities import require_fine
+    require_fine(state)
     from learning_contract import bind_task
     from transistor_search import build_abstract, evaluate
     task=state['task'];route=state['routes'][task['route']]

@@ -5,6 +5,21 @@ description: Prepare, execute or resume reference-assisted DCIM self-improvement
 
 # DCIM self-improvement
 
+Use Main initial planning, bounded Builder implementation, then independent Analyst
+assessment, concise experience and actual reflection/next-task in the same context.
+Main admits the next architecture task. Use workflow.py initial-plan and
+reviewed-decision. Routine diagnosed repair may reuse its method. Actual reflection
+is required each round. The separately dispatched Reflect/novel-proposal sequence
+below documents the retained legacy request/reflect interface.
+
+New main runs support coarse block/parameter planning. New pro runs additionally
+preserve fine/coarse/joint hierarchy and captured physical consumers. The profile
+is pinned per run. Read runtime.md for the executable default interface,
+sources.md for honest source roles and layout-order.md for architecture admission.
+Keep the following inherited general engineering experience within its applicable
+scope. No node-specific recipe or fixed SRAM grouping is implied.
+
+
 This is the general experience guide maintained from improve 2. Framework order,
 role dispatch and program entry points belong to [AGENTS.md](../AGENTS.md).
 Stage/route knowledge remains separately maintained in the memory records.

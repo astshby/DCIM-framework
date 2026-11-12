@@ -19,9 +19,9 @@ class DeviceFlowTests(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name);self.config=self.root/'config.json'
         self.project=project();self.camp=self.root/'campaign'
-        campaign.create(self.camp,self.project,'abstract')
+        campaign.create(self.camp,self.project,'abstract', legacy=True)
         atomic(self.config,{'work_root':'runs','project':self.project,'input_files':{}})
-        self.run=initialize(self.config,'test')
+        self.run=initialize(self.config,'test', legacy=True)
         self.p=problem();self.p['technology']=self.project['technology']
         self.checks=['device_identity','terminal_mapping','abstract_geometry']
         with transaction(self.run) as (root,state):

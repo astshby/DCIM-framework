@@ -32,6 +32,10 @@ def build(run, name):
     with transaction(run) as (root,state):
         require(state['phase']=='awaiting_builder', 'Builder requires a committed Reflect task')
         task=state['task']
+        from capabilities import task as check_capability
+        check_capability(state, task)
+        from architecture import admit
+        admit(root, state, task, state['routes'][task['route']].get('plan'))
         if task.get('execution')=='transistor_proxy':
             from device_flow import build_devices
             return build_devices(root,state,name)

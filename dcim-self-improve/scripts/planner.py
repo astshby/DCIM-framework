@@ -18,6 +18,10 @@ def validate_references(state, problem):
     for block in problem['blocks']:
         require(block['source'] in learning,'Block must cite a learned layout')
         context=learning[block['source']]['context']
+        require(context.get('purpose', 'implementation') == 'implementation',
+                'Organization-only or circuit-intent reference cannot supply implementation geometry')
+        require(all(not state['project']['technology'][k] or context[k] == state['project']['technology'][k]
+                    for k in ('process','release','stack')), 'Implementation reference must match project technology')
         technologies.add(tuple(context[k] for k in ('process','release','stack')))
         observed=next((b for b in learning[block['source']]['observations']['blocks'] if b['cell']==block['cell']),None)
         require(observed and all(abs(observed[k]-block[k])<1e-9 for k in ('width_um','height_um')),
@@ -28,81 +32,86 @@ def validate_references(state, problem):
 def plan(run, problem=None, budget=None, baseline=None):
     budget=budget or {}
     with transaction(run) as (root,state):
-        require(state.get('schema_version') in (4,5),'Use a compatible pinned runtime')
-        from device_flow import is_device_plan, plan_devices
-        if is_device_plan(root,state,problem):
-            return plan_devices(root,state,problem,budget,baseline)
-        require('reflect-'+str(state['round']) not in state['requests'],
-                'Finish the saved Reflect request before adding search evidence')
-        require(state['phase'] in ('learning','awaiting_reflect'),'Search belongs inside Reflect after memory commit')
-        if state['round']:
-            snapshot,origin=previous(root,state,baseline)
-            base=snapshot['problem']
-            problem=copy.deepcopy(problem if problem is not None else base)
-            # Objective/bounds/movable scope may change explicitly, instance/net identity may not.
-            require(problem['blocks']==base['blocks'] and problem.get('nets',[])==base.get('nets',[]),
-                    'Search must preserve previous-round instances and nets; structural redesign belongs to Builder')
-            require(problem.get('physical_contract')==base.get('physical_contract'), 'Physical contract cannot change inside an existing run')
-            for flag in ('width_strict','height_strict'):
-                require(not base.get(flag,False) or problem.get(flag,False), 'Cannot relax strict dimension contract')
-            initial=state_from_placements(problem,snapshot['placements'])
-        else:
-            require(baseline is None,'Reflect0 cannot name a prior candidate')
-            require(problem is not None,'Reflect0 requires an explicit reference-derived problem')
-            problem=copy.deepcopy(problem)
-            validate_problem(problem)
-            initial=state_from_placements(problem,problem.pop('initial_placements')) if 'initial_placements' in problem else from_shelf(problem)
-            origin={'kind':'reference_initialization','round':0}
+        return _plan(root, state, problem, budget, baseline)
+
+
+def _plan(root, state, problem=None, budget=None, baseline=None):
+    budget = budget or {}
+    require(state.get('schema_version') in (4,5),'Use a compatible pinned runtime')
+    from device_flow import is_device_plan, plan_devices
+    if is_device_plan(root,state,problem):
+        return plan_devices(root,state,problem,budget,baseline)
+    require('reflect-'+str(state['round']) not in state['requests'],
+            'Finish the saved Reflect request before adding search evidence')
+    require(state['phase'] in ('learning','awaiting_reflect'),'Search belongs inside Reflect after memory commit')
+    if state['round']:
+        snapshot,origin=previous(root,state,baseline)
+        base=snapshot['problem']
+        problem=copy.deepcopy(problem if problem is not None else base)
+        # Objective/bounds/movable scope may change explicitly, instance/net identity may not.
+        require(problem['blocks']==base['blocks'] and problem.get('nets',[])==base.get('nets',[]),
+                'Search must preserve previous-round instances and nets; structural redesign belongs to Builder')
+        require(problem.get('physical_contract')==base.get('physical_contract'), 'Physical contract cannot change inside an existing run')
+        for flag in ('width_strict','height_strict'):
+            require(not base.get(flag,False) or problem.get(flag,False), 'Cannot relax strict dimension contract')
+        initial=state_from_placements(problem,snapshot['placements'])
+    else:
+        require(baseline is None,'Reflect0 cannot name a prior candidate')
+        require(problem is not None,'Reflect0 requires an explicit reference-derived problem')
+        problem=copy.deepcopy(problem)
         validate_problem(problem)
-        validate_references(state,problem)
-        from physical_contract import verify_contract_evidence
-        verify_contract_evidence(root,state,problem)
-        evidence(root,state,list(dict.fromkeys(b['source'] for b in problem['blocks'])))
-        name='search-'+identity({'problem':problem,'budget':budget,'baseline':origin,'initial':initial,'round':state['round']})[:16]
-        if name in state['artifacts']:
-            evidence(root,state,[name])
-            recorded=next(e['payload'] for e in state['events']
-                          if e['operation']=='heuristic_plan' and e['payload']['artifact']==name)
-            return dict(recorded,already_recorded=True)
-        used=[e['payload'] for e in state['events'] if e['round']==state['round'] and e['operation']=='heuristic_plan']
-        require(len(used)<8,'Reflect search call budget exhausted')
-        remaining_evaluations=10000-sum(e['evaluations'] for e in used)
-        remaining_steps=100000-sum(e['attempts'] for e in used)
-        remaining_seconds=60-sum(e['elapsed_seconds'] for e in used)
-        require(remaining_evaluations>0 and remaining_steps>0 and remaining_seconds>0,'Reflect search budget exhausted')
-        # Validate the requested budget before applying the aggregate round cap.
-        effective=dict(budget)
-        for k,default,remaining in [('evaluations',128,remaining_evaluations),
-                                     ('steps',budget.get('evaluations',128)*8,remaining_steps),
-                                     ('seconds',5,remaining_seconds)]:
-            value=budget.get(k,default)
-            number(value,k,True)
-            if k!='seconds':
-                require(type(value) is int,'Integer '+k+' required')
-            require(value <= {'evaluations':10000,'steps':100000,'seconds':60}[k], 'Search budget too large: '+k)
-            effective[k]=min(value,remaining)
-        if str(effective.get('algorithm','')).startswith('scipy_'):
-            from solver_adapter import search as external_search
-            result=external_search(problem,effective,initial)
-        else:
-            result=search(problem,effective,initial)
-        result.update(problem=problem,baseline=origin,objective_identity=identity(problem))
-        path=root/'requests'/(name+'.json')
-        atomic(path,result)
-        artifact(root,state,name,path,'search')
-        routes=[]
-        for item in result['selected']:
-            rid=name+'-'+item['id']
-            state['routes'][rid]={'id':rid,'source':'algorithm','lifecycle':'active','evidence':[name],
-                'plan':item,'search':name,'baseline':origin,'mechanism':result['algorithm']+':'+item['operation'],
-                'validation':['independent connectivity','applicable DRC/LVS','routed area','electrical checks'],
-                'status':'proxy_only','round':state['round']}
-            routes.append({'id':rid,'area_um2':item['area_um2'],'hpwl_proxy_um':item['hpwl_proxy_um']})
-        summary={'artifact':name,'algorithm':result['algorithm'],'baseline':origin,'routes':routes,
-                 'evaluations':result['evaluations'],'attempts':result['attempts'],'cache_hits':result['cache_hits'],
-                 'improved_proxy':result['improved'],'elapsed_seconds':result['elapsed_seconds'],'stop':result['stop']}
-        event(state,'heuristic_plan',summary)
-        return summary
+        initial=state_from_placements(problem,problem.pop('initial_placements')) if 'initial_placements' in problem else from_shelf(problem)
+        origin={'kind':'reference_initialization','round':0}
+    validate_problem(problem)
+    validate_references(state,problem)
+    from physical_contract import verify_contract_evidence
+    verify_contract_evidence(root,state,problem)
+    evidence(root,state,list(dict.fromkeys(b['source'] for b in problem['blocks'])))
+    name='search-'+identity({'problem':problem,'budget':budget,'baseline':origin,'initial':initial,'round':state['round']})[:16]
+    if name in state['artifacts']:
+        evidence(root,state,[name])
+        recorded=next(e['payload'] for e in state['events']
+                      if e['operation']=='heuristic_plan' and e['payload']['artifact']==name)
+        return dict(recorded,already_recorded=True)
+    used=[e['payload'] for e in state['events'] if e['round']==state['round'] and e['operation']=='heuristic_plan']
+    require(len(used)<8,'Reflect search call budget exhausted')
+    remaining_evaluations=10000-sum(e['evaluations'] for e in used)
+    remaining_steps=100000-sum(e['attempts'] for e in used)
+    remaining_seconds=60-sum(e['elapsed_seconds'] for e in used)
+    require(remaining_evaluations>0 and remaining_steps>0 and remaining_seconds>0,'Reflect search budget exhausted')
+    # Validate the requested budget before applying the aggregate round cap.
+    effective=dict(budget)
+    for k,default,remaining in [('evaluations',128,remaining_evaluations),
+                                 ('steps',budget.get('evaluations',128)*8,remaining_steps),
+                                 ('seconds',5,remaining_seconds)]:
+        value=budget.get(k,default)
+        number(value,k,True)
+        if k!='seconds':
+            require(type(value) is int,'Integer '+k+' required')
+        require(value <= {'evaluations':10000,'steps':100000,'seconds':60}[k], 'Search budget too large: '+k)
+        effective[k]=min(value,remaining)
+    if str(effective.get('algorithm','')).startswith('scipy_'):
+        from solver_adapter import search as external_search
+        result=external_search(problem,effective,initial)
+    else:
+        result=search(problem,effective,initial)
+    result.update(problem=problem,baseline=origin,objective_identity=identity(problem))
+    path=root/'requests'/(name+'.json')
+    atomic(path,result)
+    artifact(root,state,name,path,'search')
+    routes=[]
+    for item in result['selected']:
+        rid=name+'-'+item['id']
+        state['routes'][rid]={'id':rid,'source':'algorithm','lifecycle':'active','evidence':[name],
+            'plan':item,'search':name,'baseline':origin,'mechanism':result['algorithm']+':'+item['operation'],
+            'validation':['independent connectivity','applicable DRC/LVS','routed area','electrical checks'],
+            'status':'proxy_only','round':state['round']}
+        routes.append({'id':rid,'area_um2':item['area_um2'],'hpwl_proxy_um':item['hpwl_proxy_um']})
+    summary={'artifact':name,'algorithm':result['algorithm'],'baseline':origin,'routes':routes,
+             'evaluations':result['evaluations'],'attempts':result['attempts'],'cache_hits':result['cache_hits'],
+             'improved_proxy':result['improved'],'elapsed_seconds':result['elapsed_seconds'],'stop':result['stop']}
+    event(state,'heuristic_plan',summary)
+    return summary
 
 
 def main():
@@ -115,7 +124,9 @@ def main():
     a=p.parse_args()
     if a.catalog:
         from algorithm_portfolio import catalog as portfolio
-        return {'legacy':catalog(),'portfolio':portfolio()}
+        from runtime import run_root
+        state = read(run_root(a.run)/'state.json')
+        return {'legacy':catalog(),'portfolio':portfolio(state.get('capabilities'))}
     return plan(a.run,read(a.problem) if a.problem else None,read(a.budget) if a.budget else {},a.baseline)
 
 

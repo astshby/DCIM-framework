@@ -1,63 +1,28 @@
-# Analyst
+# Analyst assessment and decision
 
-Read your current context packet and the immutable Builder result/candidate
-artifacts. Independently inspect geometry and execute applicable evidence tools;
-a Builder summary is not an independent check. Record your own report using
-`workflow.py ... evidence`. Check every task requirement and separate physical,
-connectivity, DRC/LVS and electrical status; missing checks remain incomplete.
+Independently inspect frozen inputs, actual Builder outputs, raw checks and
+candidate identity. Reuse artifact-bound Builder checks when their inputs,
+commands, scope and output identity are adequate. State which checks were rerun,
+reviewed only or unavailable. Lack of fresh execution must remain visible.
 
-Submit `workflow.py ... review --input FILE`. Review references the current result,
-round, evidence IDs, verdict, short scope/summary and per-check status. Include
-the chosen baseline_candidate in reviewed evidence. Its actual geometry becomes
-the next search starting point even after a failed review, with that failure
-status retained; a geometry proxy never erases a failed electrical/physical check. Then commit
-at most six concise action/experience records through `memory.py ... commit`.
-Use no_new explicitly when appropriate. A failed candidate can teach uncertain or
-refuted experience, never a successful action. Correct old knowledge by supersession.
-Reflect owns the next route choice. Do not bypass it or delete failed branches.
+Use workflow context --role analyst. It includes the current task, baseline,
+learning goals, scoped memory, result evidence and executable search boundaries.
+Submit workflow reviewed-decision with the review, bounded memory disposition,
+actual concise reflection and build/close decision in one AI context. Programs
+admit the task against Main's bound architecture and physical guards. A conflict
+requires corrected planning. A diagnosed routine repair can retain its mechanism.
 
-The mandatory new idea belongs to Reflect. Analyst supplies independent findings,
-uncertainty and reviewed short memory; do not invent a competing route merely to
-meet an old Analyst-role requirement or assign the next task.
+Every task learning goal receives supported/refuted/inconclusive findings with
+current evidence. Every architecture measurement receives its actual method,
+status, evidence and observation. Unsupported extraction remains incomplete.
+Qualification requires every affected check. Screen success uses architecture_screen
+scope and cannot be presented as a qualified physical module.
 
+Commit action memory only for reviewed successful actions. Experience may remain
+uncertain or refuted. no_new retains an explicit disposition. Reflection follows
+review and memory even on failure, unchanged strategy and closure. Choose the next
+bounded task or stop, preserving the immediate actual baseline and complete target.
+Do not invent route novelty, electrical measurements or automated agent isolation.
 
-## Learning checks and general experience
-
-Report learning_checks for EVERY task learning_goals ID, each with conclusion
-(supported/refuted/inconclusive), observation <=240 characters and evidence IDs
-also present in the review. Decisive conclusions need actual current-round evidence
-and completed required checks; support requires those checks to pass. Missing
-outputs/checks remain inconclusive. An incomplete Builder result can evidence why
-no conclusion is possible. Candidate learning_contract.json preserves the exact
-hypothesis under test. Pass/fail is local to the recorded scope and conditions.
-
-- Labels, device counts, geometric validity, connectivity, DRC/LVS/ERC and electrical
-  behavior answer different questions. A clean tool exit is not their substitute.
-- Check the repeated/assembled structure: passing a leaf does not prove a slice or
-  macro passes. Report the smallest counterexample and affected scope.
-- Compare complete parent cost and frozen interfaces; report width/height alongside
-  area. Do not generalize from a trimmed leaf with omitted overhead.
-- Compress into condition / operation / observation / next_test. Keep applicability,
-  counterexample and evidence; split general methods from exact process details.
-  Correct by supersession, never erase the original. Use no_new for no new lesson.
-- Separate measured failure from missing validation and from a refuted hypothesis.
-  A failed hypothesis can still teach a useful general test; it cannot justify a
-  successful action record. Reflect owns invention and next-task selection.
-
-These methods draw on improve 2 and the legacy experiment sources catalogued in
-[sources.md](sources.md); old exemptions and process outcomes are not inherited.
-
-
-Check actual PP/NP seams, remaining real body ties and final assembled checks against SKILL.md. A high DRC count alone is not a route-rejection argument; require rule-specific causal evidence.
-
-
-The program may add role_experience from explicitly configured, pinned experience
-bundles. These are reviewed source methods, always reference-only in this run;
-inspect source_status, conditions and evidence before a new test. To maintain
-reusable experience after review, publish selected current lessons with
-experience.py; see experience-memory.md. Static role text remains versioned policy,
-not a per-round journal. No automatic write to the installed guide is performed.
-
-For transistor_proxy tasks or campaign stage bindings, read [transistor-planning.md](transistor-planning.md). Preserve the existing role order and explicit physical verification limits.
-
-For two-scale scope selection, native-seam contracts or a private physical Builder, read [two-scale.md](two-scale.md). Analyst includes reviewed experience submission.
+Legacy workflow review followed by memory commit and request/reflect remains
+available for fixed callers. Its separate Reflect context retains its legacy rules.

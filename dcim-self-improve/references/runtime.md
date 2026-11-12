@@ -1,3 +1,76 @@
+# Integrated runtime
+
+Set RUN to an initialized run and use its scripts. Configuration remains private.
+
+```sh
+python3 dcim-self-improve/scripts/init_run.py --config private.json --name trial
+python3 "$RUN/scripts/learn.py" --run "$RUN" --kind compiler --layout ref.gds --top TOP --context context.json
+python3 "$RUN/scripts/planner.py" --run "$RUN" --problem problem.json --budget budget.json
+python3 "$RUN/scripts/workflow.py" --run "$RUN" initial-plan --input initial.json
+python3 "$RUN/scripts/builder.py" --run "$RUN" --candidate a01
+python3 "$RUN/scripts/workflow.py" --run "$RUN" result --input result.json
+python3 "$RUN/scripts/workflow.py" --run "$RUN" context --role analyst
+python3 "$RUN/scripts/workflow.py" --run "$RUN" reviewed-decision --input decision.json
+```
+
+initial.json has author=ai, round=0 and planning. planning uses the existing
+Reflect reply fields comparison, evidence, reflection, decision=build|close,
+task and optional learning_updates/proposals. It omits request_id/request_digest
+which are bound atomically. A real supplied concise reflection is mandatory.
+Proposals and self_proposal are optional through the integrated entry.
+
+A task retains route/module/stage/goal/stop/checks/execution/max_candidates,
+learning_ids and learning_goals. It additionally requires architecture-task-v1.
+The architecture fields are schema, purpose=screen|qualification, parent
+(width_um/height_um), sources (artifact IDs), functional_rows (id/origin_um/
+height_um/phase/members mapping instance to offset), order (every instance),
+transforms (exact rotation_deg or supported device sd_swap), implant_bands
+(kind/y0_um/y1_um/owner), ownership (tap/body/termination/interfaces),
+required_measurements (check to method) and unresolved check names.
+
+required_measurements includes functional_rows, implant_continuity, body_power
+and interface_access and is a subset of task checks. Methods are
+coordinate_measurement, mask_extraction, connectivity_extraction and
+electrical_simulation. Implant continuity requires mask_extraction and body
+power requires connectivity_extraction. Declared bands directly abut. The
+validator checks coordinates and numeric declarations. Private measured checkers
+establish actual masks, functional-row geometry, bodies and routed interfaces.
+Screen admission may explicitly retain unresolved conditions. Qualification
+admission requires their resolution. No automatic extractor is supplied.
+
+For later rounds decision.json contains author=ai, current round, review, memory
+and planning. review is the existing review payload with all learning_checks.
+If the task binds architecture, architecture_checks maps each required check to
+status/method/evidence/observation. Status must agree with review.checks. Passed
+measurements cite current output/report evidence. Diagnostic screen passes retain
+scope=architecture_screen. memory contains round, disposition and entries using
+the existing bounded memory format. planning contains actual reflection and next
+task or close. These state transitions use one lock and atomically publish state.
+Invalid combined input leaves the prior review/memory state uncommitted. Identical
+retries are idempotent and conflicting or stale retries are rejected.
+
+An optional search object holds problem/budget/baseline. It runs the existing
+bounded planner after the submitted review and memory become available inside
+the same transaction. AI explicitly sets planning.task.route to $search:0 (or
+another selected index) and may use the same reflection.route token. No selection
+is invented by the program. Round N search derives from round N Builder's actual
+candidate and independent review. A missing usable baseline blocks continuation.
+
+New main state pins coarse capabilities and rejects fine/transistor task paths.
+pro pins fine_coarse capabilities, including existing hierarchy/physical scopes.
+Old pinned scripts/states are preserved. initialize(..., legacy=True) is an
+explicit Python compatibility fixture/migration API. The ordinary CLI always
+uses the installed branch profile.
+
+Use workflow status/context and context tokens for recovery and deltas. The
+legacy request/reflect commands retain their compulsory self-proposal contract.
+Separate review/memory entry points remain available for old callers. Integrated
+entry points do not launch an AI context or authorize EDA.
+
+## Legacy command and evidence reference
+
+The following reference applies to explicit legacy commands and pinned callers.
+
 # Runtime contract (v5 / reflect-multiscale-v5)
 
 Initialize with the repository scripts. Use the initialized run's pinned

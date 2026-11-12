@@ -30,7 +30,7 @@ class CampaignTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name); self.camp=self.root/'campaign'; self.project=project()
-        campaign.create(self.camp,self.project,'abstract')
+        campaign.create(self.camp,self.project,'abstract', legacy=True)
         self.count=0
 
     def closed_run(self,stage='sram',change=None):
@@ -39,7 +39,7 @@ class CampaignTests(unittest.TestCase):
         self.count+=1
         config=self.root/('config%d.json'%self.count)
         atomic(config,{'work_root':'runs','project':self.project,'input_files':{}})
-        run=initialize(config,'run%d'%self.count)
+        run=initialize(config,'run%d'%self.count, legacy=True)
         expected=campaign.binding(self.camp,stage)
         contract=next(s for s in read(self.camp/'plan.json')['stages'] if s['id']==stage)
         with transaction(run) as (root,state):
@@ -171,7 +171,7 @@ class CampaignTests(unittest.TestCase):
         record=read(next((self.camp/'accepts').glob('*.json')))
         (self.camp/'objects'/next(iter(record['object_hashes'].values()))).write_text('modified')
         with self.assertRaises(ValueError): campaign.status(self.camp)
-        other=self.root/'changed-plan'; campaign.create(other,self.project,'abstract')
+        other=self.root/'changed-plan'; campaign.create(other,self.project,'abstract', legacy=True)
         plan=read(other/'plan.json'); plan['project']['macro']['weight_bits']=4; atomic(other/'plan.json',plan)
         with self.assertRaises(ValueError): campaign.status(other)
 

@@ -533,3 +533,27 @@ M_t=\operatorname{CommitBounded}(M_{t-1},\Delta M_t,\mathrm{review}_t),
 独立Analyst实跑57项反例/正例并核真实输入7例；原全回归131项128通过3可选跳过，打包测试5项通过。私有完整8×4只读诊断独立复算202instances/1642formals、136nets/434endpoints、32native/192WL-BL与70局部pin点一致，9控制保留。没有新EDA、掩膜改动或PPA收益。节点配方/原始数据只在实验private与框架外audit目录。
 
 守卫只执行被审核适配器显式列出的条件，不自动推断遗漏影响域，不证明观测科学真实性或配方遵守动作，更不是物理签核。当前仍缺通用物理decoder、重构及全PN/body/父级接入/MOS验证。最终Reflect提出从source-owner邻接图派生必查条件并诊断故意漏条件的下一假设，deferred。审计hby/framework-checks/action-guard-2026-11-10/；选定接口plan.json，未选域集方案及并发现场亦保留，未升级旧run。
+
+
+## 2026-11-12 Integrated workflow development checkpoint
+
+The accepted improve-3 alignment plan introduces initial-plan and reviewed-decision
+through workflow.py. The entries reuse locked review, bounded memory, search,
+baseline and reflection admission. They require an actual supplied AI reflection
+and permit diagnosed mechanism reuse. Legacy commands keep their old contract.
+New main runs pin coarse capabilities and reject fine/transistor selection. New
+pro runs retain the existing ea525fd hierarchy and physical-consumer implementation.
+
+Reference intake now binds actual source roles, exact bytes/top/context/purpose,
+independent circuit dependencies and observations. Cross-node organization-only
+references cannot supply implementation geometry or process goals. Architecture
+tasks bind H/W, functional rows/phases, intended direct PP/NP bands, instance
+order/transforms and ownership. Actual mask/body/access extraction is delegated
+to scoped private checkers. Declared consistency and evidence identity do not
+constitute physical qualification. No EDA or new search algorithm was run/added.
+
+Development validation and failed attempts are retained in the external
+framework-checks/improve3-alignment-2026-11-12/builder audit. The first expanded
+suite caught unconverted legacy abstract campaign fixtures after adding the
+main profile guard. Fixtures now opt into their explicit compatibility API.
+Final independent assessment, branch commits and package verification follow.

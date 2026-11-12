@@ -4,7 +4,7 @@ import importlib.util
 RUNNABLE = ('scipy_de', 'scipy_dual_annealing', 'scipy_basinhopping', 'scipy_shgo', 'scipy_powell')
 
 
-def catalog():
+def catalog(capabilities=None):
     scipy_ok=importlib.util.find_spec('scipy') is not None
     version=None
     if scipy_ok:
@@ -21,7 +21,7 @@ def catalog():
         records.append(dict(id=key,name=method,implementation='scipy.optimize.'+entry,
             implementation_version=version,license='BSD-3-Clause (SciPy)',source=base+entry+'.html',
             reference=reference,status='available' if scipy_ok else 'dependency_missing',
-            adapter_implemented=True,representations=['blocks','transistor','parameters'],choice=choice,
+            adapter_implemented=True,representations=capabilities.get('representations', ['blocks','transistor','parameters']) if capabilities else ['blocks','transistor','parameters'],choice=choice,
             scope='existing general optimizer applied through a shared EDA decoder/evaluator; not a paper-tool reproduction'))
     for key,name,dependency,url in [
         ('ortools_cp_sat','OR-Tools CP-SAT','ortools','https://developers.google.com/optimization/cp/cp_solver'),
@@ -32,7 +32,16 @@ def catalog():
         records.append(dict(id=key,name=name,implementation=dependency,source=url,
             status='adapter_not_implemented',adapter_implemented=False,
             scope='research option only; cannot be selected for execution in this release'))
-    return {'schema':'algorithm-portfolio-v1','options':records,
+    return {'execution_boundaries': {
+                'profile': (capabilities or {}).get('profile', 'legacy_or_library'),
+                'block_operations': ['translate','swap','rotate','reinsert','cluster_shift'],
+                'block_decoder': 'reference geometry composition with measured output-coordinate check',
+                'fine_decoder': 'pro only: abstract terminal-preserving device rows; physical actions require a captured private adapter',
+                'parameters': 'captured parameter decoder and evaluator; physical consumption requires an explicit witness',
+                'physical_checks': 'private rule/input/check adapters; no automatic foundry qualification',
+                'unavailable_eda': 'CP-SAT/SMTCell/OpenROAD encoders, evaluators and backend consumers are unimplemented',
+                'small_domains': 'count distinct decoded states, use finite enumeration as comparator or bounded local choice; inspect duplicate/cache rate'},
+            'schema':'algorithm-portfolio-v1','options':records,
             'selectable':[r['id'] for r in records if r['status']=='available'],
             'selection':'Reflect chooses actions, scope and budget from evidence; algorithm names do not establish physical capability',
             'hard_constraints':'Every decoded candidate uses the common validator; only feasible candidates can be selected'}
