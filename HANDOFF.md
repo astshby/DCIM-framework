@@ -61,11 +61,9 @@ Prepared dispatch/evidence schema-v1 packages keep absolute-path bindings and
 must be newly prepared after relocation. The package has no scheduler or
 automatic physical semantic checker and supplies no qualification claim.
 
-Pending independent Analyst review, experience and actual final reflection are
-owned by Main. Final package/publication remains pending that review. The user
-pushes GitHub. Do not update old pinned runs during this development task.
+Independent Analyst accepted the revised implementation and branch guidance in the software/policy scope. Three assessed experience records and actual concise reflection are saved in the external audit. Main owns the documented final commit/package step. The user pushes GitHub. Existing pinned runs keep their versions.
 
-## Builder review checkpoint
+## Initial Builder checkpoint
 
 The improve-3 source manifest SHA256 is `281326fb3d02425089b7238c399bc1384e4b2c28fb83bb7982f959c68c099687`.
 Main tests pass 29 cases with 2 optional dependency skips, comprising 27 executed
@@ -92,3 +90,34 @@ model and other documented fields. Handled prepare write failure cleans only the
 new owned package for corrected retry. Exclusive package construction and rollback
 are documented separately from atomic run publication. The initial failed
 review control and first source snapshot remain preserved externally.
+
+## Reviewed final closeout
+
+Reviewed implementation is 826c8c0b0f9e549c0d36141aec258e43bc26a87a.
+The final closeout changes this handoff only. Main has 32 tests, with 30 passes
+and 2 optional dependency skips. Package tests pass all 5. The GDS optional
+reader needs gdspy/shapely; the other skip needs the verified virtuoso-bridge.
+
+Fresh independent Analyst retained the valid initial controls and checked the
+revision delta. The missing python/model preflight failure is preserved and
+resolved. Its controls cover all 10 missing fields, 9 invalid values, owned
+write-failure rollback/retry and existing dangling output preservation.
+Structural cheap-screen method and ordinary-repair boundaries are restored.
+There are no remaining material review findings in the reviewed scope.
+
+coarse is c3c2ed106285995c857902083ee23ccf0e667d59, with 138 tests:
+135 pass and 3 optional skips. coarse_fine is
+4bf47213b1a82c851f78a8eee4cab055639f87b3, with 152 tests:
+149 pass and 3 optional skips. Each branch passes 5 package tests.
+Their deltas contain Markdown only; 50/51 Python files respectively remain
+byte-identical to their original bases. The incomplete physical fine/coarse
+roundtrip status remains explicit.
+
+Builder -> independent Analyst (review, 3 assessed experiences and actual
+reflection) -> Main closeout is complete for this framework migration.
+Runtime instructions preserve Main initial planning and Analyst reflection.
+Software portability checks use synthetic unrelated profiles. Actual physical
+execution uses task-specific private recipes and independent verification.
+The final single sibling ZIP is built from main and byte-checked against Git.
+Final commit/archive hashes and delivery checks are recorded outside the repo
+in framework-checks/improve3-portable-2026-11-12/completion.json.
