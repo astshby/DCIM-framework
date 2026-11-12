@@ -56,8 +56,8 @@ another selected index) and may use the same reflection.route token. No selectio
 is invented by the program. Round N search derives from round N Builder's actual
 candidate and independent review. A missing usable baseline blocks continuation.
 
-New main state pins coarse capabilities and rejects fine/transistor task paths.
-pro pins fine_coarse capabilities, including existing hierarchy/physical scopes.
+New coarse-branch state pins coarse capabilities and rejects fine/transistor task paths.
+The coarse_fine branch uses its own original hierarchy/physical APIs.
 Old pinned scripts/states are preserved. initialize(..., legacy=True) is an
 explicit Python compatibility fixture/migration API. The ordinary CLI always
 uses the installed branch profile.

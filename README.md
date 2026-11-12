@@ -1,21 +1,21 @@
 # DCIM framework
 
-main provides coarse block/parameter planning with measured reference composition.
-pro additionally retains fine/coarse/joint hierarchy scopes and captured physical
-consumers. Each new run pins the installed profile. Private node recipes, PDK,
-compiler data and experiment outputs remain outside this repository.
+## Continuation branch scope, 2026-11-12
 
-The default loop is Main initial planning, bounded Builder, then independent
-Analyst review, concise experience and actual reflection/next-task in the same
-context. Main's architecture admission precedes construction. Ordinary diagnosed
-repair can reuse its mechanism. Use workflow.py initial-plan and reviewed-decision.
-The old request/reflect API remains compatible for fixed callers.
+This is the `coarse` continuation of d6b0ec5. Preferred new work uses the
+improve-3-derived `main`. `coarse_fine` preserves the older relative hierarchy
+and physical-consumer work with its incomplete qualification. `pro` retains its
+previous checkpoint. Branch checkout never upgrades existing pinned runs.
 
-Read dcim-self-improve/references/runtime.md for commands and task/decision schemas,
-sources.md for compiler/circuit/native/composition intake and layout-order.md for
-functional rows, intended PP/NP continuity, ownership and measured check boundaries.
-Schema/hash checks preserve declared consistency and evidence identity. Actual
-masks, bodies, routes and electrical qualification require scoped private checkers.
+This branch retains its coarse capabilities and original executable APIs,
+including integrated `initial-plan`/`reviewed-decision` and compatible legacy
+request/reflect commands. Its code, tests and runtime state contracts are unchanged
+by this documentation update. No technology recipe or improve-3 engine is imported.
+
+Read `dcim-self-improve/references/improve3-guidance.md` for selected bounded-task,
+context, evidence-reuse and physical row/seam/body lessons. Apply them within the
+run's actual API and declared scope. Main's new initialization schema belongs to
+main. This branch continues using its original documented config and run commands.
 
 ## Existing setup and engineering references
 

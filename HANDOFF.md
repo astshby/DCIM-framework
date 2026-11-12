@@ -557,3 +557,15 @@ framework-checks/improve3-alignment-2026-11-12/builder audit. The first expanded
 suite caught unconverted legacy abstract campaign fixtures after adding the
 main profile guard. Fixtures now opt into their explicit compatibility API.
 Final independent assessment, branch commits and package verification follow.
+
+## 2026-11-12 coarse continuation guidance
+
+Branch extends d6b0ec59366e1b4d0396b685488a16c5aa86905f. Added the bounded generic improve-3 lessons in
+`references/improve3-guidance.md` and branch-specific entry/context guidance.
+Executable source, tests and original APIs remain byte-identical to the base.
+Main is the preferred rebuilt workflow. Coarse and fine/coarse physical
+qualification limits are retained. Full branch regression and package checks are
+recorded externally before the development snapshot commit. No EDA was launched.
+
+Coarse full suite passed 138 cases with 3 optional skips (135 executed passes).
+Package5/5 and diff-check passed on Python3.8.10. Source/test code did not change.

@@ -1,5 +1,23 @@
 # DCIM framework instructions
 
+## Continuation branch scope, 2026-11-12
+
+This is the `coarse` continuation of d6b0ec5. Preferred new work uses the
+improve-3-derived `main`. `coarse_fine` preserves the older relative hierarchy
+and physical-consumer work with its incomplete qualification. `pro` retains its
+previous checkpoint. Branch checkout never upgrades existing pinned runs.
+
+This branch retains its coarse capabilities and original executable APIs,
+including integrated `initial-plan`/`reviewed-decision` and compatible legacy
+request/reflect commands. Its code, tests and runtime state contracts are unchanged
+by this documentation update. No technology recipe or improve-3 engine is imported.
+
+Read `dcim-self-improve/references/improve3-guidance.md` for selected bounded-task,
+context, evidence-reuse and physical row/seam/body lessons. Apply them within the
+run's actual API and declared scope. Main's new initialization schema belongs to
+main. This branch continues using its original documented config and run commands.
+
+
 ## Scope and current workflow
 
 This is the active process-neutral framework. Sibling improve versions are
@@ -30,11 +48,10 @@ Do not upgrade old runs or restart a completed experiment during framework work.
 
 ## Capability and source boundaries
 
-New main runs are coarse-only. Public planner, task admission, Builder and physical
+New runs on this continuation branch are coarse-only. Public planner, task admission, Builder and physical
 adapter admission reject fine/transistor selection. The explicit legacy Python
-initialization option exists for compatibility fixtures and migrations. New pro
-runs preserve fine/coarse/joint relative hierarchy scopes and captured physical
-consumers. Capability data is copied into run state at initialization and is
+initialization option exists for compatibility fixtures and migrations. The coarse_fine continuation preserves relative hierarchy and physical
+consumer work. Its own documented runtime and incomplete status apply. Capability data is copied into run state at initialization and is
 independent of later repository branch changes. Generic optimizers alone do not
 supply a transistor-to-foundry-layout decoder or a usable EDA adapter.
 

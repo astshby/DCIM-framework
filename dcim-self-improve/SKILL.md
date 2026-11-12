@@ -5,6 +5,10 @@ description: Prepare, execute or resume reference-assisted DCIM self-improvement
 
 # DCIM self-improvement
 
+This is the coarse continuation. Main is the preferred improve-3-derived workflow.
+Read [selected improve-3 guidance](references/improve3-guidance.md) within this
+branch's original executable and fixed-run contracts.
+
 Use Main initial planning, bounded Builder implementation, then independent Analyst
 assessment, concise experience and actual reflection/next-task in the same context.
 Main admits the next architecture task. Use workflow.py initial-plan and
@@ -12,8 +16,8 @@ reviewed-decision. Routine diagnosed repair may reuse its method. Actual reflect
 is required each round. The separately dispatched Reflect/novel-proposal sequence
 below documents the retained legacy request/reflect interface.
 
-New main runs support coarse block/parameter planning. New pro runs additionally
-preserve fine/coarse/joint hierarchy and captured physical consumers. The profile
+New runs on this branch support coarse block/parameter planning. The separate
+coarse_fine continuation retains relative hierarchy and physical-consumer work. The profile
 is pinned per run. Read runtime.md for the executable default interface,
 sources.md for honest source roles and layout-order.md for architecture admission.
 Keep the following inherited general engineering experience within its applicable
