@@ -1,0 +1,22 @@
+# Line endings: the server is Linux, the editor is Windows.
+# Store LF in the repository and check out LF on every platform.
+* text=auto eol=lf
+
+# Binary assets: never normalise
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.bundle binary
+*.gds binary
+*.gdsii binary
+*.oas binary
+*.xlsx binary
+*.xls binary
+*.docx binary
+*.pptx binary

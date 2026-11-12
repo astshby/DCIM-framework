@@ -135,3 +135,12 @@ coarse workflow description. All 23 relative README links resolve against their
 respective branches. Two scoped review lessons and actual reflection are retained
 in the development audit. The five package regression checks passed for this
 branch. This change updates README and developer handoff only.
+
+## Publication history continuity, 2026-11-12
+
+Preserved the existing local publication history by merging its sole additional
+line-ending policy commit, 2573573, into main. Its .gitattributes keeps LF text
+checkout and explicit binary asset handling. The reviewed README and all runtime
+programs retain their accepted bytes. Main now includes both the reviewed server
+lineage and the previous local publication ancestor. The three selected branches
+are main, coarse and coarse_fine.
