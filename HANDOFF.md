@@ -121,3 +121,17 @@ execution uses task-specific private recipes and independent verification.
 The final single sibling ZIP is built from main and byte-checked against Git.
 Final commit/archive hashes and delivery checks are recorded outside the repo
 in framework-checks/improve3-portable-2026-11-12/completion.json.
+
+## Public README refresh, 2026-11-12
+
+Rewrote the public README around framework purpose, branch-specific workflow,
+configuration, entry points, physical constraints and evidence scope. The branch
+table covers main, coarse and coarse_fine. Coarse documents its integrated
+initial-plan / reviewed-decision entry separately from the legacy explicit loop.
+The experimental fine/coarse physical qualification limit remains explicit.
+
+Independent documentation review accepted all three drafts after correcting the
+coarse workflow description. All 23 relative README links resolve against their
+respective branches. Two scoped review lessons and actual reflection are retained
+in the development audit. The five package regression checks passed for this
+branch. This change updates README and developer handoff only.

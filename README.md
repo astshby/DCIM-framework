@@ -1,95 +1,125 @@
-# DCIM framework
+# DCIM Framework
 
-Main provides a process-neutral reference-assisted DCIM workflow based directly
-on improve-3. Main handles initial planning and admission, Builder implements one
-bounded task, and Analyst reviews the evidence, maintains experience, writes an
-actual concise reflection and proposes a next task or closure.
+An AI-assisted framework for constructing and improving digital compute-in-memory
+circuits and layouts. Tasks bind circuit intent, applicable references, physical
+constraints and checks to a specific candidate. Reviewed experience informs later
+construction and repair.
+
+The `main` branch provides the improve-3-derived workflow. Technology-specific
+resources and construction recipes are supplied through private configuration.
 
 ## Branches
 
-| Branch | Scope |
-| --- | --- |
-| `main` | Preferred new workflow with small configuration/init/check/context/evidence helpers and task-scoped AI handoffs |
-| `coarse` | Continuation of the older coarse executable loop, action guards and physical/evidence APIs, with scoped generic improve-3 guidance |
-| `coarse_fine` | Continuation of the older fine/coarse hierarchy/action/physical consumer work, with scoped generic improve-3 guidance and its incomplete physical qualification explicitly retained |
+| Branch | Purpose | Workflow |
+| --- | --- | --- |
+| [main](https://github.com/astshby/DCIM-framework/tree/main) | Process-neutral improve-3-derived workflow, with configuration, initialization, context and evidence helpers | Main plans, Builder implements, Analyst reviews and reflects |
+| [coarse](https://github.com/astshby/DCIM-framework/tree/coarse) | Earlier coarse-placement workflow, executable search and action guards | Integrated `initial-plan` / `reviewed-decision`, with legacy role APIs |
+| [coarse_fine](https://github.com/astshby/DCIM-framework/tree/coarse_fine) | Experimental relative fine/coarse hierarchy, joint actions and physical-consumer interfaces | Earlier explicit role loop with granularity selection |
 
-Existing runs use their fixed scripts and instructions. Branch checkout does not
-upgrade them. `pro` preserves its previous development checkpoint. Source/Git
-history retains earlier engines and technology-specific implementations.
+Each branch documents its own commands and validation scope. Existing runs retain
+their pinned programs, instructions and configuration contracts.
 
-## Start
+## Workflow
 
-Read `AGENTS.md`, then `dcim-self-improve/SKILL.md` and the assigned role reference.
-Use `dcim-self-improve/dcim.example.json` as a schema example for a private config.
-Declare node/profile, writable output root, actual reference roles and the exact
-stage-required input files. Initial circuit authoring can start with no seed.
-
-```sh
-python3 dcim-self-improve/scripts/check_inputs.py --config PRIVATE --stage planning
-python3 dcim-self-improve/scripts/init_run.py --config PRIVATE --name trial01
-python3 RUN/framework/scripts/check_inputs.py --run RUN
+```text
+Main initial planning -> Builder -> Analyst -> Main admission -> next task or closure
 ```
 
-Main then writes the actual initial task and resource/experience selection.
-`templates/dispatch.schema.md` documents the executable JSON inputs to
-`context_dispatch.py prepare`. Builder opens the returned package with its
-expected digest before editing. Native agent dispatch uses the actual available
-API. Initialization does not produce a canned AI plan or launch EDA.
+- Main selects references and experience, extracts construction constraints and
+  defines a bounded first task. This includes the initial reference-learning work
+  previously assigned to Reflect0.
+- Builder constructs a connected block or runs a decisive experiment, including
+  ordinary diagnosed repairs within the task's bounds.
+- Analyst independently reviews the evidence, updates scoped experience, writes
+  a concise reflection and proposes the next executable task or closure.
+- Main checks architecture, MUST constraints and authorized resources before
+  admitting the proposed task.
 
-Python 3.8+ and the standard library support initialization, dispatch and PV/wave
-readers. GDS evidence additionally uses optional `gdspy` and `shapely`. Tested interpreter and
-optional dependency gaps are recorded in `HANDOFF.md`.
+Reference selection depends on the task. Sources can include independent circuit
+intent, applicable compiler output, native cells, standard-cell layouts, process
+documentation and reviewed experience. Initialization records declared sources.
+The initial planner explicitly selects any compiler references.
 
-## Main and improve-3
+## Getting started
 
-Main directly imports improve-3's role/context/evidence/memory approach. It
-retains bounded Builder ownership, explicit AI-selected materials, route-local
-experience, functional-row/straight PP/NP/TAP/body/interface intent, compactness
-and parent-area admission. Analyst explicitly includes actual reflection.
+Python 3.8+ supports the core helpers through the standard library. GDS evidence
+readers additionally use `gdspy` and `shapely`. Physical execution uses configured
+EDA tools and verified private recipes.
 
-Main replaces improve-3's seed-dependent init/check helpers with explicit
-stage-resource configuration, exclusive atomic initialization, pinned code/
-instructions/initial design and declared external reference identities. Empty
-starts and declared private recipe dependencies are supported. Technology-specific
-generator/router/arithmetic/macro topology, fixed grouping, model/host choices,
-node dimensions and compiler filenames are outside the active package. Private
-recipes keep those details. Main keeps improve-3's default two mechanism-distinct cheap screens at structural
-choices, with evidence-based single-route/serial exceptions. Ordinary diagnosed
-repair stays one bounded route. Main removes hard model/runner preferences.
-Paper-level comparative evaluation/baseline requirements apply to requested
-comparison experiments and do not gate ordinary initialization.
+1. Read [AGENTS.md](AGENTS.md), the [skill](dcim-self-improve/SKILL.md) and the
+   [initialization guide](dcim-self-improve/references/initialize.md).
+2. Create a private configuration using
+   [dcim.example.json](dcim-self-improve/dcim.example.json). Declare the target
+   profile, writable run root, reference roles and stage-required files.
+   An initial design may be empty.
+3. Check inputs and initialize a new run from the repository root.
 
-Earlier generic evidence practices informed init pinning, exact input identity,
-atomic publication and recovery. Their large orchestrator/search/action/hierarchy
-engines remain on continuation branches. Main does not integrate those engines.
-See `HANDOFF.md` for source identities, adoption and verification scope.
+```sh
+python3 dcim-self-improve/scripts/check_inputs.py --config ../dcim.private.json --stage planning
+python3 dcim-self-improve/scripts/init_run.py --config ../dcim.private.json --name trial01
+```
+
+Initialization returns `run_root`. Replace `RUN_DIR` below with that path.
+
+```sh
+python3 RUN_DIR/framework/scripts/check_inputs.py --run RUN_DIR
+```
+
+Main writes the initial task and selects Builder's resources and experience. The
+[dispatch schema](dcim-self-improve/templates/dispatch.schema.md) describes JSON
+inputs and `context_dispatch.py prepare`, `open` and `record` handoffs. The
+available native agent API performs actual dispatch. Use the run's pinned scripts
+for subsequent work.
+
+## Physical construction
+
+Tasks declare parent dimensions, functional rows, device phases, metal/track
+alignment, intended continuous PP/NP interfaces, TAP/body ownership and signal/
+power access. Intended PP/NP interfaces abut directly. TAP removal requires real
+powered body access and applicable checks on the final candidate.
+
+Structural choices normally use two mechanism-distinct cheap screens, with
+recorded evidence supporting single-route or serial execution where appropriate.
+Routine repair proceeds within its bounded Builder task. See the
+[task-admission guide](dcim-self-improve/references/task-admission.md) and
+[layout-order guide](dcim-self-improve/references/layout-order.md).
+
+## Repository guide
+
+| Location | Contents |
+| --- | --- |
+| `dcim-self-improve/SKILL.md` | Construction principles and MUST constraints |
+| `dcim-self-improve/references/` | Roles, physical interfaces and experience handling |
+| `dcim-self-improve/templates/` | Task, result, review, experience and dispatch formats |
+| `dcim-self-improve/scripts/` | Input checks, atomic initialization, configuration, context and evidence helpers |
+| `dcim-self-improve/tests/` | Synthetic software regression |
+| `HANDOFF.md` | Developer history, migration details and verification records |
 
 ## Evidence and portability
 
-A run pins initial programs/instructions, config and declared inputs. Editable
-candidate code/results are preserved at task checkpoints with evidence manifests.
-Hashes prove byte identity. File availability does not prove functional legality.
+Runs pin initial code, instructions, configuration and declared reference
+identities. Task checkpoints retain candidates, executed code, parameters,
+checks, failed trials, experience and reflection. Experience retains its source
+and technology scope.
+
 Geometry, DRC, independent source LVS, function, ERC, electrical/PVT and complete
-parent acceptance retain their separate scopes. No physical experiment or PPA
-benefit follows from software regression.
+parent acceptance each require applicable evidence. Software regressions establish
+tested software behavior. Physical qualification is evaluated on the actual
+candidate and process resources.
 
-Whole-run relocation supports the initial pinned manifest when external addresses
-remain valid. Prepared dispatch/evidence schema-v1 packages use absolute source
-paths. Rebind into a new package after relocation and preserve old bindings.
-No automatic EDA runner, physical decoder, PDK installation or foundry checker is
-included. User authorization and private verified runners govern execution.
+Whole-run relocation supports the initial manifest when external input addresses
+remain valid. Prepared dispatch/evidence schema-v1 packages bind absolute source
+paths and require newly prepared packages after relocation. Preserve prior
+bindings as provenance.
 
-## Software checks and packaging
+## Development checks
 
 ```sh
 python3 -m unittest discover -s dcim-self-improve/tests -v
 python3 -m unittest discover -s tests -v
 git diff --check
-python3 scripts/package_workspace.py
 ```
 
-The packaging runner verifies selected bytes and atomically replaces the single
-sibling `dcim-framework.zip`. Private config, runs, inputs and Git metadata stay
-outside the release. Preserve the repository LICENSE and verify source/recipe
-rights when importing additional material. Server commits remain local. The user
-handles GitHub publication.
+The core framework is process-neutral. PDK/compiler IP, models, private recipes,
+configuration and experiment data belong in the user's private workspace. Source
+licensing is described in [LICENSE](LICENSE).
