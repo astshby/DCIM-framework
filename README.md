@@ -1,182 +1,96 @@
-# DCIM framework
+# DCIM Framework — coarse
 
-## Continuation branch scope, 2026-11-12
+The `coarse` branch continues the earlier executable DCIM construction and
+coarse-placement workflow. It retains bounded heuristic search, reviewed memory,
+action guards and evidence interfaces.
 
-This is the `coarse` continuation of d6b0ec5. Preferred new work uses the
-improve-3-derived `main`. `coarse_fine` preserves the older relative hierarchy
-and physical-consumer work with its incomplete qualification. `pro` retains its
-previous checkpoint. Branch checkout never upgrades existing pinned runs.
+## Branches
 
-This branch retains its coarse capabilities and original executable APIs,
-including integrated `initial-plan`/`reviewed-decision` and compatible legacy
-request/reflect commands. Its code, tests and runtime state contracts are unchanged
-by this documentation update. No technology recipe or improve-3 engine is imported.
+| Branch | Purpose | Workflow |
+| --- | --- | --- |
+| [main](https://github.com/astshby/DCIM-framework/tree/main) | Process-neutral improve-3-derived workflow, with configuration, initialization, context and evidence helpers | Main plans, Builder implements, Analyst reviews and reflects |
+| [coarse](https://github.com/astshby/DCIM-framework/tree/coarse) | Earlier coarse-placement workflow, executable search and action guards | Integrated `initial-plan` / `reviewed-decision`, with legacy role APIs |
+| [coarse_fine](https://github.com/astshby/DCIM-framework/tree/coarse_fine) | Experimental relative fine/coarse hierarchy, joint actions and physical-consumer interfaces | Earlier explicit role loop with granularity selection |
 
-Read `dcim-self-improve/references/improve3-guidance.md` for selected bounded-task,
-context, evidence-reuse and physical row/seam/body lessons. Apply them within the
-run's actual API and declared scope. Main's new initialization schema belongs to
-main. This branch continues using its original documented config and run commands.
+Each branch documents its own commands and validation scope. Existing runs retain
+their pinned programs, instructions and configuration contracts.
 
-## Existing setup and engineering references
+## Getting started
 
-# DCIM Framework
-
-This repository implements a process-neutral DCIM learning and construction loop.
-It combines improve 1's generic configuration/history/geometry with improve 2's
-evidence checking and route-memory principles. The old 12FFC seed is retained in
-Git history and is absent from the active package.
-
-Read AGENTS.md at entry; HANDOFF.md is the user/developer optimization record,
-not a runtime input. The reusable skill is
-`dcim-self-improve/SKILL.md`; its `references/runtime.md` describes executable
-commands and payloads. No PDK, compiler IP, models or EDA binaries are distributed.
-
-## Initialize
-
-Agents generate private configuration outside this repository. Existing
-project/input_files configurations are supported:
+Read [AGENTS.md](AGENTS.md), the [skill](dcim-self-improve/SKILL.md) and the
+[runtime guide](dcim-self-improve/references/runtime.md). This branch uses its
+existing private `project` / `input_files` configuration contract.
 
 ```sh
 python3 dcim-self-improve/scripts/configure.py --output ../dcim.v2.local.json --from-config ../dcim.local.json --init study01
 ```
 
-Use the resulting run's copied `scripts/` for subsequent calls. Initialization
-pins programs, geometry helpers and instructions, creates a resumable state and
-refuses overwriting existing runs. Relative paths resolve against configuration.
-Core code runs with Python 3.8+; newer interpreters can be selected explicitly.
-Optional GDS import/export requires gdspy; geometry JSON/SVG needs no external
-package. The private configuration remains agent-managed.
+Initialization pins the run's programs and instructions. Use the resulting run's
+copied scripts for subsequent commands. Relative configuration paths resolve
+against the configuration file. Python 3.8+ supports the core runtime. Optional
+GDS import/export uses `gdspy`.
 
-## Implemented loop
+## Workflow and capabilities
 
-Reflect0 imports compiler and digital-flow layouts with `learn.py`, extracts
-geometry/hierarchy observations and specifies the next construction. Inside Reflect,
-`planner.py` runs simulated annealing, local improvement, sampled large-neighborhood
-rearrangement, coordinate beam search or adaptive destroy/repair search. Every later search starts at actual output
-from the immediately preceding reviewed round, preserving its coordinates. All four role guides stay under `dcim-self-improve/references/`: initialize.md,
-reflect.md, builder.md and analyst.md. `roles.py` centralizes their loading. AI self-reflection and actual algorithm outputs share route records. Every
-Reflect, including closure, must submit one new testable AI proposal with a
-difference from existing routes. Human proposals/feedback are not Reflect inputs.
+```text
+Initialization -> initial-plan -> Builder -> independent Analyst / memory / reflection -> next task or closure
+```
 
-`workflow.py` enforces Reflect -> Builder -> Analyst -> committed short memory ->
-Reflect, including failed and final rounds. It persists real AI requests/replies;
-it does not supply a canned AI answer. `context --since TOKEN` returns only changed
-sections. `memory.py` provides bounded same-format reads/writes and supersession.
-`builder.py` creates and executes a new drawing Python script, retaining actual
-inputs, helper code, hierarchical geometry JSON, SVG, optional explicit-precision GDS, stdout/stderr and evidence.
-It recovers a `placement_state.json` from actual generated instance geometry; the
-next search verifies that state against retained layout evidence. Multiple Builder
-candidates require an explicit primary baseline; missing output cannot silently
-fall back to an older round.
-Reflect0 creates bounded learning goals linked to captured references and required
-checks. Builder retains exact goals in learning_contract.json; Analyst reports
-per-goal conclusions with current evidence. Context keeps active goals and latest
-outcomes available beyond recent-memory limits. Corrections supersede old versions;
-process-bound conclusions do not automatically apply to another node or run.
-experience.py publishes reviewed methods and their evidence as immutable private
-bundles; explicitly configured receiving runs pin and retrieve applicable methods
-as reference-only hypotheses, preserving source status and revalidation needs.
-The original evidence checker and compatible history helper remain available.
+- `initial-plan` binds applicable compiler and digital-flow observations to
+  learning goals, construction tasks and checks.
+- `reviewed-decision` combines review, short memory, reflection and the next task
+  or closure. AI proposal records are optional through this integrated entry.
+- Budgeted geometry search includes simulated annealing, local improvement,
+  sampled large-neighborhood rearrangement, coordinate beam search and adaptive
+  destroy/repair.
+- Builder executes candidate construction and retains inputs, scripts,
+  dependencies, layout evidence and placement state.
+- Analyst reviews evidence and learning outcomes. Short memory and reflection
+  preserve failures, strategy changes and closure decisions.
 
-New runs can be copied or renamed as complete trees: request recovery uses
-hash-verified run-owned objects and experience retrieval uses pinned bundles.
-Original paths remain provenance metadata. For standalone evidence trees,
-`evidence.py freeze --base-root /absolute/tree --out /absolute/tree/frozen.json FILE...`
-writes a portable v2 manifest; omit the flag for legacy v1. See
-`references/evidence-tools.md` for dependency and historical-report requirements.
-Existing runs keep their pinned versions; this update does not migrate them or
-make external EDA paths portable automatically.
+Later searches start from the immediately preceding reviewed Builder's actual
+placement. Compatible legacy request/Reflect interfaces retain the explicit
+Reflect0 -> Builder -> Analyst -> memory -> Reflect loop and its required new AI
+proposal at Reflect. Exact payloads and state transitions for both entry styles
+are documented in the runtime guide.
 
-The research target is eight input/output channels and storage/compute ratio eight.
-Its accounting, precision, process and electrical conditions must be explicit.
-No fixed SRAM grouping, bitcell, topology, node or decoder proportion is inherited.
+## Components
 
-## Repository and execution structure
+| Location under `dcim-self-improve/` | Responsibility |
+| --- | --- |
+| `scripts/workflow.py` | Role transitions, requests, results and recovery |
+| `scripts/planner.py`, `scripts/search/` | Budgeted search and proxy evaluation |
+| `scripts/builder.py` | Candidate execution and retained outputs |
+| `scripts/learning_contract.py` | Source-backed goals and per-goal review |
+| `scripts/memory.py`, `scripts/experience.py` | Scoped memory and reviewed private experience packages |
+| `references/runtime.md`, `references/sources.md` | Commands, contracts and method provenance |
 
-- `scripts/planner.py`: stable Reflect entry, baseline provenance, budgets and persistence.
-- `scripts/search/model.py`: coordinate state, constraints and common proxy objective.
-- `scripts/search/operators.py`: reusable placement modifications.
-- `scripts/search/algorithms.py`: strategy registry and bounded exploration.
-- `scripts/search/baseline.py`: recover and verify actual previous-round placements.
-- `scripts/search/adaptive.py`: ALNS-inspired operator selection and bounded repair.
-- `scripts/roles.py`: one registry for existing role references and initialization context.
-- `scripts/learning_contract.py`: persistent goals, task/check binding and outcome retrieval.
-- `references/{initialize,reflect,builder,analyst}.md`: role functions and reusable experience.
-- `references/sources.md`: method provenance and external-library research status.
+Selected improve-3 guidance covers bounded tasks, relevant context, evidence
+reuse, physical rows, seams and body/access ownership. See
+[improve3-guidance.md](dcim-self-improve/references/improve3-guidance.md).
 
-These paths are relative to `dcim-self-improve/`. Programs and guidance are pinned
-at initialization; ordinary calls use those copies and context deltas. Search caches
-identical states, and identical calls return retained results. Per-call limits and
-aggregate Reflect limits bound CPU exploration. Raw traces stay in immutable
-artifacts; default context contains summaries. The unused duplicate `run/design`
-helper tree has been removed. No EDA is launched by these entry points.
+## Validation scope
 
-## Scope and validation
+Search evaluates geometry and center-HPWL proxies. Physical application requires
+an actual consumer and candidate-bound verification. Source LVS, DRC, function,
+ERC, electrical behavior and parent integration retain their own checks. See the
+[algorithm portfolio](dcim-self-improve/references/algorithm-portfolio.md) for
+implementation and validation details.
 
-Current search optimizes geometry and center-HPWL proxies. It does not synthesize
-transistor topology, route inter-block nets, establish electrical performance or
-submit EDA jobs. AI explicit plans can be evaluated in the same geometry
-representation. New operations use the shared state/evaluator interface and are
-implemented and checked within the existing role loop. No new planning stage is
-introduced. External standard-cell engines and routing adapters remain unsupported.
-The adaptive search references [N-Wouda/ALNS](https://github.com/N-Wouda/ALNS)
-concepts through a local standard-library implementation. No external algorithm
-library is installed or vendored. It records six destroy/repair pair weights and
-charges all evaluated repair states to the common budget; it is not guaranteed
-to beat other strategies. See references/sources.md for comparisons and provenance.
-Protocol gates cover the fixed entry points, not arbitrary shell actions.
+Action guards bind declared inputs, permitted actions, affected/frozen conditions
+and output witnesses. Adapters declare the relevant physical conditions. Actual
+mask/body/connectivity truth requires appropriate physical checks. OpenROAD
+methods are research references. An OpenROAD integration is outside the current
+implemented interfaces.
+
+## Development checks
 
 ```sh
 python3 -B -m unittest discover -s dcim-self-improve/tests -v
 python3 -B -m unittest discover -s tests -v
+git diff --check
 ```
 
-Tests use synthetic geometry/evidence. Optional GDS/PSF cases report skips when
-inputs or dependencies are unavailable. They do not qualify a physical design.
-
-## Delivery
-
-At each completed framework iteration, update HANDOFF.md, run relevant checks,
-commit locally and run `python3 scripts/package_workspace.py`. This atomically
-replaces the sibling `dcim-framework.zip`. Git retains revisions; one ZIP holds
-the current framework. Private configuration, experiments, caches and proprietary
-inputs remain outside Git/package. Preserve existing reference directories and
-experimental history in the enclosing workspace.
-
-## License
-
-Framework code and documentation are [MIT licensed](LICENSE). External PDK, compiler,
-standard-cell IP, EDA tools and private experiment artifacts are not covered or distributed.
-
-## Device-granularity search and campaign planning
-
-New runs use schema 5 and the reflect-multiscale-v5 contract. `planner.py` also accepts
-`transistor-placement-v1`: named-device row permutations, explicitly allowed
-source/drain flips, declared sharing predicates and nominal terminal HPWL.
-Builder produces a replayable abstract device layout; `device_audit.py` provides
-an independent checker. This is not foundry mask generation or physical signoff.
-
-`campaign.py` records the full module/tile/repeat/macro plan, fixed parent versions
-and stage acceptance. It admits only reviewed, memory-committed, Reflect-closed
-runs; unavailable physical/routing stages remain explicitly blocked. Existing
-pinned runs remain unchanged. See `dcim-self-improve/references/transistor-planning.md`
-for schemas, commands, qualification boundaries and the implementation roadmap.
-
-## Two-scale constraints and upstream solver portfolio
-
-See dcim-self-improve/references/two-scale.md. Five SciPy implementations can
-operate through shared fine/coarse decoders and hard checks; optional EDA engines
-are catalogued separately with their actual unavailable state. Native repeat
-relations are evidence-bound and distinct from retained full-mask dimensions.
-Private physical Builder recipes are captured at runtime, never distributed with
-PDK/IP or node-specific assumptions. New requests use reflect-multiscale-v5.
-
-## Source-bound physical actions
-
-Private adapters can opt into physical-action-guard-v1 to bind parent GDS/CDL/DEF,
-exact actions, fixed affected/frozen conditions, raw observations, consumed copies
-and final output witnesses. Unknown affected conditions block prepare; unrelated
-frozen unknowns remain explicit. See references/two-scale.md and runtime.md under
-dcim-self-improve/. This validates declared execution identity and coverage. It
-does not infer impact domains, prove physical rules, provide mask reconstruction
-or grant EDA permission. Existing pinned runs and legacy adapters are unchanged.
+Private configuration, PDK/compiler IP, models, runs and experimental evidence
+belong in the user's private workspace. [HANDOFF.md](HANDOFF.md) records technical
+history and validation. Source licensing is described in [LICENSE](LICENSE).

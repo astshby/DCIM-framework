@@ -569,3 +569,17 @@ recorded externally before the development snapshot commit. No EDA was launched.
 
 Coarse full suite passed 138 cases with 3 optional skips (135 executed passes).
 Package5/5 and diff-check passed on Python3.8.10. Source/test code did not change.
+
+## Public README refresh, 2026-11-12
+
+Rewrote the public README around framework purpose, branch-specific workflow,
+configuration, entry points, physical constraints and evidence scope. The branch
+table covers main, coarse and coarse_fine. Coarse documents its integrated
+initial-plan / reviewed-decision entry separately from the legacy explicit loop.
+The experimental fine/coarse physical qualification limit remains explicit.
+
+Independent documentation review accepted all three drafts after correcting the
+coarse workflow description. All 23 relative README links resolve against their
+respective branches. Two scoped review lessons and actual reflection are retained
+in the development audit. The five package regression checks passed for this
+branch. This change updates README and developer handoff only.
