@@ -71,3 +71,10 @@ and physical-action guards. Adapters declare affected/frozen conditions.
 Those guards do not infer all effects, prove raw measurement truth or grant
 EDA permission. It supplies no automatic transistor-to-foundry physical decoder.
 Existing experimental incompleteness remains. Use main for the new small workflow.
+
+At structural decisions improve-3 defaults to two mechanism-distinct cheap
+screens from the same frozen baseline and matched boundary, with disjoint outputs
+and authorized resources. Record evidence-based single-route or serial exceptions
+when inputs/resources do not support independent screens. Ordinary diagnosed
+repair stays single-route. This task methodology preserves original programmatic
+contracts and adds no paired full-macro/PEX gate.
