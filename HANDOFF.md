@@ -607,3 +607,17 @@ three concise experiences and actual AI Reflect. Coarse consumption hypothesis
 supported; row/body hypothesis inconclusive. R1 remeasurement recovered the same
 registered actual outputs without starting another plan. OD density raw data has
 20failed20x20um windows at18.9677%-22.9087% versus23%. All5owned jobs terminal.
+
+## 2026-11-12 coarse_fine continuation guidance
+
+This branch extends ea525fd1fa07845788e265223f534d2b7cb02649 with selected generic
+improve-3 task/context/evidence/experience and physical-row/seam/body guidance.
+Executable programs, tests, physical consumers and original APIs stay unchanged.
+Main is preferred for new small-workflow runs. The prior captured coarse physical
+round failed full qualification on OD density, and fine/return-coarse physical
+rounds remain unexecuted. These limits and old fixed experiment state are preserved.
+Relevant full suites, source-byte checks and source-ready snapshots are recorded
+externally. No EDA or new physical construction was authorized by this update.
+
+Coarse_fine full suite passed 152 cases with 3 optional skips (149 executed
+passes). Package5/5 and diff-check passed on Python3.8.10. Code/test bytes unchanged.

@@ -5,6 +5,10 @@ description: Prepare, execute or resume reference-assisted DCIM self-improvement
 
 # DCIM self-improvement
 
+This is the coarse_fine continuation with its original executable API. Main is
+the preferred new improve-3-derived workflow. Read the scoped
+[selected improve-3 guidance](references/improve3-guidance.md).
+
 This is the general experience guide maintained from improve 2. Framework order,
 role dispatch and program entry points belong to [AGENTS.md](../AGENTS.md).
 Stage/route knowledge remains separately maintained in the memory records.

@@ -1,5 +1,29 @@
 # DCIM framework instructions
 
+## Continuation branch scope, 2026-11-12
+
+This is `coarse_fine`, extending ea525fd's relative fine/coarse/joint hierarchy
+and opted-in physical consumer. Preferred new work uses the improve-3-derived
+`main`. `coarse` preserves the older coarse runtime and integrated workflow APIs.
+`pro` retains its previous checkpoint. Existing runs use their fixed versions.
+
+This branch preserves its original configuration, request/Reflect/Builder/Analyst/
+memory transitions and executable hierarchy/physical APIs. It does not provide
+main's new initialization schema or coarse's later combined-decision API. The
+selected improve-3 lessons guide task granularity, context and evidence reuse
+within those contracts. No executable code or test changes are introduced here.
+
+The captured complete8x4 physical coarse round closed with failed physical
+qualification due to OD density. Fine and return-coarse physical rounds were
+not executed. The physical consumer's identity/pose checks do not establish raw
+mask/body/electrical truth or complete fine/coarse qualification. No further
+physical run or PPA benefit is claimed by this guidance update.
+
+Read `dcim-self-improve/references/improve3-guidance.md` and `references/two-scale.md`
+for applicable lessons, actual consumers and remaining limits. No old pinned
+run, experimental state or source evidence is changed by branch continuation.
+
+
 ## Entry and scope
 
 This directory is the active framework repository. Start with this file; use
