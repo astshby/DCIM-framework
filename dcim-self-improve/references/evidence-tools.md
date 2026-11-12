@@ -2,12 +2,12 @@
 
 Read this inventory before evidence work; use `scripts/evidence.py --help` and
 the relevant subcommand's `--help`, not the whole implementation on each task.
-The core checks are tested with Python 3.8; optional readers need their verified dependencies. All commands emit JSON to stdout; store it in the
+Run with Python 3.10+. All commands emit JSON to stdout; store it in the
 role's own output directory. No command launches EDA or imports a generator.
 
 | Command | Purpose | Limits |
 | --- | --- | --- |
-| `freeze --out MANIFEST [--base-root ROOT] FILE...` | Fingerprint explicit dependencies; portable v2 with a common root, legacy v1 otherwise | Refuses overwrite; does not copy the actual design |
+| `freeze --out MANIFEST FILE...` | Fingerprint an explicit dependency list; refuses overwrite | Snapshot, not proof of correctness or execution provenance |
 | `check MANIFEST` | Verify every recorded file is unchanged | Dependency identity only; omitted dependencies are not covered |
 | `pv SPEC --manifest MANIFEST` | Calibre DRC/LVS report, exact deck edits and execution-input hash checks | Supported report formats only; warnings and job provenance need review |
 | `gds SPEC --manifest MANIFEST` | Hierarchical bbox, direct reference count, selected-layer union areas, optional mask XOR and height-band check | Geometry, not connectivity or DRC |
@@ -19,7 +19,7 @@ formats and stale bindings must never be converted to a pass. JSON identifies
 tool version/hash and manifest hash. Do not rank circuits from process exit
 codes, bbox sums or successful waveform parsing.
 
-## Freeze and independent review
+## Freeze and focused checks
 
 Builder records launch-time hashes in an `inputs.json` alongside each PV job:
 `gds_sha256`, `source_sha256`, `original_deck_sha256`, `run_deck_sha256`.
@@ -31,51 +31,23 @@ Freeze explicit spec files and their inputs: relevant design source/GDS,
 original/run decks, execution records, reports, models/includes/corner/load,
 testbench, raw waveforms, independent oracle and reference/constraint files as
 applicable. Include the actual dependency closure for any conclusion proposed
-for inheritance, not the entire run tree. Existing `schema_version: 1` / `files` manifests with resolved
-path/sha256/bytes fields are supported. Do not create a competing manifest.
+for inheritance, not the entire run tree. Use `context.py`'s existing
+`schema_version: 1` / `files` manifest if already available; the same resolved
+path/sha256/bytes format is supported. Do not create a competing manifest.
 
 ```bash
 python3 "$SKILL_ROOT/scripts/evidence.py" freeze --out /run/Bx/frozen.json /run/Bx/pv.json /run/Bx/DRC.rep /run/Bx/inputs.json /run/Bx/rules.drc /pdk/original.drc /run/Bx/layout.gds /run/Bx/source.cdl
 python3 "$SKILL_ROOT/scripts/evidence.py" pv /run/Bx/pv.json --manifest /run/Bx/frozen.json
 ```
 
-Legacy v1 paths must be explicit absolute paths, not `latest` or globs.
-Tool output goes outside frozen inputs. Analyst runs `check` and applicable
-commands itself against Builder's frozen original inputs, writing separate
-outputs; reading only Builder's tool JSON is insufficient. Commands recheck the
-manifest after reading. Do not edit a published snapshot while it is reviewed;
+Paths in manifests/specs must be explicit absolute paths, not `latest` or globs.
+Tool output goes outside frozen inputs. Builder runs `check` and applicable
+commands against the frozen inputs. Analyst reuses bound outputs for decisions.
+For a decision-changing gap, request a focused Builder check according to
+review.md; no second full replay is required. Commands recheck the manifest after reading.
+Do not edit a published snapshot while it is assessed;
 an intentional update gets a new revision and manifest. Hash checks detect
 changes but are not a filesystem lock or a provenance guarantee.
-
-### Portable evidence trees
-
-For a new experiment intended to move, keep the selected dependencies and manifest
-under one root and add `--base-root /absolute/experiment`. The v2 manifest stores
-its base relative to its own directory, relative file names, hashes, byte counts,
-and an `origin_path` for the original root. File arguments may be absolute or
-relative to that base. A manifest in `checks/` may therefore use `base_root: ".."`.
-Move or copy the entire base tree together, including the manifest. Dependencies
-outside that root and paths escaping through symlinks are rejected.
-
-```bash
-python3 "$SKILL_ROOT/scripts/evidence.py" freeze --base-root /experiment --out /experiment/frozen.json inputs/layout.json spec.json
-python3 "$SKILL_ROOT/scripts/evidence.py" check /relocated-experiment/frozen.json
-```
-
-V2 spec fields accept base-relative names, current absolute names, or exact
-original absolute names recorded by the manifest. Original names are lookup
-aliases only; readers never open an old directory as a fallback. PV checks still
-compare unchanged deck/report text with the original execution paths and verify
-all execution hashes against the relocated files. Moving files does not create
-new verification results. Preserve decks, reports, specs and manifests byte-for-byte.
-
-Without `--base-root`, freeze still writes v1 for existing workflows with external
-dependencies; v1 reading is unchanged and still needs the recorded paths. Do not
-rewrite an immutable v1 manifest to claim portability. Select and freeze a complete,
-authorized common tree before moving a new experiment; this tool does not copy PDK
-files or rewrite historical path strings. Local drivers should derive their own
-directory from `Path(__file__).resolve().parent` or accept explicit paths, rather
-than hard-code experiment names.
 
 ## PV spec
 
@@ -100,7 +72,7 @@ Supply JSON with the following fields (paths are illustrative):
 
 For LVS use `"kind": "lvs"` and add `"source_top": "independent_source"`;
 declare exact source-path/top replacements and any explicitly approved setup
-change. Analyst checks that replacement pairs are authorized bindings/settings,
+change. Check that replacement pairs are authorized bindings/settings,
 not rule weakening. The tool compares the entire resulting deck byte-for-byte
 as text, rather than broadly stripping setup lines. Included deck files are
 additional manifest dependencies. Optional DRC `expected_rules` is the
@@ -108,7 +80,7 @@ deck/version-specific rule count, not a universal constant. Parsed rule counts
 must match the executed-rule footer and actual/expanded totals.
 
 Legacy reports without execution bindings remain incomplete under this command;
-Analyst may inspect them explicitly as limited historical evidence, not silently
+Main chat may inspect them explicitly as limited historical evidence, not silently
 create fresh qualification. A valid frozen manifest alone cannot establish that
 the current files produced an old report. Inspect terminal job records and raw
 warnings; supported zero-count reports do not resolve deck applicability,
@@ -169,7 +141,7 @@ python3 -B -m unittest discover -s "$SKILL_ROOT/tests" -p 'test_evidence.py' -v
 Do not rewrite these parser/hash/geometry fixtures every round. Each new result
 still gets artifact checks; changed circuits/oracles get affected semantic
 regressions and relevant negative controls. Shared parsing is not two independent
-implementations: Analyst retains targeted raw-report checks and independent
+implementations: retain targeted raw-report checks when needed and independent
 circuit intent/oracles. A tool change must pass known-good, known-bad,
 truncation/missing-input and stale/wrong-binding cases, plus a relevant real
 historical case when available. Record tested tool/reader version and outcomes.

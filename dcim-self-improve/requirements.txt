@@ -1,4 +1,3 @@
-# Optional GDS import/export; core loop and SVG use the standard library.
+# Initialization, dispatch and PV/wave evidence use the Python standard library.
+# Optional for GDS evidence only, tested when available.
 gdspy>=1.6,<2
-# Optional polygon operations used by generic geometry helpers.
-shapely>=1.8,<3

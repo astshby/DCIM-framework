@@ -1,49 +1,78 @@
-# Initialization: responsibility and reusable experience
+# Initialization and first task
 
-Keep the existing initialization -> Reflect0 -> Builder -> Analyst -> memory ->
-Reflect loop. Initialization sets the contract; it is not an additional planner.
-Create private configuration with configure.py. Use roles.py --config CONFIG for
-a read-only project/open-items packet, or workflow context --role initialize in
-a new run. Resolve relative paths against that config and use the pinned run
-scripts thereafter. No EDA is launched by configuration or inspection.
+Python 3.8+ and the standard library suffice for initialization, dispatch and
+PV/wave readers. GDS measurements additionally need the optional `gdspy` library.
+No dependency installation or EDA execution is performed by setup.
 
-Confirm global and module goals together: eight inputs/outputs and ratio eight,
-explicit ratio accounting, precision, process/release/stack, interfaces, electrical
-conditions, validation scope and resource permissions. Default modules include
-SRAM, multiplier, adder, selection/control and accumulator. Storage/compute ratio
-is not weight precision; a module minimum is not necessarily the system optimum.
-Report open conditions before drawing conclusions that depend on them.
+## Private configuration
 
-Capture compiler and digital-flow layouts with exact source context for Reflect0.
-Reference geometry is an observation, not a qualified circuit. Plan a small
-learning-backed build before scaling or compressing. The agent owns generating
-and checking dcim.local.json; do not inherit another run's paths or node defaults.
+Start from `dcim.example.json`. `schema_version`, `node`, `work_root`, `resources`
+and `stages` are explicit. A resource has a private `path`, semantic `role` and
+`kind` of `file` or `directory`. A directory requires its exact relative `files`.
+Optional `sha256` for a file or `hashes` keyed by relative directory file name
+reject stale sources. Stage lists name the required resource IDs. An empty
+planning list supports an empty design when source creation is the first task.
+Later stages declare their actual requirements. There are no implicit filename
+searches or technology defaults.
 
-## General experience
+`check_inputs.py --config PATH --stage STAGE` returns availability, byte identities
+and targeted missing/stale rows. It establishes availability for the declared
+scope. The AI still checks circuit authority, rule/model applicability and
+functional/physical legality. Configured addresses remain private.
 
-- Separate reusable method from process-bound dimensions/rules. Carry conditional
-  hypotheses, evidence and next tests across nodes; recheck physical/electrical
-  conclusions under the new conditions. No old process exception transfers.
-- Capacity, bandwidth, arithmetic mapping and interfaces need separate accounting.
-  A prior fixed bit count or macro grouping is not a new design requirement.
-- Reserve unique output names before each experiment and retain raw failures.
-  Later summaries cannot recover overwritten logs or layouts.
-- Follow improve 2 retrieval order: stage and applicable module/route first,
-  newest applicable conclusions next, detailed evidence only for a live question.
-  Keep uncertain/refuted findings visible and supersede corrections explicitly.
+An optional `initial_recipe` object declares `root`, `entrypoint` and `files`.
+All dependency paths must stay within that root. Initialization copies only those
+files to `initial_design/` and editable `design/`. It never executes them or
+infers undeclared imports. Declare the complete local closure and external
+resources, then inspect/test the copied recipe for the target task. No recipe
+is required for initial source creation by Builder.
 
-See [runtime.md](runtime.md) for executable contracts and [sources.md](sources.md)
-for provenance. Developer optimization history stays in repository HANDOFF.md;
-it is not a design-role instruction or a run input.
+## Atomic publication and pinning
 
+`init_run.py --config PATH --name NAME --stage STAGE` uses an exclusive per-name
+lock, a private staging directory and a same-filesystem rename. Existing runs
+are preserved. Missing inputs or copy/validation/publication failure clean only
+that invocation's staging and lock so the name can be retried. Process death can
+leave a named lock/staging directory. Inspect actual process/output ownership
+before explicitly recovering that interrupted initialization. Never erase runs
+on a blind retry.
 
-The program may add role_experience from explicitly configured, pinned experience
-bundles. These are reviewed source methods, always reference-only in this run;
-inspect source_status, conditions and evidence before a new test. To maintain
-reusable experience after review, publish selected current lessons with
-experience.py; see experience-memory.md. Static role text remains versioned policy,
-not a per-round journal. No automatic write to the installed guide is performed.
+A run contains `framework/`, `config.json`, `original-config.json`,
+`input-check.json`, `initial_design/`, editable `design/`, and task/knowledge/
+evidence/decision directories. `initial-manifest.json` records relative pinned
+files plus exact external reference identities. Pin the manifest digest in the
+first task or an external trusted record. The self-consistency checker does not
+authenticate a deliberately rewritten manifest.
 
-For transistor_proxy tasks or campaign stage bindings, read [transistor-planning.md](transistor-planning.md). Preserve the existing role order and explicit physical verification limits.
+`python3 RUN/framework/scripts/check_inputs.py --run RUN` checks the pinned bytes
+and original external input identities. Editable design/results are deliberately
+outside that initial snapshot. Preserve each later candidate with `evidence.py
+freeze` and its actual execution/semantic checks.
 
-For two-scale scope selection, native-seam contracts or a private physical Builder, read [two-scale.md](two-scale.md). Analyst includes reviewed experience submission.
+Moving the whole run preserves its initial-manifest verification when external
+inputs remain at their declared addresses. `config.json` external paths remain
+absolute. Dispatch/evidence schema-v1 packages bind absolute paths and stay tied
+to their original roots. After relocation prepare a new task/context package
+from the moved pinned scripts and explicitly rebound addresses. Old package
+bindings and historical evidence stay intact. Moving a run does not relocate
+PDK installations, private recipes or already prepared context packages.
+
+## Actual AI handoff
+
+Main performs initial reflection/planning from user intent and available sources,
+then writes an actual bounded task. Use `templates/task_packet.md` for content.
+For executable dispatch, write three JSON files using `templates/dispatch.schema.md`.
+No fixed AI plan is emitted by initialization. A first selection is authored by
+Main during initial planning. Subsequent selections come from Analyst decisions.
+
+```sh
+python3 RUN/framework/scripts/context_dispatch.py overview --catalog CATALOG --stage 1
+python3 RUN/framework/scripts/context_dispatch.py prepare --task TASK --selection SELECTION --catalog CATALOG --out NEW_PACKAGE
+python3 RUN/framework/scripts/context_dispatch.py open --package NEW_PACKAGE --expected-sha256 DIGEST
+```
+
+`prepare` returns a compact card for Main. Builder executes the `open` command on
+the declared host, reads its context, then implements within the task scope.
+Use the native agent API's actual fresh-context mechanism and record its returned
+ID with `record`. Main can execute a bounded task directly when authorized.
+Normal initialization requires no comparison experiment or proprietary seed.

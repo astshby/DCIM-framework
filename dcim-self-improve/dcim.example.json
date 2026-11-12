@@ -1,26 +1,30 @@
 {
-  "work_root": "./dcim-runs",
-  "pdk_root": "./external/pdk",
-  "compiler_ref_root": "./external/sram-compiler",
-  "circuit_ref_root": null,
-  "experience_root": null,
-  "same_process_dcim_root": null,
-  "digital_flow_root": null,
-  "isscc_reference_root": null,
-  "project": {
-    "macro": {
-      "input_channels": 8,
-      "output_channels": 8,
-      "storage_compute_ratio": 8,
-      "ratio_definition": null,
-      "input_bits": null,
-      "weight_bits": null,
-      "output_bits": null,
-      "accumulator_bits": null
+  "schema_version": 1,
+  "node": "user-declared-target-profile",
+  "work_root": "./runs",
+  "resources": {
+    "circuit": {
+      "path": "./private/independent-source.cdl",
+      "kind": "file",
+      "role": "independent circuit intent"
+    },
+    "process": {
+      "path": "./private/process",
+      "kind": "directory",
+      "role": "target-node verification resources",
+      "files": [
+        "user-layer-map",
+        "user-drc-deck",
+        "user-lvs-deck",
+        "user-model-entry"
+      ]
     }
   },
-  "input_files": {
-    "pdk_root": [],
-    "compiler_ref_root": []
+  "stages": {
+    "planning": [],
+    "physical": [
+      "circuit",
+      "process"
+    ]
   }
 }

@@ -1,4 +1,4 @@
 interface:
   display_name: "DCIM Self-Improve"
-  short_description: "Learn layouts, search routes, build and reflect"
-  default_prompt: "Use $dcim-self-improve to learn from compiler and digital-flow layouts, search bounded new routes, and advance the saved Reflect/Builder/Analyst loop through its fixed scripts."
+  short_description: "Bounded DCIM tasks with scoped evidence and experience"
+  default_prompt: "Use $dcim-self-improve with the private task configuration. Main initializes and admits tasks. Builder implements and verifies. Analyst reviews evidence, updates experience, writes actual concise reflection and proposes the next bounded task. Framework setup authorizes no EDA."

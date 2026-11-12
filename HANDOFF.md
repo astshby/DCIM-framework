@@ -1,559 +1,72 @@
-# DCIM 框架开发优化记录
-
-本文件供用户与框架开发者追踪优化，不再作为设计运行输入。运行契约在 AGENTS.md、
-README.md 和 references；历史描述仅用于追溯，后文旧版本不覆盖当前契约。
-
-## 2026-11-09：两粒度约束、现有求解器与私有物理入口
-
-修复块级未知字段静默忽略及严格宽高等号接受；增加完整mask包络与placement boundary分离、对齐、轨道、区域、精确原生重复和不可变证据绑定。AI直接方案、算法、Builder和恢复共用检查。物理合同不得在普通续轮中被静默更换。
-
-接入五个SciPy现有实现：differential_evolution、dual_annealing、basinhopping、SHGO、Powell。采用粗粒度坐标/朝向和细粒度行序/源漏朝向解码，共同硬检查、实际基线、预算和轨迹；它们是通用优化器的EDA适配，不是五篇完整EDA工具复现。十项目录另列五项尚未接入的CP-SAT/SMTCell/OpenROAD能力。
-
-新增physical_builder.py私有物理适配：冻结执行依赖，prepare/submit/collect/finalize，成功提交与终态必须同jobID，完整APR/DRC/LVS/function收集后才能冻结。过程退出成功不等于验收通过。节点生成器和经验只在实验副本；当前支持显式固定配方完整模块重建，尚未实现物理细粗自动往返或搜索坐标自动控制APR。物理结果不得回退参考盒作为下一搜索基线。
-
-独立Analyst1发现作业身份绑定P2，Reflect1选择有界修复，Builder2修复并新增反例，Analyst2与最终结果见hby/framework-checks/two-scale-2026-11-09。新framework-test采用独立副本，复用稳定a06完整8x4双口目标；所有22nm经验/数据独立私有。正在运行的newarch不改。
-
-## 2026-11-09：器件级搜索与全流程规划
-
-用户要求查阅 EDA 论文，将启发式从块推进到更细粒度，并修改、评定框架、交付本地说明；每轮保留 Builder -> Analyst -> memory -> Reflect。开发代码只在本仓库，既有实验和 pinned run 未升级。
-
-新增 transistor_search.py：声明行内的晶体管排序、允许的 S/D 翻转、双行交换与插入；SA/local 两种有预算搜索，端点网络保持、同类共享谓词、网格、严格尺寸及障碍/接入预留检查。端口仍是名义锚点，器件大小和行高固定；不生成真实扩散/implant、body 接触或互连。
-
-新增 device_flow.py 接入原 planner/Builder/workflow，Builder 保存可重放的独立程序与抽象产物；device_audit.py 独立复算端点、几何与代理目标。新 run schema 5 / reflect-device-v4，学习来源按模块绑定，dcim 集成绑定 compiler 与 digital-flow。原有角色阶段顺序、立即上一轮实际基线与最终 Reflect 保持。
-
-新增 campaign.py：SRAM、四类计算模块、tile、repeat、macro 的依赖与验收计划；冻结父候选和合同声明，接收前检查当前 Builder/Analyst/记忆/Reflect 已闭环，保存不可变证据，父版更新使下游失效。abstract 可接收器件抽象模块；真实物理及完整连接阶段明确 awaiting_capability。接口身份当前是声明文本与宏参数的哈希，未验证外部合同文件内容或语义。
-
-文献参考 BonnCell (2017)、NVCell (2021)、SP&R/SMTCell (2020) 与 OpenROAD 文档。此实现只借鉴器件邻域、共享条件、约束与布线反馈思想，未复现论文完整流程或 PPA。新参考说明见 references/transistor-planning.md 和 sources.md。
-
-评定有两轮：Builder1 后独立 Analyst1 发现输出资源元数据和目标数字未被独立审核的两项 P2；Reflect1 决定做单字段篡改检验；Builder2 修复；独立 Analyst2 通过；Reflect2 收尾并提出固定布局下用实测引脚形状检验代理排名的下一实验。全部原件位于 hby/framework-checks/transistor-planning-2026-11-09/，history.py 保存提示版本、i1/i2 与各轮反思。
-
-最终回归 95 项：92 通过、3 可选跳过；打包测试 5 通过；skill quick_validate 通过。三组合成拓扑 × 两算法 × 三种子共 18 次，1508 次唯一候选评价；只支持模型内搜索效果，不支持真实工艺收益。独立实际角色示例为 synthetic 6T：Reflect0 -> Builder1 -> Analyst1 -> 两条短经验 -> Reflect1(close)。抽象 W/H 11x5 -> 8x5，HPWL 65 -> 47，但 BL 单网跨度 4 -> 9；保留该反例并未给出物理/电气通过结论。新示例已关闭；完整 campaign 未完成。
-
-待续：目标工艺器件提取/生成、真实 pin/access 与 PP/NP/body/TAP 检查、可布线的最小连接 tile、重复边界与完整宏。拓扑变更/折叠/尺寸选择及 EDA 调度恢复尚未实现。PEX 和版图后仿真没有加入本轮范围。未启动 EDA；网络发布仍走用户后续本地同步流程。
-
-## 2026-11-06：迁入 DCIM-framework、恢复路径修复与目录整理
-
-按用户最新要求将 DCIM-framework/ 作为后续唯一仓库，保留根与仓库两份 HANDOFF。
-GitHub HTTPS 克隆被代理403阻断；实际从原本地仓库独立克隆并配置指定 origin，
-基线16bfba5、完整提交历史保留。尚未获得远端内容、没有推送，也不保留冒充远端拉取的跟踪分支。
-旧小写入口改为相对兼容链接；根目录 improve 参考、learn、配置、实验、验证记录均保留。
-本轮审计：hby/framework-checks/relocation-2026-11-06/。
-
-根据根 HANDOFF 的目录迁移审计完成：
-
-- runtime.store 新写 origin_path 与 suffix；来源只是只读元数据，object/sha256 是读取依据。
-  Builder 支持新格式字段与旧 source 字段的扩展名，但不依赖原输入文件存在。
-- workflow 新请求索引用相对路径；request 重试及 reflect 回复校验从哈希验证的请求 object 读包，
-  支持旧的绝对请求索引。返回 path 为当前对象绝对地址，供只读消费；AI 回复仍是新文件。
-  顺带堵住 request 重试未检查请求副本哈希的问题，重试不修改原请求/状态。
-- experience 新 bundle 与固定副本把来源记为 origin_path，旧 source_run/source 仍可作为历史元数据。
-  继续用相对 manifest/object 与指纹，不继承跨节点验收结论。
-- evidence.py v2：显式 --base-root 选择共同根，清单相对定位根与依赖，记录原根 origin_path。
-  支持当前绝对、根内相对和准确历史路径别名；不重新打开旧绝对位置。拒绝越界、重复/歧义、
-  失踪及篡改依赖。DRC/LVS deck/report 路径绑定对比历史路径，执行哈希仍验证迁移后的字节。
-  无 flag 仍写 v1，v1 读取兼容；freeze 只记录指纹，不复制设计或自动收集/迁移 PDK。
-- 英文 AGENTS、README、runtime 与 evidence-tools 说明完整树迁移、不可变历史与边界；
-  不动主经验 SKILL、角色顺序或 Reflect0 学习要求。
-
-验证：68项框架/证据测试，65通过3可选跳过；5项打包测试通过。新增用例包括待处理请求
-在改名与复制且旧目录消失后恢复、固定脚本 status、Builder 构建与下一轮搜索接续、旧字段兼容、
-请求对象篡改拒绝、经验发布包及 receiver 脱离来源后读取，以及合成 DRC/LVS 完整树迁移、
-原地址出现其他文件时不误读、缺失/修改/越界/链接逃逸拒绝。没有启动 EDA 或新设计验收。
-
-范围与续接：旧实验及其兼容链接保持不变；现有 run 使用固定原版程序，不原地替换代码或 state。
-私有旧试验 prepare/build_trial 等硬编码驱动没有批量修改；本次新回归从文件位置定位框架，
-新驱动须使用 __file__ 或显式目录参数。已有 v1、history.py 和外部工具路径并未被自动迁移。
-联网后需要先检查远端分支/历史，再由用户发布；此次交付是本地提交与唯一当前 ZIP。
-
-## 2026-11-06：强制紧凑约束、四项收尾与真实加法器实践
-
-用户要求英文强约束、补齐上次审查问题，在旧实验目录的新副本从 Reflect₀ 做加法器实践，
-若运行不好修正后复测，并增加 MIT、提交指定 GitHub。采用方法二，由当前 agent 执行；
-实际目录为 tsmc22nm-dcim_start（下划线），原实验只读。未使用另一智能体或伪称独立 AI 评审。
-
-- SKILL.md 新增 MUST 约束：PP/NP 边界直接贴合、无人工间隙/重叠；组合时按需删冗余 TAP，
-  保留合法真实 body 供电并重新验证最终布局；先有意义的紧凑预实验，再具体诊断/修复 DRC，
-  不能单凭违规数否决路线。不能借此豁免工艺规则；冲突须明确诊断并解决构建。
-- 四项收尾：模板补 learning_goals/learning_checks/baseline_candidate；SKILL 改为参考驱动组织，
-  去除旧固定对齐/解码器默认并明确 Reflect 分配任务；request --since 提供真正的指令增量，
-  保留身份与固定证据，独立新上下文必须取全文；新增 experience.py 维护可跨 run 检索的经验包。
-- 经验晋升：只接受当前已评审 supported/refuted experience，证据必须在该 Analyst review 中。
-  保存来源 review、可用 Reflect 请求/回复和递归引用证据；新目录发布，禁止覆盖旧包。
-  receiving run 按 experience_root + input_files.experience_root 显式选包，核对完整证据并固定副本。
-  role_experience 按阶段/模块/工艺和新旧检索；跨 run 一律 reference_only/uncertain，保留 source_status。
-  工艺细节精确匹配；通用方法可迁移但需新任务验证。角色 Markdown 保持受版本管理的简短政策，
-  实验经验通过程序组合到角色上下文，不把每轮日志写回静态文件。私有经验包不进入 Git/ZIP。
-- 增加 MIT LICENSE，打包包含许可证；第三方 PDK、compiler、标准单元和 EDA 不在授权/发布范围。
-
-真实实践（不含工艺 IP 的公开记录）：
-
-独立目录 ~/tsmc22nm-dcim_start/framework-trial-2026-11-06/，包含完整框架副本、run 固定程序、
-原输入副本/指纹、AI 实际方案、执行、失败与评审。源参考是已有 compiler SRAM 和数字 flow 加法器，
-加法器不是新调用 memory compiler 生成；源加法器有 1476 个顶层引用，边界32.2×32.2 μm。
-本次任务是完整已布线宏的构建保真预实验，未冒充内部标准单元放置/布线优化。
-
-1. adder-a01：实际输入从 Reflect₀ 经 Builder 执行，发现只交付 JSON/SVG、无 GDS。
-   gds_roundtrip=not_run、Analyst=incomplete、学习=inconclusive；短记忆及最终 Reflect 保留。
-2. 修正一次 GDS 交付路径：task 显式 export_gds_precision_m，保存 GDS、映射、标签属性及依赖。
-   修正过程 adder-a02 捕获 gdspy 标签锚点整数/字符串 API 不兼容；保留失败代码/日志并修复转换。
-   这是同一交付修正内的调试，不是新的物理优化路线。
-3. adder-a03 与最终 adder-final：构建成功。独立检查器直接读源/输出 GDS，不依赖框架几何读取器：
-   19 层 XOR 面积全为0（源0.5 nm精度），21538个标签及属性一致，全边界不变。
-   Analyst 按保真范围 passed，学习目标支持；短记忆、立即上一轮基线接续、最终 Reflect 关闭。
-4. 最终版本把这条真实经验晋升成私有包，并创建不同节点的 receiver：source_status=supported，
-   本地 status=uncertain，未生成当地 action/学习验收通过。实验真实检验晋升/证据复制/检索。
-
-限度：没有启动 EDA；源版的旧 DRC/LVS/电气状态不继承。未改动 PP/NP/TAP，因此本次保真比较
-不证明这些物理变更合法。没有加法器面积改善或新布线，规则只是已强制纳入 agent 指引，尚无专用
-PP/NP/body 几何检查器。真实自动压缩仍需成熟布局布线适配及独立物理/电气验收；单一 AI 上下文
-完成角色动作，独立性来自单独实现的 GDS 检查程序，不宣称独立 Analyst 智能体。
-
-验证：62 项框架/证据测试，59通过、3可选跳过；5项打包测试通过。真实保真与晋升证据在上述
-试验目录；开发审计在 hby/framework-checks/adder-practice-2026-11-06/。原输入指纹不变。
-另保留检查器一次 NumPy int64 JSON 序列化错误及修正；没有覆盖失败候选或将工具退出码当作验证。
-
-发布：指定 https://github.com/astshby/DCIM-framework.git 在网页侧为空仓库。
-服务器 HTTPS 代理返回403；直连 HTTPS 与 SSH 均无法解析 github.com。发布未成功，不能宣称已推送。
-用户随后明确由其自行提交 GitHub，停止网络尝试。交付本地提交和只含当前框架文件的 ZIP，
-用户可用 ZIP 发布，避免携带旧 Git 内工艺专用历史。未创建或推送远端提交。最终状态见审计 completion.json。
-
-## 2026-11-06：角色入口、学习闭环与自适应搜索（本轮）
-
-用户确认“逆序参考”为“继续参考”的笔误；架构整体与顺序保持，经验按适用范围从新到旧检索。
-初始化 → Reflect₀ → Builder → Analyst → 短记忆提交 → Reflect，搜索仍在 Reflect 内完成。
-
-已完成：
-
-- 角色入口回归 references/initialize.md、reflect.md、builder.md、analyst.md；每个文件包含职责与通用经验。
-  Reflect 的独立 roles/reflect/SKILL.md 已并回 reflect.md，Reflect₀ 学习和每轮自主新思路要求保留。
-  主 SKILL.md 的 improve 2 经验主体不变，只修正角色入口链接。roles.py 统一角色注册与加载，
-  提供初始化配置/open_items 上下文；workflow 支持 initialize 上下文与按文件增量。
-- 学习闭环由 learning_contract.py 强制：Reflect learning_updates 形成有来源、有检查项的短目标；
-  首个任务绑定 compiler 与 digital_flow，后续任务显式绑定适用目标。Builder 每个候选保存
-  learning_contract.json 的确切目标版本。Analyst learning_checks 逐项回报 supported/refuted/inconclusive
-  及本轮证据；缺项、旧证据替代本轮输出、缺验证却声称成功均被拒绝。未产出布局可用本轮 result
-  解释 inconclusive，避免阻塞失败轮次的收尾。科学结论仍需 Analyst 真正检查，程序只保证可观察契约。
-- 活跃学习目标独立于最近 8 条路线记忆长期检索，并附最新检查；每模块最多 6 条、总计 24 条，
-  单次最多 6 个更新，沿用 condition/operation/observation/next_test 各不超过 240 字符。
-  修正用 supersedes 留旧版，可引用 Analyst review；Reflect 取全部模块目标，Builder/Analyst 取任务模块。
-  通用方法与 process/release/stack 细节隔离；跨 run 不自动导入可信结论，新节点必须重新捕获参考与验证。
-- 新增 adaptive-lns-v1：随机/连接相关/边界三种子集选择 × 采样/候选束修复两种策略。
-  六个策略对按结果衰减奖励调整权重，保留探索下限；可用退火接受，所有完整候选共用固定评分、缓存与预算。
-  修复逐个实例考虑完整布局，未处理实例暂留原位；这是有界完整状态搜索，不是精确求解移除后的部分布局。
-  保留中间修复中的最好状态，即使预算中断；记录权重、使用次数、奖励和轨迹。权重每调用重置，
-  跨轮由 Reflect 结合经验选择策略。原 anneal/local/lns/beam 保留，无 EDA 或新调度阶段。
-- 开源调研：N-Wouda/ALNS 7.0.0 文档（MIT 项目）提供策略选择、破坏—修复与接受准则思路；
-  本地标准库实现，无上游代码复制、包安装或运行时依赖。比较 SciPy DE/dual annealing 与 OR-Tools，
-  本轮未接入；选择依据及官方链接在 references/sources.md，不能宣称已调用这些库。
-- improve 2 与旧 tsmc22nm-dcim_start 只读取材：吸收限定条件、反例、留原始证据、重复拼接检查、
-  完整父级代价、接口/连接/几何分开、物理带宽计数。旧固定容量、工艺数值、拓扑默认和验证豁免不迁移。
-  精炼经验按角色保存，路线经验仍走程序维护；原项目保持原样。
-- 原 references/framework-history.md 内容并回本文件。本文件是用户/开发者优化记录；新 run 不复制
-  框架或根目录 HANDOFF，也不复制开发历史参考。README/AGENTS/references 专注框架使用与规则。
-- 新 run 为 schema 4 / reflect-learning-v3。既有 run 与私有配置保持原版；使用各自固定程序，不能混用新版提交格式。
-
-验证与证据：hby/framework-checks/role-learning-alns-2026-11-06/。
-
-- 58 项框架/证据测试：55 通过，3 项可选依赖/输入跳过；5 项打包测试通过。
-  覆盖初始化与角色增量、学习来源/任务/检查绑定、旧目标修正、长期检索、跨节点筛选、缺输出与失败、
-  自适应嵌套预算、缓存、冻结实例、固定种子以及既有阶段与基线约束。
-- benchmark-final/：3 个合成布局 × 5 个种子 × 3 种算法，共 45 次运行；每次上限 256 个唯一评价、
-  1500 提案步，均未因墙钟停止。adaptive 对 lns 为 11 胜/2 平/2 负，对 anneal 为 11 胜/0 平/4 负。
-  松散布局改善更明显，紧凑重复结构中退火可能更优；不能据此宣称真实布局收益或固定首选。
-  原始 benchmark/ 保留修订前轨迹，最终统计采用 benchmark-final/；运行程序保存在 benchmark-final-code/。
-  随后的缓存命中标志修正仅改变轨迹标记，不改变评分与选择，最终测试及 demo-release 已复验。
-- demo-release/：最终版本固定程序的两轮合成执行、独立矩形检查、学习目标证据闭环、指令增量、五算法同基线比较，
-  最后从 candidate2 接续并 Reflect 关闭。初始 132、选中并构建 72 μm²；local 获选，adaptive 的 64 μm²
-  方案在面积+中心线长综合代理上更差。结果明确保留，未人为偏爱新增算法。
-  回复为脚本化协议夹具，不证明独立 AI 自主规划、语义创新或角色上下文隔离。
-- 保留用户原文与澄清、前后文件全文/差异、参考来源快照与指纹、开源研究链接及执行代码。
-  11 份被引用资料的指纹核对未变。未启动 EDA、未覆盖既有配置或实验。
-
-边界与后续：当前仍是最多 64 个模块的矩形/中心 HPWL 代理；引脚感知、拥塞、互连布线、
-标准单元引擎、真实电气和跨 run 经验导入未实现。下一步应针对真实模块显式建立引脚与障碍接口，
-在同一目标/证据契约下测试代理收益；新增操作仍需实际代码与检查，不能冒充任意操作已自动生成。
-学习目标长期保留是在 run 内完成，角色通用经验可随框架迁移；跨节点的物理结论须再验。
-
-完成上述检查后提交本地 Git，运行 scripts/package_workspace.py 原子覆盖唯一 hby/dcim-framework.zip。
-最终提交、包与证据核对见审计目录 completion.json。
-
-# 上一轮记录：Reflect 快速迭代
-
-更新：2026-11-06。当前规则见 AGENTS.md；本文件只记录当前实现与交接。
-历史开发记录归档在本文件后部；旧方案不覆盖当前契约。
-
-## 本轮完成：Reflect 快速迭代
-
-用户确定：搜索属于 Reflect 内部；每轮读取上一轮实际产物，AI 自主规划并选择/部署启发式算法，
-Reflect 选择执行方案，Builder 实现、Analyst 检查并提交短经验，再回到 Reflect。没有新增阶段。
-
-- 新运行契约：state schema 3、reflect-search-v2。既有 run 保留固定旧版，不迁移、不改写。
-- Builder 在实际生成的层次几何中回读实例身份、坐标、朝向和尺寸，保存 placement_state.json。
-  下一轮核对其与不可变 layout.json 一致。浮点变换检查仅容许 1e-8 μm 的算术舍入误差。
-- Reflect0 从 compiler/数字 flow 参考初始化；可显式给出 initial_placements。仅无初始坐标时采用单行参考种子。
-  其后每轮必须从立即上一轮 result 与 review 引用的实际候选开始，禁止回退旧轮次或重新分行。
-  默认使用 result 的 baseline_candidate；多个产物必须指定一个，显式选择其他产物也须同轮双方证据覆盖。
-  验证失败但仍有布局时带着失败状态继续修复；无布局时明确缺失，不伪造回退。
-- 新增模拟退火 anneal、局部改进 local、采样大邻域重排 lns；保留并改造坐标束搜索 beam。
-  共用 translate、swap、rotate、reinsert、cluster_shift，支持 movable_ids 冻结其他实例。
-- 共用固定评价器：原点起算外框面积 + 模块中心 HPWL；廉价检查矩形间距、边界和显式网格。
-  基线与候选同条件重算。搜索评分不是 AI 主观评分，也不是布线、电气或 DRC/LVS 验收。
-- 保存基线、目标身份、参数、每个唯一候选、操作轨迹、接受概率、停止原因和未选结果。
-  同状态复用评价；同请求复用已有搜索结果。每轮上限 8 次调用、10000 次评价、100000 次提案步、
-  60 秒已记录搜索时间；每调用预算还受剩余额度限制。随机种子不保证受墙钟停止时完全复现。
-- Reflect 专用经验指引：roles/reflect/SKILL.md，按任务与经验选择算法和操作。
-  主 SKILL.md 保留 improve 2 的通用经验，仅调整入口链接。指引、框架规则、路线记忆分开维护。
-- planner.py 保留稳定入口；scripts/search/ 分离状态/评分、操作、算法与实际基线读取。
-  初始化固定整个程序包；移除没有调用者的重复 run/design 工具副本。
-  上下文只返回本轮搜索摘要、上一轮基线及最多 8 条历史路线摘要；指令按文件增量，角色切换不重发通用规则。
-  完整轨迹按需读取。
-- AI 自主提案仍每轮必做，包括初始和关闭；可用 plan_spec.placements 接入同一评价器。
-  旧路线、未评价的手填 plan、移动冻结对象的方案不能直接成为新 Builder 任务。
-  经验格式不变；程序附加 search_context 关联搜索与基线，避免 AI 重写可推导元数据。
-
-## 验证与证据
-
-审计目录：hby/framework-checks/reflect-search-2026-11-06/。
-保留用户请求及附件、变更前后全文、差异、测试与合成演示；未提交 EDA。
-
-- 框架/证据测试 52 项：49 通过，3 项可选依赖/输入跳过；打包测试 5 项通过。
-- 重点覆盖：上一轮实际坐标精确接续、失败轮次接续、旧基线/篡改/缺失输出拒绝、多个候选选择、
-  冻结对象、SA 接受较差状态但保留最佳、四算法、预算与缓存、初始布局缓存区分、非零源坐标浮点变换。
-- 主经验与 Reflect 指引格式检查通过。
-- 两轮合成演示：固定一个 SRAM，四算法共享上一轮布局，独立矩形检查实际构建结果。
-  外框由 132 到 72 μm²；另有 64 μm² 候选，但面积+中心线长综合评分较差。未推断真实工艺收益。
-  随后搜索自动以 candidate2 为基线，最终完成 Reflect 关闭。
-  回复为明确标注的脚本化协议夹具，不作为 AI 创新能力或独立 AI 上下文验证。
-
-## 下一步与边界
-
-实际使用入口与输入格式：[runtime.md](dcim-self-improve/references/runtime.md)。
-新任务从当前版本初始化，使用 run/scripts；旧实验和参考目录保持原样。
-已有配置由 agent 维护；具体精度、工艺、电气与验收条件须按设计任务确定。
-
-当前仅实现模块级坐标布局搜索，最多 64 个实例。没有真实引脚/拥塞评分、自动互连、标准单元引擎、
-EDA 调度或晶体管拓扑搜索。新增操作通过普通 Builder/Analyst 迭代实现与验证；没有任意代码自动登记能力。
-需要先接入明确工艺、模块与实际参考，补引脚/障碍/布线评价，再判断代理收益是否兑现。
-设计实例或网表变化需要显式构建能力；不能用放置搜索冒充结构重设计。
-框架测试不授权 EDA，外部 DCIM/PDK/compiler 只读，保留 learn 与所有既有实验。
-
-## 交付
-
-本轮检查后提交本地 Git，并运行 scripts/package_workspace.py 原子覆盖 hby/dcim-framework.zip。
-只发布当前框架，私有配置、PDK/compiler、运行产物和审计记录均不进入 Git/ZIP。
-
-
-# 更早开发记录（原 framework-history.md）
-
-# Historical framework decisions through 2026-11-05
-
-Read only for provenance or an explicit unresolved historical requirement. Current
-rules and implementation status are in the repository AGENTS.md, HANDOFF.md and
-references/runtime.md. Older plans below are not claims of current capability.
-
-# DCIM 框架交接：Reflect、路线记忆与程序约束
-
-更新日期：2026-11-05，America/Los_Angeles。用途：框架仓库的实现交接；完整决策与数学记忆在本文件，hby 根目录 HANDOFF.md 提供本地入口。
-
-## 本轮补充：经验指引恢复与 AI 自主思路
-
-SKILL.md 从 improve 2 原文恢复经验主体，去除固定节点/分组/旧种子入口；
-将框架调度步骤归入 AGENTS，并仅同步 Reflect 职责、失败归档等已确认变化。
-本轮未改动路线记忆格式和已有实验，原始 improve 2 保持不变。
-
-Reflect 的输入通道仅为 AI 自我反思及真实算法提案。request 不再接受 feedback，
-reply 不接受 human 来源；每次 reply 的 self_proposal 必须指向 proposals 中的新 AI 提案，
-包含差异说明、机制、预期、证据、最小验证和停止条件。包括初始、失败、继续与结束。
-可以选择算法路线，但仍须保存自己的新思路；没有必要每轮执行两条路线。
-程序能拒绝缺项、空白和逐字复用，不能据此保证科学创新性。
-
-现有启发式算法未在本轮换算法：Python 单进程 CPU 的多样性束搜索，
-候选表示为排列、行分割、允许旋转，目标为包围盒面积与中心 HPWL 代理。
-保留所有评价和停止原因；没有调用 GPU、LSF 或真实 EDA，也未生成晶体管拓扑。
-契约版本 ai-self-proposal-v1；旧 run 的固定程序与历史请求保留，当前规则用于新 run。
-本轮验证：20 项流程回归、5 项打包测试全部通过，skill 格式与文档链接检查通过。
-合成搜索解释例实际评价 40 个状态，保留面积64/68/91/104的四条不同结构路线；不代表全局最优或工艺结果。
-修订证据在 hby/framework-checks/reflect-ai-only-2026-11-05/。
-
-## 当前实现更新：2026-11-05（优先于下面的历史实施计划）
-
-用户明确要求升级而非全盘保留，重点是程序化、统一短记忆、AI自我反思与启发式搜索、Reflect0学习。
-当前补充要求覆盖上一轮三来源设计：Reflect移除人工输入，每轮必须有AI自主新提案。Python 可采用新版，
-本轮核心程序同时在现有 3.8 上运行，未将解释器升级作为开发阻塞。
-
-- 已吸收 improve 1 的 project/configure、history、通用 geometry；保留 improve 2 的 evidence 检查和阶段/路线检索原则。
-- 已删除当前树的 assets/seed 及其固定 12FFC/四 SRAM/算术假设测试；旧版在 Git。重写角色、布局顺序、来源等规则，通用入口无工艺默认答案。
-- 新 run 原子建立并复制 scripts、通用工具和指令。正常调用使用 run/scripts，context 的 token 返回变更部分，避免每轮读源码。
-- learn.py 从 compiler/digital-flow 的 GDS 或捕获 JSON 提取层次、尺寸、标签、排列及层数；Reflect0 两类观察齐备才生成请求。观察不等于电气验收。
-- planner.py 实际执行有预算的多样性 beam search，组合交换、迁移、分行/合行、允许的旋转及重启；保留全部候选、来源、预算及停止原因。目标仅为几何面积和中心 HPWL 代理。
-- builder.py 生成并执行独立 draw.py，留存输入、依赖、层次 layout.json、layout.svg 和日志；AI 可用 plan_spec 提出同一表示内的新排列，算法候选由真实搜索生成。
-- workflow.py 强制 Reflect0→Builder→Analyst→memory→Reflect；请求/实际回复落盘、错轮次拒绝、重复提交幂等、结束必有反思。
-- memory.py 统一动作/经验/反思格式，每字段最多 240 字符，每次最多 6 条；默认检索最新适用记录，supersedes 修正保留旧版，原件存在 objects。
-- configure.py 由 agent 创建私有配置，支持既有 project/input_files schema。实际工艺与精度缺项仍显式存在，不妨碍已授权的规划。
-
-边界：固定入口以外的 shell 行为不受程序沙箱约束；协议不能证明 AI 思考质量或独立上下文。
-当前无 EDA scheduler adapter，无晶体管拓扑搜索、自动连线或实际电气目标；未提交 EDA。
-可选 GDS/波形依赖未安装的验证按 skipped 报告。合成版图用于框架验收，不冒充 compiler/digital-flow 实测设计。
-验证：框架/证据共 28 项（25 passed，3 optional skipped），打包 5 项通过，skill 格式检查通过。
-真实主对话 AI 通过两轮合成请求/回复：第一轮算法路线4×16，读动作记忆后由AI指定只取消旋转的控制路线4×17；
-独立矩形oracle确认叶面积54且无重叠。Reflect2已结束演示。未执行独立AI上下文审核，不冒充真实PDK学习。
-运行契约见 dcim-self-improve/references/runtime.md；外部修订证据见 hby/framework-checks/upgrade-2026-11-05。
-
-下面保留历史决策和数学定义；其中“尚未实现”“保留全部种子”等历史状态，以本节及本轮验证记录为准。
-
-## 1. 先读：当前版本与任务边界
-
-- 当前唯一框架迭代主体为 `/home/users/JiaLab02/hby/dcim-framework`，已建立本地 Git。实际 skill 根为其中的 `dcim-self-improve/`，从用户确认的较新 `dcim-self-improve-2/dcim-self-improve` 导入。后续在本仓库实现，不能继续修改参考目录。
-- hby 主目录中的 `dcim-self-improve`、`dcim-self-improve-2` 及未来更多 improve-n 均作参考。保留现有框架结构与有效流程，不自动同步参考目录或 TSMC starter。
-- `dcim-self-improve-fix` 是此前按用户要求建立的讨论副本；当时实查相对基础目录只新增 README、改变 AGENTS/SKILL/角色显示说明。该路径是历史背景；本次收尾时 hby 下已没有该目录，不恢复它。
-- `-fix` 目录及上述入口文件的 mtime/ctime 集中于服务器 `2026-11-03 22:00:28 +0800`，对应洛杉矶 `2026-11-03 06:00:28 -0800`。结合 README 可推断副本在这一时段建立；文件系统 birth time 为不可用，不能声称获得了精确创建时间。
-- 本次收尾已完成框架迁入、Git 建立、README 移动并重写、两层 AGENTS/HANDOFF 更新和覆盖式打包入口。下一轮仍须完成真实 Reflect 调用、初始化检查与记忆约束；文档、模板或固定“下一步”不能算实现。
-- 每次完成框架迭代后更新 AGENTS（有规则变化时）及 HANDOFF，完成相关检查与本地提交，再从仓库运行 `python3 scripts/package_workspace.py`，覆盖 hby 下唯一的 `dcim-framework.zip`。旧版本保存在 Git，ZIP 不另增编号、不生成 sha256 文件。
-- 框架检查不授权 EDA 作业。默认在 `/home/users/JiaLab02/hby` 内工作；原 DCIM、PDK、compiler 与其他外部资料只读，保留 `learn/` 和既有实验。
-
-### 本次收尾的验证与续接
-
-- 打包程序的 5 项合成测试通过：重复覆盖、私有/缓存/Git 排除、拒绝链接并保留旧包、发布失败保留旧包并清理临时文件、拒绝输出到源码目录。
-- skill-creator 的 quick_validate 通过；框架 README 与 AGENTS 均为英文。导入 skill 的非缓存文件名集合与 `-2` 相同，仅 SKILL 增加当前入口说明，其他文件逐字节一致。
-- 原详细决策、数学记忆保留；根 README 已移动；本地 Git 首次提交保存原始导入，后续提交保存收尾修改。未设置远程仓库；提交使用仓库本地的 DCIM Framework 技术身份，可按用户需要调整作者设置。
-- 后续执行打包与记录 Git 提交结果即完成本次收尾；包验证结果及当前提交记录在 hby 的 `framework-checks/closeout-2026-11-04.md`。下一项功能工作仍按第 7、8 节实现初始化和 Reflect，不重复进行目录迁移。
-
-## 2. 已确认要求：不要再次丢失
-
-1. 路线记忆与结构化记忆共同构成记忆系统。阶段/路线索引控制检索范围，固定字段控制写入内容；文件契约、程序入口、状态检查共同构成 harness。
-2. 保留三个逻辑角色：Reflect、Builder、Analyst。Reflect 可由主对话或独立 AI 上下文承担；程序负责调度和约束，不再增加记忆员、压缩员等角色。
-3. 每个有意义的 Builder→Analyst 轮次之后都必须 Reflect，并保存精炼反思。成功、失败、无改进、继续原方法、阶段结束都不例外。“必要时才反思”是此前助手的误解。
-4. 顺序必须是 Analyst 审核 → 写入精炼动作/经验 → Reflect 读取新记忆并选方法 → Builder 执行。不能先反思后补记忆。
-5. Builder 提交精炼的成功动作；Analyst 审核适用范围与证据。失败及不确定观察可成为经验，不能标成成功动作。
-6. 三类记忆均须短，允许动作/经验无新增；每轮仍保存审核绑定与反思。写入时直接采用短格式，不另设一次 AI 压缩。
-7. 程序自动保存各角色可观察的输入输出、提示词版本、命令、参数、候选、作业和证据引用。无需各角色重复写行为日记，也不收集隐藏推理。
-8. Reflect 仅使用 AI 自我反思与真实启发式搜索。每轮自主提出可检验的新思路（差异、预期、证据、最小实验）；职责从 Analyst 移交 Reflect。用户目标与授权仍由框架合同管理，不作为 Reflect 的人工方法输入。
-9. 每个设计迭代的实际电路、已生成版图、执行代码、参数、测试、失败方案和提示词变更必须保留。精简默认检索内容不等于删除历史材料。
-10. 保留“通用方法/工艺绑定细节”的适用范围分类。它与“动作/经验/反思”的用途分类正交；条件化 DRC、排列、共享边界、tap 归属等仍需绑定工艺和原始证据。
-11. 程序要“完整化”：常规调用通过稳定入口完成上下文准备、执行、校验与记录，禁止 agent 频繁重读/改写程序和文档、临时拼接读写脚本来维持流程。按阶段集中读取、按约定边界提交，具体要求见 6.1。
-
-## 3. 按时间展开的循环
-
-```text
-初始化检查 → Reflect₀（没有上一轮时建立初始方法）
-            → Builder₁（执行、搜索、局部修复；提交动作提案与证据）
-            → Analyst₁（独立审核）
-            → 程序提交短动作/经验记忆₁
-            → Reflect₁（必做；保存短反思，选择下一轮方法）
-            → Builder₂ → Analyst₂ → 提交短动作/经验记忆₂
-            → Reflect₂ → ……
-```
-
-Reflectₜ 是本轮收尾及下一轮方法来源。程序记录贯穿全程，不增加 AI 角色。
-普通脚本修复或一次路由重试留在 Builder 的有界任务内，不为每个坐标改动创建新角色循环。
-算法内部一步不等于一次设计迭代；一轮可包含多个候选，实际测试的候选要可追溯，已有材料不能只留最优者。
-阶段收敛后选择一次约定完整验证批次；验证结果仍审核、入记忆、反思。同一设计的后续验证是追加证据，修复改变电路时记录新版本。
-
-## 4. 记忆的结构与读写
-
-沿用 `references/experience-memory.md` 的阶段→工艺/规则域→模块/接口→路线检索；保留 active、deferred、refuted-in-scope、superseded 及替代关系。
-优先读小索引、当前路线摘要和相关条目；非活动路线默认只读摘要，需要改变决策的具体问题才展开证据。
-用户原则、项目约束与 AI 实验记忆分开。多个路线可以并存，暂缓不代表错误。
-
-| 类型 | 提交/审核 | 最小语义内容 |
-| --- | --- | --- |
-| 动作 | Builder 提案，Analyst 审核 | 适用条件、操作/参数、验证范围、证据 |
-| 经验 | Analyst | 单一结论、作用机制或未知原因、适用限制、证据/替代关系 |
-| 反思 | Reflect 每轮提交 | 方法与预期偏差、替代解释或遗漏自由度、下一方法与最小区分实验 |
-
-通用元数据由程序补充：轮次、模块、路线、版本、来源角色、审核状态和引用。不要让 AI 重写可从工具取得的字段。
-每轮刷新审核绑定；无新增用明确 disposition 表示，不追加重复结论。反思继续原方法时也须有本轮依据。
-同因合并，纠正结论采用新修订及 supersession；当前摘要可由程序更新，旧审核、实验与记忆修订保留。
-动作的“成功”只覆盖实测范围：仅几何/DRC 通过不能写成电气正确。失败解释不确定时必须保留 uncertain。
-结构化写入口需限制字段、条数、长度与引用，缺项/超长拒绝写入；具体阈值在实现中集中配置并测试，不在多份模板各写一套。
-不要另造与现有路线知识库互不关联的三套大目录。三类条目可以通过 type 和引用加入现有组织。
-
-## 5. Reflect 的可执行契约
-
-- 输入：本轮 Analyst 审核与实际证据摘要、已提交的动作/经验修订、上一轮反思、当前任务和接口、预算/作业状态、AI 自主提案和真实算法提案。
-- 提案来源：AI 每轮自主提出的可检验假设；有界算法搜索真实生成的候选/统计。AI新思路必须提交，算法未运行时明确缺失，不能捏造。
-- 每个提案用统一字段表达：改什么、适用条件、证据状态、预期收益/未知量、决定性检查、成本与停止条件。
-- 比较具体方法及同口径证据，不笼统评判“AI 与算法谁更好”。无可比实测数据时选择区分实验，不宣布优劣。
-- Reflect 可读取已有搜索结果或请求预算内的轻量候选生成；实际 EDA 由 Builder 的统一执行入口管理。Builder 可直接修正，也可执行一批启发式搜索，无需 AI 参与每一步搜索。
-- 保留 `-2` 在结构选择时比较机制不同候选的有效要求；普通修复不制造竞争者，每轮反思也不等于每轮启动两条昂贵实现。
-- 输出：短反思、明确方法/路线、选定任务与候选来源、最小验证、预算/停止边界及自主新思路标识。选择可能错误，由下一轮实验证伪或修正。
-- 程序必须调用可用 AI 接口，或输出明确 AI 请求并接收/校验真实回复后续跑。没有调用能力时停在 awaiting_reflect，不能固定选下一任务并宣称完成 AI 反思。
-- 允许继续、修复、改结构、补观察、阶段验证或结束；即便结束，最后一轮也要有反思。任务目标变更时由框架保存新合同并重验受影响条件。
-
-## 6. 初始化与运行约束：必须实现，不只写说明
-
-初始化分“可规划”和“可执行当前阶段”，检查结果不能只用一个宽泛的 ready 表示。
-
-| 检查 | 至少需要确认 |
-| --- | --- |
-| 入口/恢复 | 正确框架根与本交接、用户指令；已有 run、计划、交接和最新完整记录；可恢复阶段；不能重复提交已有作业 |
-| 路径/范围 | 相对路径以配置文件解析；输出属于工作区；外部源只读；禁止覆盖既有轮次 |
-| 总任务/模块 | 8 输入、8 输出、存算比 8 的计数定义；精度、工艺、目标/单位、接口/尺寸；缺失项显式列出 |
-| PDK/参考 | release、stack、模型、deck、compiler 与独立电路源的实际匹配；发现路径不等于输入有效 |
-| 工具/资源 | 实际 Python 与依赖版本、调用入口、EDA adapter、调度器、已归属作业及预算；检查本身不隐式启动 EDA |
-| 验证/历史 | 当前阶段的检查集、完整验证范围、设计/提示词标识和证据绑定；旧结论是否因变更失效 |
-| AI/程序接口 | Reflect 请求/回复可衔接，角色工具调用经过可记录入口；结构化写入与断点恢复可用 |
-
-初始化允许缺资料时继续已授权的规划，拒绝受缺项影响的执行；不以空字段或路径存在伪造通过。
-调度顺序必须校验：Builder 结果 → Analyst 审核 → 记忆提交 → Reflect 结果/反思提交 → 下一任务。
-使用显式校验与异常，不能只依赖可被优化模式禁用的 Python assert。原子提交、阶段绑定和重复请求识别需防止中断恢复时重复记录/重复作业。
-程序可保证经过入口的状态和格式，不能仅靠文件清单证明所有行为已被约束，也不能用字段齐全证明 AI 思考质量。
-
-### 6.1 完整程序与有限读写
-
-- 将上下文装配、结构校验、证据索引、状态推进、记忆提交和历史记录封装在可复用入口内。正常一次调用返回简短结果、当前状态及必要引用，agent 不必逐个打开文件确认或手工同步多份文档；入口遇到 AI 决策边界时返回明确请求，不能越过决策。
-- 初始化或角色进入任务时集中读取必要指令、配置、路线摘要与任务包；同一任务内复用带版本的上下文。后续只读变更内容或与当前问题相关的证据。版本变化、恢复运行或明确诊断需要时才刷新相关部分，避免反复全量扫描。
-- 已验收程序作为稳定工具调用；正常运行不重读源码、不临时生成等价解析/读写程序、不反复改说明文档。源码或指令调整作为明确的有界修订，保留版本并验证后再使用。实际电路生成代码的设计迭代仍按任务需要进行。
-- 结果、记忆和交接由程序在规定阶段边界集中提交，避免 AI 在每个微小动作后逐文件写总结。保留“Analyst 审核后提交动作/经验，再由 Reflect 读取；Reflect 完成后提交反思，再派发任务”的顺序，不能为减少写入把所有提交拖到最后。
-- 自动审计在程序内部收集和批量落盘，外部作业提交信息及必要恢复检查点及时持久化；不能因缓存丢失作业归属或复现材料。Analyst 对必要原始证据的独立检查照常执行，不能用减少读取替代验证。
-
-## 7. 复用位置与最小实施顺序
-
-以下路径相对当前框架根；拟新增文件仅是实现建议，尚不存在。
-
-| 现有位置 | 处理方式 |
-| --- | --- |
-| `SKILL.md`、`references/builder.md`、`references/analyst.md` | 保留有效框架，厘清三个职责；把路线选择移交 Reflect；修正与本交接冲突的旧规定 |
-| `references/experience-memory.md`、`templates/experience.md` | 扩展结构化类型与短写入约束，保留路线检索与生命周期 |
-| `references/task-admission.md`、`references/stage-progress.md` | 为 Reflect 提供实际比较和阶段信息，避免重复建立决策账本 |
-| `scripts/init_run.py`、`scripts/check_inputs.py` | 扩展真实入口检查和恢复；复用已有配置读写，不另写同功能解析器 |
-| `scripts/evidence.py`、`tests/test_evidence.py` | 复用支持的报告/几何/波形与依赖检查；freeze 是指纹清单，不是实际电路快照 |
-| hby 中参考框架的 `scripts/history.py` 及相关契约 | 参考并按兼容性复用实际迭代、提示词、追加证据保存能力，不整体覆盖当前框架 |
-| 拟增 Reflect/状态调度及记忆写入口 | 只补缺失能力；可选 `scripts/reflect.py` 与 `scripts/memory.py`，共用既有工具；无需每个逻辑角色对应一个服务 |
-
-实施顺序：先初始化与结构契约 → 实际 Reflect 请求/回复和循环约束 → 记忆/自动记录/历史衔接 → 无 EDA 的端到端验证 → 获得相应实验指令后接真实设计任务。
-用户允许基于证据修改工作区框架及 EDA skill，保存前后指令、差异和验证。`-2` 中“角色指令固定”及“只留失败经验、不留分支档案”等冲突表述须按最新要求修订。
-保留当前 `-2` 内容，不自动删除其种子代码。其 12FFC、四 SRAM 分组等不能被初始化静默套用于 TSMC 22nm；先标明适用范围并与项目配置核对。
-日常迭代用几何、适用 DRC/LVS 与必要短仿真，模块选定版本做一次完整约定批次，最终宏另验；失败修复仍重验受影响项。先模块学习，再整体重设计，不能将模块最小简单拼接等同宏最优。
-
-## 8. 下一轮验收：完成含义
-
-- 未初始化、缺少阶段输入或引用错误时，程序拒绝相关执行；规划仍可进行。
-- 至少两轮无 EDA 的演示经过真实 AI Reflect 接口，第二轮能接到第一轮已提交记忆；明确区分模拟证据与真实设计结果。
-- 成功、失败、无新增知识、继续原路线、提出新假设和阶段结束，都有本轮短反思；缺反思或记忆提交时不能派发下一轮。
-- 无效、超长、错轮次、缺证据回复被拒绝；中断后可恢复，重复提交不重复执行。
-- 失败设计与提示词修订不被覆盖；独立审核和现场证据能对应具体版本。
-- 算法未运行、模型缺失、估算指标与未完成验证保持明确状态；不能变成成功记录。
-- 自动记录覆盖实际接入入口的角色和工具调用；记录缺口显式报告。测试程序规则不等于证明版图优化收益。
-- 验收完整调用路径：常规两轮运行无需 agent 重读框架源码、重写辅助读写脚本或逐文件同步文档；程序输出足以续接。验证变更后定向刷新、阶段提交顺序以及中断后的必要记录仍然有效。
-
-## 9. 本机已知条件与限制
-
-先前只读检查与小型数值实验确认：可用 Python 3.8.10、NumPy 1.19.2、SciPy 1.4.1，差分进化完成 45 次合成目标评估；没有启动 EDA，也未验证真实布局优化。
-找到 Cadence、Calibre 和 LSF；调度器报告的 hpc01 总容量不等于本任务配额，许可证与接口按执行阶段检查。
-`-2` 文档要求物理生成/证据工具 Python 3.10+，与上述环境存在版本差异，初始化必须确认可用解释器或经验证的兼容方案，不能直接假定所有脚本可运行。
-实际还需设计编码、合法变换、版图生成/导出、EDA 调用和报告到目标函数的连接。搜索库可用不等于晶体管布局布线闭环已完成。
-
-## 10. 数学化表达与数学记忆（不得再遗漏）
-
-数学化首先要求操作和判断可执行、可测量，而非给自然语言附加公式。以下是实现契约的建议表达，不是已验证优化算法或固定工艺答案。
-
-**状态与动作：** 令 x 为带版本的电路/布局状态，k 为 PDK、接口和验证条件。动作 a = (o, θ, Ω) 指定操作 o、参数 θ 和作用范围 Ω：
-
-\[
-x' = T_o(x;\theta,\Omega),\qquad P_o(x,k)=\mathrm{true}.
-\]
-
-P_o 是前置适用条件；执行后仍需独立检查连接、工艺与任务约束。可研究的操作包括对齐、合法排列/朝向、折叠、分组拆分/组合和布线资源配置；每种操作先定义变量域及保持条件，不能默认共享边界或拓扑变化天然正确。
-
-**动作记忆：** 保存可重放的短记录
-
-\[
-m^A=(k,P_o,o,\Theta,\Omega,V,E),
-\]
-
-其中 Θ 是得到证据支持的参数/范围，V 是实际通过的验证范围，E 是不可混淆的版本/证据引用。未经覆盖的参数区间不能从一次成功外推；代码和详细几何留在引用的原件中。
-
-**Reflect 与搜索：** 定义已审核经验 M^E、反思 M^R 和本轮审核状态 s_t。程序在记忆提交后调用 AI：
-
-\[
-(q_{t+1},m_t^R)=\operatorname{Reflect}_{AI}
-(s_t,M^A_{\le t},M^E_{\le t},M^R_{<t},C_{AI},C_{alg}).
-\]
-
-C_AI 必须包含本轮 AI 自主新思路；C_alg 为实际算法提案，可为空。二者保留来源和证据状态。q 包含路线、允许动作集合 O、目标版本 J、预算 B、验证计划与停止条件。每轮都产生 m_t^R，q 不一定改变路线。
-Builder 根据 q 直接实现，或调用有界程序搜索：
-
-\[
-X_{t+1}=\operatorname{Search}(x_t;\mathcal O_{t+1},J_{t+1},B_{t+1},\mathrm{seed}).
-\]
-
-搜索返回候选集合与终止原因，可能没有合格候选。保存随机种子、算法版本、参数、评价次数、候选身份和实际证据；不能宣称固定种子保证跨工具/平台完全确定。
-
-**评价与硬约束：** 合格集合按实际阶段定义
-
-\[
-\mathcal F_v=\{x:\operatorname{Checks}_v(x,k)=\mathrm{passed}\}.
-\]
-
-筛选通过与完整验证通过对应不同 v。功能、适用工艺规则、接口以及约定的电气约束不能用目标权重抵消。目标可选择面积优先，也可在已匹配且已测量的数据上使用：
-
-\[
-J(x)=w_A\frac{A(x)}{A_{ref}}+w_D\frac{D(x)}{D_{ref}}+w_E\frac{E(x)}{E_{ref}}.
-\]
-
-权重、正的归一化参考、面积边界、PVT/负载和验证范围须先声明。缺测不能填零；几何/线长等代理目标使用独立的估算标记，不当作实测时延或能耗。结果只支持已搜索范围，不能因收敛宣称全局最优。
-
-**经验与更新：** 经验记录“条件→观察/机制→证据→限制/修订关系”，不编造概率置信度；反思记录“原方法与偏差→替代解释→下一可检验选择”。程序对本轮提案执行有长度约束的审核提交：
-
-\[
-M_t=\operatorname{CommitBounded}(M_{t-1},\Delta M_t,\mathrm{review}_t),
-\]
-
-审核拒绝或无新增时保留处理结果，历史版本不丢失。之后 Reflect 读取 M_t，再提交本轮 m_t^R；这明确区分每轮反思、知识更新和全量行为存档，且不存在额外压缩轮次。
-
-### 本轮收尾验证
-
-最终软件检查123项，120通过、3可选跳过；打包测试5通过，skill检查通过。独立Analyst2通过修复范围。framework-test独立副本完成一轮完整物理重建、独立Analyst审核与经验、最终Reflect关闭；原始DRC仍失败，源LVS/ERC及限定行为检查通过，未给完整物理资格或新算法物理收益结论。
-
-真实参考域20次算法验证显示粗粒度无改善，局部端点域找回已知最佳代理；这支持下一步改进约束保持动作与真实参数映射，不支持普遍算法优劣结论。全部节点细节和原始证据只在framework-test；上游仅保留通用经验与能力边界。代码被测版本74493ad，后续收尾只更新文档。
-
-## 2026-11-09：先方案后实验的局部构造计划桥接
-
-用户要求在framework-test基于8×4继续细粒度修正，先完善方案。只读核对前级最新完整宏参考后，独立方案Analyst通过受控局部修复转移方案；未以旧a06失败控制的坐标直接修补不同布线版本。节点材料化与经验只在私有试验。
-
-通用接口增加显式required_stages和construction_plan证据绑定，允许诚实标注postroute_materialize，未把它冒充APR。独立实现审核发现消费计划副本可能漂移的P2；Reflect后增加每次操作/冻结前原副本哈希校验，新增可移植反例，二次独立审核通过。127项回归124通过3可选跳过，5打包检查通过。下一真实实验仍需完整物理证据；上游无节点尺寸/配方。
-
-
-## 2026-11-10 局部构造计划验证与最终收尾
-
-通用代码版本b7cb705。先完成独立方案与实现审核，再以私有完整模块执行受控已知修复。独立Analyst审核实际输出、注册对象、原始PV和输入，提交3条经验后，最终Reflect关闭单轮测试。当前仅支持精确来源绑定的动作物化，不宣称一般粗细搜索到物理重构、器件优化或PPA收益。
-
-物理审核发现私有runner把后续更新的结果索引放入启动依赖，导致历史全依赖冻结声明不成立。实际设计和规则输入另行逐项核对，限定检查结果与该记录缺陷分别保留。原始run未重写；私有后续版只捕获不可变构造输入与本阶段inputs/PV/deck及外部规则，独立软件正反例审核通过，未追加EDA。两粒度指南补充这项通用输入/输出职责边界，节点实现留在私有目录。
-
-上游回归127项，124通过、3可选跳过，打包测试5通过。私有原始9项及后续6项回归共15项通过，独立Analyst另行执行6项新增mock测试。实验完整过程Builder→Analyst（审核＋记忆）→Reflect，整体incomplete限制及失败保留。两个提示版本与一个设计迭代共3条history完整性通过，哈希仅证明保存字节和引用。具体实验报告和原始证据位于framework-test，未进入Git/ZIP。
-
-最终Reflect提出从已审核实际产物提取source-anchored seam/body/pin/track约束覆盖图的后续假设，暂缓执行。后续先补充约束覆盖与真实操作域，再选算法及预算，不从旧几何模板重启或跨节点继承通过。
-
-
-## 2026-11-10：真实父输入与动作准入的软件验证
-
-新增可选physical-action-guard-v1，与固定construction plan并用。适配器预先固定父GDS/CDL/DEF、精确动作/参数和affected/frozen条件；计划不能少查、降级或换动作。每个check绑定对应动作、父输入和独立捕获的结构化JSON观测；prepare/submit/collect/finalize重验原对象及消费副本，最终witness覆盖三输出。保持旧配方与旧run固定版本。
-
-独立Analyst实跑57项反例/正例并核真实输入7例；原全回归131项128通过3可选跳过，打包测试5项通过。私有完整8×4只读诊断独立复算202instances/1642formals、136nets/434endpoints、32native/192WL-BL与70局部pin点一致，9控制保留。没有新EDA、掩膜改动或PPA收益。节点配方/原始数据只在实验private与框架外audit目录。
-
-守卫只执行被审核适配器显式列出的条件，不自动推断遗漏影响域，不证明观测科学真实性或配方遵守动作，更不是物理签核。当前仍缺通用物理decoder、重构及全PN/body/父级接入/MOS验证。最终Reflect提出从source-owner邻接图派生必查条件并诊断故意漏条件的下一假设，deferred。审计hby/framework-checks/action-guard-2026-11-10/；选定接口plan.json，未选域集方案及并发现场亦保留，未升级旧run。
-
-
-## 2026-11-12 Integrated workflow development checkpoint
-
-The accepted improve-3 alignment plan introduces initial-plan and reviewed-decision
-through workflow.py. The entries reuse locked review, bounded memory, search,
-baseline and reflection admission. They require an actual supplied AI reflection
-and permit diagnosed mechanism reuse. Legacy commands keep their old contract.
-New main runs pin coarse capabilities and reject fine/transistor selection. New
-pro runs retain the existing ea525fd hierarchy and physical-consumer implementation.
-
-Reference intake now binds actual source roles, exact bytes/top/context/purpose,
-independent circuit dependencies and observations. Cross-node organization-only
-references cannot supply implementation geometry or process goals. Architecture
-tasks bind H/W, functional rows/phases, intended direct PP/NP bands, instance
-order/transforms and ownership. Actual mask/body/access extraction is delegated
-to scoped private checkers. Declared consistency and evidence identity do not
-constitute physical qualification. No EDA or new search algorithm was run/added.
-
-Development validation and failed attempts are retained in the external
-framework-checks/improve3-alignment-2026-11-12/builder audit. The first expanded
-suite caught unconverted legacy abstract campaign fixtures after adding the
-main profile guard. Fixtures now opt into their explicit compatibility API.
-Final independent assessment, branch commits and package verification follow.
+# Developer handoff
+
+## Improve-3 portable main migration, 2026-11-12
+
+This main was rebuilt directly from the read-only improve-3 package. The source
+manifest is preserved in the external migration audit. Role references, context
+dispatch/evidence readers, task/result/decision/memory templates and their focused
+regressions derive from that package. The source-specific seed tree is excluded.
+LICENSE and the older verified atomic package runner/tests are retained.
+
+Generic adoption includes bounded connected Builder tasks, task-scoped context,
+AI-selected resources, stage/node/module/route experience lifecycle, required
+physical architecture intent, functional rows/straight PP/NP/shared TAP/body and
+interface constraints, and complete parent-area accounting before expansion.
+Analyst combines review, experience, actual concise reflection and next action.
+
+Main differs from improve-3 in these executable/content areas.
+
+- Replaced seed-dependent initialization with explicit stage resource sets,
+  configuration-relative paths, targeted missing/stale input rows and optional
+  declared private recipe closure or an empty initial design.
+- Adopted proven earlier practices of unique atomic publication, pinned initial
+  code/instructions/config, exact input reference identities and state-aware retry.
+  These are small stdlib helpers. Legacy runtime engines remain on their branches.
+- Removed active native-device generator/router/arithmetic/macro-topology code,
+  source-specific optional replay, hardcoded node addresses/dimensions/rules,
+  fixed group/decoder organization and model/runner defaults.
+- Kept evidence.py's exact frozen-dependency and reader contracts. Dispatch keeps
+  explicit selection/overview/prepare/open/record behavior, adds the configuration
+  helper to bound dependencies, and uses Python3.8-compatible path containment.
+- Ordinary repair has no mandatory paired-screen or new-mechanism requirement.
+  Native fresh-context settings are reported according to the actual API.
+
+## Branch boundaries
+
+`coarse` extends d6b0ec59366e1b4d0396b685488a16c5aa86905f.
+`coarse_fine` extends ea525fd1fa07845788e265223f534d2b7cb02649.
+Their executable loop/action/physical/hierarchy APIs are preserved and their
+selected improve-3 guidance is scoped to compatible generic task/context ideas.
+`pro` preserves the prior d6b0ec5 checkpoint. Old experiments retain fixed code.
+Original interrupted merge metadata/bytes were preserved by Main before aborting
+that merge. This migration does not relabel its work as an accepted fine result.
+
+## Verification and limits
+
+Builder tests, source-ready snapshots and exact results are recorded in the
+external `improve3-portable-2026-11-12/builder` audit. Main uses the available
+Python3.8.10 standard library for init/check/dispatch/PV/wave. Optional GDS and
+verified virtuoso-bridge tests are skipped when their dependencies are absent.
+No packages were installed. No EDA or physical optimization was executed.
+
+The initial manifest validates pinned inventory and byte identity. It requires
+an externally retained expected digest for authenticity. Only declared stage
+reference files are frozen. Editable later design/results need their own task
+snapshots. Optional recipes depend on their declared closure and private checks.
+Whole-run initial verification relocates with unchanged external addresses.
+Prepared dispatch/evidence schema-v1 packages keep absolute-path bindings and
+must be newly prepared after relocation. The package has no scheduler or
+automatic physical semantic checker and supplies no qualification claim.
+
+Pending independent Analyst review, experience and actual final reflection are
+owned by Main. Final package/publication remains pending that review. The user
+pushes GitHub. Do not update old pinned runs during this development task.
+
+## Builder review checkpoint
+
+The improve-3 source manifest SHA256 is `281326fb3d02425089b7238c399bc1384e4b2c28fb83bb7982f959c68c099687`.
+Main tests pass 29 cases with 2 optional dependency skips, comprising 27 executed
+passes. The package runner passes all 5 tests. `git diff --check` passes.
+The skipped cases require optional GDS dependencies or the verified
+virtuoso-bridge, respectively. Python3.8.10 was used. Detailed logs stay in the
+external audit. These are software checks with synthetic inputs.

@@ -1,7 +1,29 @@
-# Builder result
+# Builder Result
 
-Submit JSON through workflow.py result: round, task_id, outcome, summary, evidence.
-Keep generated code, source geometry, actual outputs and logs under candidate IDs.
-Report unexecuted or failed checks explicitly. Propose concise memory to Analyst.
+- Task / candidate / output root:
+- Change and intention:
+- Experience used: <source/scope -> adopted, adapted or not applicable -> concrete implementation/check affected; include relevant earlier mechanisms, not a generic read receipt>
+- Delivered block / local iterations / why stop or return:
+- Admission tier / actual execution: <screen/repair/compact/parent-observation/expand/qualify; authorized stages, costs and any requested boundary change>
+- Candidate screen results, if structural: <mechanism-distinct initial trials on common boundary, measured benefit versus hypotheses, rejection/defer reasons>
+- Macro-area account contribution: <actual net local gain, repetition assumptions, added costs/sharing unknowns and residual gap; not an unmeasured macro result>
+- Device sizing: <fixed/changed W/L/fin counts, legal/model basis, independent parameter correspondence and fresh affected checks>
+- Code / schematic / independent source / layout paths:
+- DRC: <status, scope, count and report>
+- LVS: <status, scope and independent source/report>
+- Actual area: <value, unit, bbox/context/routing definition and evidence>
+- Composition geometry, if applicable: <height/width, repeat pitch vs actual routed envelope, pin access, shared-edge/tap ownership; measured source>
+- Architecture compliance, if physical: <approved versus actual hierarchy/order/mirrors, common functional row and PP/NP boundaries, continuous straight bands including TAP seams; measured evidence and mismatches, separately from DRC/LVS; equal total height/zero overlap alone is insufficient>
+- Group-height arithmetic, if applicable: <whole LRCC/complete-adder organization against the task-declared storage group; functional row/column placements and access mapping versus OD/PO, dummy/termination and routing/PG spans; actual routed-width effect and untested packing>
+- Compactness, if physical: <reference/rules and initial compact construction; smallest verified W/H/area with scope; actual tighter-trial table/evidence, limiters, untested space and stop/compose reason; distinguish physical-only from fully qualified>
+- Schematic function / PEX / post-layout: <separate status, conditions and evidence>
+- Other decisive measurements or tool/policy tests:
+- Frozen evidence / reusable tool outputs: <manifest path/hash, tool version/hash and JSON paths; original reports and execution-input/job bindings; task-specific oracle; unsupported/incomplete scope explicit>
+- Time: <actual per expensive stage; queue time if known>
+- Uncertainties / implementation failures:
+- Experience submission (every round): <stage/route and proposed claims using experience.md; or explicit no-new reusable conclusion with supporting observation; Analyst assesses before shared-memory updates>
+- Jobs: <none, or explicit handed-over identity and collection instructions>
+- Instance handoff / finish: <this task's return boundary; source/layout/code/result bindings, tried mechanisms, unresolved issues and scoped memory for the next fresh task-scoped Builder; no full transcript or replay of completed EDA, even if the route continues>
 
-When multiple candidates are retained, specify baseline_candidate from this round.
+Use not_run/incomplete/failed/passed/not_applicable with reasons.
+Process completion alone does not establish verification success.

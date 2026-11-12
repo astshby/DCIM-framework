@@ -1,264 +1,133 @@
 ---
 name: dcim-self-improve
-description: Prepare, execute or resume reference-assisted DCIM self-improvement with bounded Reflect, Builder and Analyst roles, reusable Python tools and shared experimental experience. Use for DCIM design campaigns, not unrelated layout tasks or frozen-method baseline trials.
+description: Plan, initialize and execute reference-assisted DCIM improvement with bounded Builder tasks, scoped experience and integrated Analyst review and reflection.
 ---
 
 # DCIM self-improvement
 
-Use Main initial planning, bounded Builder implementation, then independent Analyst
-assessment, concise experience and actual reflection/next-task in the same context.
-Main admits the next architecture task. Use workflow.py initial-plan and
-reviewed-decision. Routine diagnosed repair may reuse its method. Actual reflection
-is required each round. The separately dispatched Reflect/novel-proposal sequence
-below documents the retained legacy request/reflect interface.
+Main owns initial planning and architectural admission. Builder implements one
+bounded connected block or decisive experiment. Analyst reviews the actual
+result, updates scoped experience, records an actual concise reflection and
+proposes the next executable task or closure. Main checks that decision against
+the authorized architecture, MUST constraints and execution scope.
 
-New main runs support coarse block/parameter planning. New pro runs additionally
-preserve fine/coarse/joint hierarchy and captured physical consumers. The profile
-is pinned per run. Read runtime.md for the executable default interface,
-sources.md for honest source roles and layout-order.md for architecture admission.
-Keep the following inherited general engineering experience within its applicable
-scope. No node-specific recipe or fixed SRAM grouping is implied.
+## Initial planning and executable setup
 
+Use [sources.md](references/sources.md) and [initialize.md](references/initialize.md).
+The private configuration declares the target node/profile, work root, reference
+roles and stage-required file sets. Relative addresses resolve against that
+configuration. `--config` overrides `DCIM_CONFIG`. There is no default PDK,
+compiler, layer map, generator, model, device grouping or execution host.
 
-This is the general experience guide maintained from improve 2. Framework order,
-role dispatch and program entry points belong to [AGENTS.md](../AGENTS.md).
-Stage/route knowledge remains separately maintained in the memory records.
+Main performs one initial-planning step. Establish objective, stage, electrical
+conditions, independent circuit intent, parent H/W/function/interface constraints,
+reference applicability, permissions and first bounded task. Select experience
+and resources using the actual supplied material. Missing optional references
+remain explicit gaps. A fresh design can start with an empty `design/` directory.
+A declared private recipe may supply editable initial Python and its dependencies.
 
-The user controls planning and execution through the main conversation.
-No external agent service or model weight update is required.
-The package has no dependency on the author's home directory or experiment
-tree. In the shell examples, set `SKILL_ROOT` to this installed directory;
-scripts resolve their bundled resources from their own location.
+```sh
+python3 "$SKILL_ROOT/scripts/check_inputs.py" --config private.json --stage planning
+python3 "$SKILL_ROOT/scripts/init_run.py" --config private.json --name trial01 --stage planning
+python3 "$RUN/framework/scripts/check_inputs.py" --run "$RUN"
+```
 
-## Portable setup and external inputs
+Initialization pins scripts, SKILL, references, templates, initial configuration,
+initial design code and hashes of the stage's declared reference files. It
+executes no generator or EDA. File availability and identity establish setup
+readiness. Functional, electrical and physical legality require their own checks.
+Comparison baselines and controlled campaign protocols belong to tasks that
+request them. They are unnecessary for ordinary fresh initialization.
 
-Read [sources.md](references/sources.md) for external input contracts and tool
-provenance. Start from [dcim.example.json](dcim.example.json); keep a private
-`dcim.local.json` outside the published package. All configured relative paths
-resolve against the configuration file, not the process working directory.
-`--config` takes precedence over the `DCIM_CONFIG` environment variable.
+Main writes an actual task, selection and catalog using the documented dispatch
+schema. An empty catalog is valid when there is no applicable experience.
+`context_dispatch.py prepare` materializes that AI selection. Builder runs `open`
+and reads the emitted task/context before editing. See [experience-memory.md](references/experience-memory.md).
 
-Supply the addresses needed by the selected stage in the private configuration:
+## Bounded roles
 
-| Key | Address / required input |
-| --- | --- |
-| `work_root` | Writable new-run directory; never a historical experiment root |
-| `pdk_root` | Licensed target-node PDK installation with declared release, stack and models |
-| `circuit_ref_root` | Independent circuit/netlist and target-native layout references |
-| `compiler_ref_root` | Target-node SRAM compiler reference with GDSII and SPICE; check electrical-model availability separately |
-| `digital_flow_root` | Target-process digital-flow layouts and their circuit/constraint evidence |
-| `experience_root` | Optional read-only condensed prior experience and its cited evidence |
+Read the assigned [Builder](references/builder.md) or [Analyst](references/analyst.md)
+reference. Main chooses an available model according to task uncertainty and the
+user's preference and records its actual ID and reason. A new substantive task
+uses a fresh context where the agent API supports it. Within the same active
+task, ordinary device, contact, pin, routing and rule repairs stay with Builder.
+Record the actual native API's isolation setting and returned agent ID.
+Scripts assemble context and record identity. They do not invoke native agents.
 
-PDK, compiler IP, REF layouts/netlists, simulator models, credentials and EDA
-binaries are **not distributed** here. Obtain them through the user's authorized
-foundry/IP/project channels. No public download address is assumed. Record the
-actual user-provided addresses in the private config and task packet; never
-hardcode them in reusable source. See `sources.md` for PDK-relative layer-map,
-DRC/LVS and model locations. Inspect redistribution rights for technology-specific
-recipes before publishing; the framework code is MIT-licensed; external PDK/IP rights remain separate.
+Builder returns the actual candidate, code/dependency versions, scoped checks,
+failed trials, terminal or explicitly transferred jobs and experience proposal.
+A structural/interface/constraint change returns to Analyst and Main. Analyst
+uses completed artifact-bound results for decisions and requests a targeted
+check when missing or contradictory evidence can alter the decision. Full
+independent replay is available when the user requests an audit.
 
-The bundled [Python tools](assets/tools/) support geometry inspection, drawing
-and explicit construction inputs. They are not a qualified circuit or macro flow.
-Initialize through the framework's stable entry points; see
-[runtime.md](references/runtime.md) for commands and dependency requirements.
-Use a supplied project constraints document when available; otherwise Planning
-must establish the target and acceptance scope. This project's eight input/output
-channels and storage/compute ratio eight are explicit requirements, not weight
-bitwidth or a universal reference design. Do not transfer historical area numbers.
+Every reviewed result, including failure, strategy reuse and closure, includes
+experience disposition and an actual concise reflection. The Analyst output
+states what changed in the diagnosis, what mechanism is retained or revised,
+why the next bounded action follows and what observation will settle it.
+A diagnosed ordinary repair can reuse its mechanism. A separate Reflect agent
+or a newly invented route on every repair is unnecessary.
 
-Read only the role needed now: [initialize.md](references/initialize.md), [reflect.md](references/reflect.md), [builder.md](references/builder.md) or
-[analyst.md](references/analyst.md). Do not load both roles' full evidence.
+## Physical intent and admission
 
-## Authorization and planning
+Read [layout-order.md](references/layout-order.md), [compactness.md](references/compactness.md)
+and [task-admission.md](references/task-admission.md) for applicable physical work.
+Bind actual source/top/circuit roles and reference observations. Group counts,
+channel/operand widths, decoder organization and numeric dimensions come from
+the task and private configuration/recipes. Cross-node evidence can inform
+organization hypotheses. Target-node rules and device models must be established.
 
-- Framework setup/review requests do not authorize EDA jobs. Prepare instructions,
-  packets and local checks only. An execution/resume request authorizes the
-  bounded workflow within the user's stated resource limits.
-- Main chat handles Planning: objective, stage, electrical/area comparison scope,
-  time budget if supplied, and project constraints. Reflect alone commits the next Builder task. Ordinary failures do not require
-  renewed approval. Ask the user only for a genuine unresolved blocker.
-- Establish independent circuit/netlist intent and a functional baseline before
-  layout. In this DCIM campaign, satisfy the applicable parent height, width,
-  alignment and interface constraints first, then minimize actual implemented
-  area subject to timing and correctness. Area alone cannot qualify an
-  out-of-band shape. W/L and fin counts are implementation variables unless
-  explicitly fixed for a scoped experiment; do not freeze conservative
-  schematic sizing and make the layout accommodate it. Use legal, model-valid
-  compact sizing with sufficient verified drive, not unnecessary margin.
-  Detailed OA schematics/native export are optional, not a mandatory gate on
-  every iteration. Create them when useful or requested.
-  Never report a netlist as an existing schematic view without checking.
-- Standard cells may inform topology, density and timing or be reviewed for
-  scoped implementation reuse. Compare real parent-routed area and timing,
-  not just cell sums/LEF size; do not assume custom logic is always preferred.
-  Do not replace the entire DCIM with a different APR macro without checking
-  the target interfaces, storage organization and comparison scope.
-- At first execution, inspect current source summaries, generator dependencies,
-  actual runner commands and live jobs. Do not start by rerunning a macro.
-  Area units and comparison boundary must be established before claiming success.
+Physical tasks carry an inline architecture contract with parent dimensions,
+functional row origins/heights/phases, actual hierarchy/order/transforms,
+straight continuous intended PP/NP bands, TAP/body/termination ownership and
+signal/PG access. Bind authoritative sources as required resources. Main resolves
+conflicting proposed coordinates before construction. Report unknown diagnostic
+conditions explicitly. Qualification requires their applicable checks.
 
-## Initial physical-planning order
+At intended PP/NP interfaces require direct abutment without artificial gaps or
+overlap. Remove redundant standalone TAP/context only when actual legal powered
+same-body access survives. Recheck the final joined artifact, including rule
+domain, repeats, boundaries, functional row alignment and parent-routed access.
+DRC zero, equal all-mask height and one shared boundary each establish a limited
+observation. Preserve independent source LVS, function, ERC and electrical gates
+where the task requires them. Never scale masks, borrow marker exemptions or
+weaken a foundry deck to produce a pass.
 
-Read [layout-order.md](references/layout-order.md) before selecting layout tasks.
-Inspect actual reference hierarchy, interfaces and repeated boundaries before
-choosing the organization. Derive SRAM grouping, compute alignment and decoder
-placement from the declared task and measured alternatives. Align complete
-functional blocks where the parent contract requires it; never pad primitive
-bounding boxes merely to mimic alignment. No grouping, decoder fraction or
-placement order is a universal cross-process requirement.
+Measure the complete connected routed/PG/context envelope against hard W/H
+and interface constraints before claiming area improvement. Retain meaningful
+compact trials and failures, with their verification scope. A macro-area account
+separates measured implementation, projections, sharing hypotheses and unknowns.
+Use bounded parent observations when full expansion is unsupported. Structural
+alternatives are AI-selected when they can resolve a real uncertainty. Ordinary
+repair has no mandatory paired-candidate or parallel-agent gate.
 
-### Mandatory compaction constraints
+## Evidence, memory and recovery
 
-- PP and NP boundaries MUST abut directly: no artificial gap and no overlap.
-  Check the actual implant polygons at the intended seam, not only cell boxes.
-- During composition, remove redundant TAPs where needed while preserving legal,
-  real body-supply connections. Never replace physical body ties with labels or
-  assume the remaining TAPs cover the assembled circuit. Revalidate the FINAL
-  assembled layout, including applicable DRC, independent LVS and body/ERC checks.
-- Run a meaningful compact preliminary experiment FIRST, then diagnose and repair
-  specific DRC violations. A large violation count alone MUST NOT be used to
-  declare a route unsuccessful. Record rule families, locations, causal evidence,
-  attempted repairs and the decisive reason to continue, restructure or stop.
+Use [evidence-tools.md](references/evidence-tools.md) for existing `pv`, `wave`,
+`gds`, `freeze` and `check` readers. Freeze original artifacts, declared executed
+inputs, specs, independent source and relevant dependencies. Reuse unchanged,
+fully bound conclusions within their original scope. Tool/reader changes receive
+focused positive/negative regression. Changed circuit or sizing receives its
+affected functional/electrical checks.
 
-These requirements do not waive a foundry rule or qualify an unverified layout.
-If the applicable rule domain conflicts with a required seam, report the exact
-conflict and resolve the construction; do not silently add a gap, overlap or waiver.
+Keep experience under stage, node/rule domain, module and route. Analyst selects
+relevant entries, marks applicability and maintains active/deferred/superseded
+summaries with source evidence. Preserve failed observations and uncertain causes.
+Bytes/hashes establish identity. They cannot establish execution, comprehension,
+raw observation truth, functional legality or foundry qualification.
 
-Read [compactness.md](references/compactness.md) at each physical stage's start
-and final review. Start from reviewed references and applicable DRC rules with
-a rule-compact Python-generated candidate, not an arbitrary loose baseline.
-Declare upstream height/width constraints and the dimension being minimized.
-Final stage acceptance reports the smallest verified dimensions and actual
-tighter trials, with independent physical/electrical status and remaining
-search scope. Separate functional device/row distribution from routing/PG and
-dummy/termination envelopes; matching the all-mask height alone does not show
-useful height utilization. DRC zero or one failed shrink does not prove optimality.
+Use a run's pinned programs/instructions. Before recovery inspect current state,
+concise handoff and owned jobs. Reconcile uncertain submissions before retry.
+Preserve prior evidence and append decisions, experiences, actual reflection,
+parameter/code versions, prompts and timing at meaningful task boundaries.
+The small main package has no scheduler, physical-action engine or automatic
+acceptance state machine. EDA execution uses the authorized private runner.
+Developer HANDOFF is outside normal design-role context.
 
-## Visible progress
+## Scope and authorization
 
-Use the reporting stages in [stage-progress.md](references/stage-progress.md):
-SRAM -> height-constrained multiplication/multibit addition and connected tile
--> local decode -> read/write drivers -> whole-macro integration/qualification.
-They are progress landmarks, not fixed iteration counts or a ban on feedback.
-Each Analyst decision summarizes the current stage, accepted scope, remaining
-gap and next expected observable result, and updates the program's stage record.
-Main chat shows that concise stage summary to the user at review boundaries,
-not just agent IDs, task numbers or a file link. Keep test status and stage
-progress separate; do not invent completion percentages or delivery dates.
-
-## Task granularity and independent work
-
-Framework dispatch follows [AGENTS.md](../AGENTS.md). Keep these engineering
-practices when deciding the scope of work and interpreting results.
-
-The main chat may directly repair a small, already diagnosed local adapter
-defect and execute its focused regression without creating another Analyst
-and Builder pair. This does not replace independent review of a new design
-strategy, change acceptance criteria, or constitute an isolated reference
-trial. Use a fresh role at a meaningful design/evidence boundary; do not
-create a new agent and packet for each ordinary script or coordinate error.
-When asked to finalize a bounded task, return the current exact result and
-owned-job state promptly instead of extending the investigation.
-
-For design work, prefer a deliverable such as one connected, geometry-constrained
-arithmetic block with applicable qualification, or one actual parent connection.
-The packet states the block boundary, hard H/W constraints versus dimensions
-being minimized, allowed sizing/placement/access/routing changes and stop
-conditions. Builder owns local engineering iterations inside that contract;
-an ordinary access or routing failure need not create another Analyst cycle.
-Analyst reviews a meaningful result, exhausted supported route, required
-contract change or genuine blocker. Reflect then chooses the next block/route.
-Main chat communicates; it does not replace independent evidence review.
-
-## Bounded reads
-
-Packets include intent, parent constraints, relevant code/evidence paths,
-hypothesis, action and decisive checks. Builder searches the shared experience
-itself; there is no retrieval agent or special retrieval engine.
-Follow [experience-memory.md](references/experience-memory.md): retrieve by
-stage, then node/module/route before topic. Inactive routes are summary-only
-for Analyst when relevant and excluded from Builder's default detail reads.
-
-Use scoped `rg -n` and bounded excerpts. Exclude candidate snapshots, dependency
-trees and backups from broad searches unless investigating one explicit item.
-Keep returned summaries within the packet's text limit. Put full logs on disk.
-If necessary evidence becomes too large, write a focused finding and issue a
-new packet at the action boundary; do not repeatedly append whole histories.
-These are instruction-level context controls, not a sandbox or exact token cap.
-
-## Evidence tool reuse
-
-Before evidence work read the inventory and applicable command contract in
-[evidence-tools.md](references/evidence-tools.md). The bundled
-`scripts/evidence.py` provides `pv`, `wave`, `gds`, `freeze` and `check`:
-DRC/LVS evidence checks, waveform reading, geometry comparison and input
-dependency checks. Reuse these tools instead of rewriting mechanical checkers.
-Builder freezes the original evidence and relevant dependencies; Analyst runs
-the tools itself against that snapshot and records its own outputs. Only
-unchanged, fully bound dependencies support inheriting an accepted conclusion.
-Tool-change positive/negative regressions run when the tool/readers change,
-not as newly authored fixtures every round. New artifacts and changed circuit
-semantics still require their affected checks and independent oracles.
-
-For transistor-granularity search and campaign planning, read
-[transistor-planning.md](references/transistor-planning.md). Its abstract device
-checks do not implement physical mask generation, body contacts or routing.
-
-## Search and self-improvement
-
-- At structural decisions, default to two mechanism-distinct candidates and
-  actual low-cost initial screens before selecting costly implementation.
-  A single-route exception needs an evidence-based reason; ordinary diagnosed
-  repairs do not require a fabricated competitor. Follow
-  [task-admission.md](references/task-admission.md), also for hierarchy advancement.
-  Predictions are hypotheses; untested candidates are not ranked. This is
-  GEPA-inspired, not a reproduction of GEPA.
-- Use cheap discriminating checks before costly simulation. Do not replace
-  mandatory final electrical verification with screening results.
-- No fixed iteration count. Each route states an expectation and what evidence
-  would settle it. Reflect decides continue/switch/stop from the reviewed evidence and
-  expected value of another test, including elapsed/estimated simulation time.
-- Do not require global leaf optimality or invent hard leaf budgets. This does
-  not authorize expanding a design with unresolved macro-area risk: distinguish
-  a bounded parent observation from full higher-level implementation, and admit
-  only the tier justified by the area account and decisive evidence.
-- Preserve acceptance criteria. DRC, LVS, area and electrical qualification are
-  independent states; DRC zero does not prove compactness or functionality.
-- Reflect must originate one testable AI idea every round, including Reflect0,
-  unchanged strategy and final closure. Explain its difference from existing
-  routes and give a minimal discriminating test. A new diagnosis, measurement or
-  controlled experiment can qualify; merely repeating the algorithm winner cannot.
-  Compare it with actual heuristic proposals; no human proposal/feedback channel
-  enters Reflect. Analyst supplies independent evidence, and Builder implements
-  the selected task. Design Python, reusable construction code,
-  diagnostic tools and optimization policy may improve. No need to label all
-  changes "harness". Version instruction/interface improvements with evidence,
-  preserve their previous text and validate before use.
-- Validate narrowly first, then use a related case when feasible. Unsuccessful
-  changes are not promoted; continue with the working version. Preserve failed
-  circuits, generated layouts, executed code and evidence. Keep the default
-  retrieved lesson short while retaining the complete branch archive.
-- Every bounded Builder/Analyst round updates stage-scoped route memory:
-  Builder proposes, Analyst reviews and updates, including an explicit no-new
-  outcome when appropriate. Follow [experience-memory.md](references/experience-memory.md).
-  Construction mechanisms stay under their route; inactive-route repair detail
-  is not default context. Human principles, experience, policy and progress stay
-  separate. Counterexamples are optional; known contradictions cannot be hidden.
-
-## Workspace ownership
-
-Use the user's selected output root, or `<work_root>/<run>/` from the private
-configuration, for new work; see [templates/](templates/) for contracts.
-Do not default to writing into the installed skill. Treat source experiments and
-recorded method releases as read-only inputs. The installed layout skill may
-evolve at an explicit stage checkpoint when authorized by the user: back up
-its prior release, record the evidence and scope, and bind later candidates
-to the new version. Preserve fixed versions within controlled comparison
-groups. Old no-subagent/frozen-method/fixed-leaf-budget rules describe those
-old trials, not this new workflow. Do not edit or relabel baseline trials.
-Inspect imported paths before copying a generator: `ROOT` relocation alone
-does not fix sibling references, generated shared libraries or PDK dependencies.
-Read actual EDA skills and runner APIs before operations. Never weaken decks,
-independent LVS references, electrical tests or success criteria to pass a run.
-
-Read [two-scale.md](references/two-scale.md) when selecting fine/coarse actions or using private physical recipes. The complete module contract and MUST conditions persist across scale changes; unsupported constraints cannot be silently ignored.
+Framework setup and software checks authorize no EDA. Execution follows the
+user's selected tasks/resources. Keep private PDK/compiler, models, recipes,
+credentials and experimental data outside public Git and ZIP. Write new results
+inside the private run. Preserve historical runs and immutable releases.
+No task should auto-upgrade an old run or inherit its node-specific pass.

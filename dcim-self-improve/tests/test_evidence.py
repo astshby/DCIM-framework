@@ -6,7 +6,6 @@ import io
 import json
 import os
 from pathlib import Path
-import shutil
 import tempfile
 import unittest
 
@@ -135,7 +134,7 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaises(evidence.EvidenceError):
             evidence.pv(spec, self.frozen(paths, "wrongtop.json"))
 
-    def lvs_fixture(self):
+    def test_pv_lvs_full_bindings_and_wrong_source(self):
         spec, paths = self.pv_fixture()
         original, run, report = [Path(spec[k]) for k in
                                  ("original_deck", "run_deck", "report")]
@@ -156,78 +155,10 @@ class EvidenceTests(unittest.TestCase):
             "OVERALL COMPARISON RESULTS\nCELL  SUMMARY\nCORRECT top source\n"
             "NUMBERS OF OBJECTS AFTER TRANSFORMATION\n"
             "Total CPU Time: 0 sec\nTotal Elapsed Time: 0 sec\n")
-        return spec, paths
-
-    def test_pv_lvs_full_bindings_and_wrong_source(self):
-        spec, paths = self.lvs_fixture()
-        report = Path(spec['report'])
         self.assertEqual(evidence.pv(spec, self.frozen(paths))["status"], "passed")
         report.write_text(report.read_text().replace("('source')", "('wrong')"))
         with self.assertRaises(evidence.EvidenceError):
             evidence.pv(spec, self.frozen(paths, "wrongsource.json"))
-
-    def test_portable_pv_after_rename_and_copy_without_old_root(self):
-        parent = self.root
-        for kind in ('drc', 'lvs'):
-            with self.subTest(kind=kind):
-                self.root = parent / (kind + '-original')
-                self.root.mkdir()
-                spec, paths = self.pv_fixture() if kind == 'drc' else self.lvs_fixture()
-                spec_path = self.write('spec.json', json.dumps(spec))
-                (self.root / 'checks').mkdir()
-                manifest = self.root / 'checks' / 'manifest.json'
-                data = evidence.freeze(paths + [spec_path], manifest, self.root)
-                self.assertEqual(data['base_root'], '..')
-                original = self.root
-                renamed = parent / (kind + '-renamed')
-                copied = parent / (kind + '-copy')
-                original.rename(renamed)
-                shutil.copytree(renamed, copied)
-                shutil.rmtree(renamed)
-                self.assertFalse(original.exists())
-                relocated = copied / 'checks' / 'manifest.json'
-                frozen = evidence.Frozen(str(relocated))
-                self.assertEqual(frozen.json(str(spec_path)), spec)
-                self.assertEqual(frozen.path_for('a.gds'), copied / 'a.gds')
-                self.assertEqual(evidence.pv(frozen.json('spec.json'), frozen)['status'], 'passed')
-                with contextlib.redirect_stdout(io.StringIO()):
-                    self.assertEqual(evidence.main(['pv', 'spec.json', '--manifest', str(relocated)]), 0)
-                # A different file appearing at the old location is never a fallback.
-                original.mkdir(); (original / 'a.gds').write_text('unrelated')
-                self.assertEqual(frozen.text(spec['gds']), 'gds fixture bytes')
-                self.assertEqual(evidence.pv(spec, frozen)['status'], 'passed')
-                frozen.verify()
-                (copied / 'a.gds').write_text('changed')
-                with self.assertRaisesRegex(evidence.EvidenceError, 'changed'):
-                    frozen.verify()
-                with self.assertRaisesRegex(evidence.EvidenceError, 'Unbound evidence'):
-                    frozen.path_for(str(parent / 'unknown'))
-
-    def test_portable_manifest_rejects_escapes_and_missing_files(self):
-        base = self.root / 'base'; base.mkdir()
-        dependency = base / 'input'; dependency.write_text('same bytes')
-        outside = self.write('outside', 'same bytes')
-        manifest = base / 'manifest.json'
-        with self.assertRaisesRegex(evidence.EvidenceError, 'escapes'):
-            evidence.freeze([outside], manifest, base)
-        with self.assertRaisesRegex(evidence.EvidenceError, 'inside'):
-            evidence.freeze([dependency], self.root / 'manifest.json', base)
-        evidence.freeze(['input'], manifest, base)
-        frozen = evidence.Frozen(str(manifest))
-        with self.assertRaisesRegex(evidence.EvidenceError, 'relative'):
-            frozen.path_for('../outside')
-        dependency.unlink()
-        with self.assertRaises(OSError): evidence.Frozen(str(manifest))
-        dependency.symlink_to(outside)
-        with self.assertRaisesRegex(evidence.EvidenceError, 'escapes'):
-            frozen.verify()
-        with self.assertRaisesRegex(evidence.EvidenceError, 'escapes'):
-            evidence.Frozen(str(manifest))
-        dependency.unlink(); dependency.write_text('same bytes')
-        data=json.loads(manifest.read_text()); data['files'][0]['path']='../outside'
-        manifest.write_text(json.dumps(data))
-        with self.assertRaisesRegex(evidence.EvidenceError, 'relative'):
-            evidence.Frozen(str(manifest))
 
     def test_wave_samples_and_bad_vectors(self):
         spec = {"signals": ["out"], "sample_times_s": [0, .5, 1]}
@@ -312,46 +243,6 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertEqual(json.loads(output.getvalue())["status"], "incomplete")
 
-    @unittest.skipUnless(os.environ.get("DCIM_EVIDENCE_RUN"), "Optional historical replay")
-    def test_historical_reports(self):
-        run = Path(os.environ["DCIM_EVIDENCE_RUN"])
-        good = run / "candidates/B016_group_compute/trial_4/route_43"
-        bad = run / "candidates/B017_group_compute/trial_4/route_45"
-        self.assertEqual(evidence.parse_drc((good / "drc/DRC.rep").read_text())
-                         ["status"], "passed")
-        self.assertEqual(evidence.parse_drc((bad / "drc/DRC.rep").read_text())
-                         ["status"], "failed")
-        for path, status in ((good, "passed"), (bad, "failed")):
-            self.assertEqual(evidence.parse_lvs(
-                (path / "lvs/lvs.rep").read_text(), "B014_routed",
-                "B014_group_compute_source")["status"], status)
-        pdk = Path("/PDK/TSMC_12NM/PDK/1P11M_2Xa1Xd_h_3Xe_vhv_2Y2R/"
-                   "iPDK_CLN12FFCLL_v1.0_2p4a_20190306/Calibre")
-        source = run / "candidates/B016_group_compute/source.cdl"
-        for kind in ("drc", "lvs"):
-            original = pdk / ("drc/calibre_block.drc.15a" if kind == "drc"
-                              else "lvs/calibre.lvs")
-            spec = dict(kind=kind, gds=str(good / "routed.gds"), source=str(source),
-                        top="B014_routed", source_top="B014_group_compute_source",
-                        report=str(good / kind / ("DRC.rep" if kind == "drc" else "lvs.rep")),
-                        original_deck=str(original), run_deck=str(good / kind / f"rules.{kind}"),
-                        execution_inputs=str(good / kind / "inputs.json"))
-            if kind == "drc":
-                spec["replacements"] = [
-                    ['"GDSFILENAME"', f'"{spec["gds"]}"'],
-                    ['"TOPCELLNAME"', '"B014_routed"']]
-            else:
-                spec["replacements"] = [
-                    ['LAYOUT PATH "lvs_top.gds"', f'LAYOUT PATH "{spec["gds"]}"'],
-                    ['LAYOUT PRIMARY "lvs_top"', 'LAYOUT PRIMARY "B014_routed"'],
-                    ['SOURCE PATH "lvs_top.cdl"', f'SOURCE PATH "{source}"'],
-                    ['SOURCE PRIMARY "lvs_top"',
-                     'SOURCE PRIMARY "B014_group_compute_source"'],
-                    ["VIRTUAL CONNECT COLON YES", "VIRTUAL CONNECT COLON NO"]]
-            paths = [Path(spec[k]) for k in ("gds", "source", "report",
-                                            "original_deck", "run_deck", "execution_inputs")]
-            self.assertEqual(evidence.pv(
-                spec, self.frozen(paths, kind + ".json"))["status"], "passed")
 
 
 if __name__ == "__main__":
